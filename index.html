@@ -1,762 +1,1563 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>FlowOS — Work Management</title>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>روضة الحروف - Kids Learning</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Tajawal:wght@400;700;900&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#0d0f14;--surface:#13161e;--surface2:#1a1e2a;--border:#232838;
-  --accent:#4f6ef7;--accent2:#7c4dff;--accent3:#00d4a0;--accent4:#f7934c;--accent5:#f74f6e;
-  --text1:#e8eaf2;--text2:#8a90a8;--text3:#555c78;
-  --radius:12px;--sidebar:220px;--mono:"JetBrains Mono",monospace;
+:root {
+  --sky: #6EC6F5;
+  --sun: #FFD93D;
+  --grass: #6BCB77;
+  --coral: #FF6B6B;
+  --purple: #A78BFA;
+  --orange: #FFAB40;
+  --pink: #FF8FAB;
+  --teal: #4ECDC4;
+  --navy: #1A1A3E;
+  --white: #FFFEF7;
+  --card-bg: rgba(255,255,255,0.92);
+  --shadow: 0 8px 32px rgba(26,26,62,0.13);
 }
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:"Sora",sans-serif;background:var(--bg);color:var(--text1);height:100vh;overflow:hidden}
-::-webkit-scrollbar{width:5px;height:5px}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-/* LOGIN */
-#loginScreen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999}
-.login-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:40px;width:400px;max-width:90vw}
-.login-logo{display:flex;align-items:center;gap:10px;margin-bottom:32px;justify-content:center}
-.logo-icon{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff}
-.login-title{font-size:20px;font-weight:700;text-align:center;margin-bottom:6px}
-.login-desc{font-size:12px;color:var(--text3);text-align:center;margin-bottom:28px}
-.fl{display:block;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:5px}
-.fi{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:10px 14px;font-size:13px;color:var(--text1);outline:none;font-family:"Sora",sans-serif;transition:border-color .2s;margin-bottom:14px}
-.fi:focus{border-color:var(--accent)}
-.fpw{position:relative;margin-bottom:14px}
-.fpw .fi{margin-bottom:0;padding-right:40px}
-.ptog{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:15px;color:var(--text3)}
-.login-btn{width:100%;padding:11px;border-radius:10px;font-size:13px;font-weight:600;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;cursor:pointer;font-family:"Sora",sans-serif;transition:all .2s;margin-top:4px}
-.login-btn:hover{opacity:.9}
-.login-btn:disabled{opacity:.6;cursor:not-allowed}
-.login-err{background:rgba(247,79,110,.1);border:1px solid rgba(247,79,110,.3);border-radius:8px;padding:9px 13px;font-size:12px;color:var(--accent5);margin-bottom:14px;display:none}
-.accounts-hint{margin-top:20px;background:var(--surface2);border-radius:10px;padding:14px}
-.accounts-hint-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:10px}
-.account-item{display:flex;align-items:center;gap:10px;padding:7px 9px;border-radius:7px;cursor:pointer;transition:all .15s;margin-bottom:4px}
-.account-item:hover{background:var(--border)}
-.account-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
-.account-info{flex:1}
-.account-name{font-size:11px;font-weight:600}
-.account-role{font-size:10px;color:var(--text3)}
-.account-arr{font-size:12px;color:var(--text3)}
-/* APP */
-#appScreen{display:none;height:100vh;overflow:hidden}
-.sidebar{width:var(--sidebar);flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100vh}
-.slogo{padding:17px 15px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:9px}
-.sli{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
-.nsec{padding:9px 8px 2px}
-.nlbl{font-size:9px;font-weight:600;letter-spacing:1.4px;color:var(--text3);text-transform:uppercase;padding:0 8px 5px}
-.nitem{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:1px;transition:all .15s;position:relative}
-.nitem:hover{background:var(--surface2);color:var(--text1)}
-.nitem.active{background:linear-gradient(135deg,rgba(79,110,247,.16),rgba(124,77,255,.09));color:var(--accent)}
-.nitem.active::before{content:"";position:absolute;left:-8px;top:50%;transform:translateY(-50%);width:3px;height:15px;background:var(--accent);border-radius:0 3px 3px 0}
-.ni{font-size:14px;width:17px;text-align:center}
-.nb{margin-left:auto;background:var(--accent5);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:20px}
-.suser{margin-top:auto;border-top:1px solid var(--border);padding:10px 8px}
-.ucard{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;cursor:pointer}
-.ucard:hover{background:var(--surface2)}
-.uav{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
-.logbtn{margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:3px;title:"Sign out"}
-.logbtn:hover{color:var(--accent5)}
-.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
-.topbar{height:50px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 19px;gap:11px;flex-shrink:0}
-.tsearch{flex:1;max-width:270px;margin-left:11px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;gap:6px;padding:0 10px;height:30px}
-.tsearch input{background:none;border:none;outline:none;color:var(--text1);font-size:11px;font-family:"Sora",sans-serif;flex:1}
-.tsearch input::placeholder{color:var(--text3)}
-.nbtn{padding:5px 12px;border-radius:8px;font-size:11px;font-weight:600;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;cursor:pointer;font-family:"Sora",sans-serif}
-.content{flex:1;overflow-y:auto;padding:20px}
-.page{display:none;animation:fadeUp .2s ease}
-.page.active{display:block}
-@keyframes fadeUp{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
-/* COMPONENTS */
-.sgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
-.scard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;position:relative;overflow:hidden;transition:all .2s}
-.scard::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:var(--tc)}
-.scard:hover{transform:translateY(-1px);border-color:rgba(79,110,247,.4)}
-.sicon{position:absolute;right:13px;top:10px;font-size:21px;opacity:.13}
-.slbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--text3)}
-.sval{font-size:24px;font-weight:700;font-family:var(--mono);margin:4px 0 2px}
-.schg{font-size:10px;color:var(--accent3)}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:15px}
-.card-d{border-style:dashed;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:165px;cursor:pointer;transition:all .2s}
-.card-d:hover{border-color:var(--accent)}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
-.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.shd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.stit{font-size:13px;font-weight:700}
-.slnk{font-size:11px;color:var(--accent);cursor:pointer}
-table{width:100%;border-collapse:collapse}
-.tbl th{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);padding:7px 11px;text-align:left;border-bottom:1px solid var(--border)}
-.tbl td{padding:9px 11px;font-size:12px;border-bottom:1px solid rgba(35,40,56,.5);vertical-align:middle}
-.tbl tr:last-child td{border-bottom:none}
-.tbl tr:hover td{background:rgba(255,255,255,.013)}
-.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:600}
-.badge::before{content:"";width:4px;height:4px;border-radius:50%;background:currentColor}
-.bb{background:rgba(79,110,247,.15);color:var(--accent)}
-.bg{background:rgba(0,212,160,.15);color:var(--accent3)}
-.bo{background:rgba(247,147,76,.15);color:var(--accent4)}
-.br{background:rgba(247,79,110,.15);color:var(--accent5)}
-.bp{background:rgba(124,77,255,.15);color:var(--accent2)}
-.bx{background:rgba(138,144,168,.1);color:var(--text2)}
-.pw{height:5px;background:var(--border);border-radius:3px;overflow:hidden;width:100%}
-.pf{height:100%;border-radius:3px;transition:width .4s}
-.tabrow{display:flex;gap:2px;background:var(--surface2);border-radius:8px;padding:3px;width:fit-content;margin-bottom:13px}
-.tbtn{padding:5px 12px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);font-family:"Sora",sans-serif;transition:all .15s}
-.tbtn.active{background:var(--surface);color:var(--text1);box-shadow:0 1px 4px rgba(0,0,0,.3)}
-.bsm{padding:4px 9px;border-radius:6px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-family:"Sora",sans-serif;transition:all .15s}
-.bsm:hover{border-color:var(--accent);color:var(--text1)}
-.kboard{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.kcol{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
-.kch{display:flex;align-items:center;gap:7px;padding:10px 13px;border-bottom:1px solid var(--border)}
-.kdot{width:7px;height:7px;border-radius:50%}
-.kct{margin-left:auto;background:var(--surface2);padding:1px 6px;border-radius:20px;font-size:9px;font-weight:600;color:var(--text3)}
-.kcards{padding:8px;display:flex;flex-direction:column;gap:6px;min-height:140px}
-.kcard{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px;cursor:pointer;transition:all .15s}
-.kcard:hover{border-color:var(--accent);transform:translateY(-1px)}
-.kcard.done{opacity:.58}
-.kav{width:17px;height:17px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff}
-.kadd{padding:7px 11px;border-top:1px solid var(--border);font-size:10px;color:var(--text3);cursor:pointer;transition:all .15s}
-.kadd:hover{color:var(--accent);background:rgba(79,110,247,.05)}
-.inlay{display:grid;grid-template-columns:260px 1fr;height:calc(100vh - 50px - 40px);margin:-20px;margin-top:0}
-.inlist{border-right:1px solid var(--border);overflow-y:auto;background:var(--surface)}
-.init{padding:11px 13px;border-bottom:1px solid var(--border);cursor:pointer;position:relative;transition:all .15s}
-.init:hover{background:var(--surface2)}
-.init.active{background:rgba(79,110,247,.08);border-left:2px solid var(--accent)}
-.udot{position:absolute;right:11px;top:50%;transform:translateY(-50%);width:6px;height:6px;background:var(--accent);border-radius:50%}
-.mback{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center;padding:16px}
-.mbox{background:var(--surface);border:1px solid var(--border);border-radius:15px;width:100%;max-width:460px;max-height:87vh;overflow-y:auto}
-.mbox.wide{max-width:540px}
-.mhd{display:flex;align-items:center;justify-content:space-between;padding:15px 19px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:1}
-.mclose{background:none;border:none;cursor:pointer;font-size:19px;color:var(--text3);line-height:1}
-.mclose:hover{color:var(--text1)}
-.mbody{padding:17px 19px}
-.mf{margin-bottom:11px}
-.ml{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);display:block;margin-bottom:4px}
-.mi,.ms,.mt{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 11px;font-size:12px;color:var(--text1);outline:none;font-family:"Sora",sans-serif;transition:border-color .2s}
-.mi:focus,.ms:focus,.mt:focus{border-color:var(--accent)}
-.mi:disabled{opacity:.6;cursor:not-allowed}
-.mt{resize:vertical;min-height:72px}
-.g2m{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.ipicker{display:flex;flex-wrap:wrap;gap:5px}
-.ibtn{width:31px;height:31px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
-.ibtn:hover,.ibtn.on{border-color:var(--accent);background:rgba(79,110,247,.1)}
-.trow{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)}
-.trow:last-child{border-bottom:none}
-input[type=checkbox].toggle{width:31px;height:16px;appearance:none;background:var(--border);border-radius:16px;cursor:pointer;position:relative;transition:all .2s}
-input[type=checkbox].toggle:checked{background:var(--accent)}
-input[type=checkbox].toggle::after{content:"";position:absolute;width:11px;height:11px;background:#fff;border-radius:50%;top:2.5px;left:2.5px;transition:all .2s}
-input[type=checkbox].toggle:checked::after{left:17.5px}
-input[type=range]{accent-color:var(--accent);width:100%}
-/* STAFF PORTAL */
-#staffScreen{display:none;flex-direction:column;height:100vh;background:var(--bg)}
-.staffhd{background:var(--surface);border-bottom:1px solid var(--border);padding:11px 20px;display:flex;align-items:center;gap:10px}
-.stfcon{flex:1;overflow-y:auto}
-.stfinn{max-width:860px;margin:0 auto;padding:22px 16px}
-.stfstats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
-.stfstat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px 14px}
-.intg{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)}
-.intg:last-child{border-bottom:none}
-.stftab{padding:5px 12px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);font-family:"Sora",sans-serif;transition:all .15s}
-.stftab.active{background:var(--surface);color:var(--text1);box-shadow:0 1px 4px rgba(0,0,0,.3)}
-/* TOAST */
-.toast{position:fixed;bottom:20px;right:20px;z-index:300;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 15px;font-size:12px;font-weight:500;opacity:0;transform:translateY(6px);transition:all .22s;pointer-events:none;box-shadow:0 6px 20px rgba(0,0,0,.4)}
-.toast.show{opacity:1;transform:none;pointer-events:auto}
-.toast.ts{border-color:rgba(0,212,160,.4);color:var(--accent3)}
-.toast.te{border-color:rgba(247,79,110,.4);color:var(--accent5)}
-.toast.ti{border-color:rgba(79,110,247,.4);color:var(--accent)}
-.ngrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:13px}
-.nopt{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:15px;text-align:center;cursor:pointer;transition:all .17s}
-.nopt:hover{border-color:var(--accent);transform:translateY(-1px)}
+* { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: 'Tajawal', 'Nunito', sans-serif;
+  background: linear-gradient(160deg, #a8edea 0%, #fed6e3 100%);
+  min-height: 100vh;
+  position: relative;
+}
+
+/* ===== SCREENS ===== */
+.screen { display: none; width: 100vw; height: 100vh; overflow-y: auto; overflow-x: hidden; position: absolute; top: 0; left: 0; }
+.screen.active { display: flex; flex-direction: column; }
+
+/* ===== STARS BG ===== */
+.stars { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+.star { position: absolute; border-radius: 50%; animation: twinkle 2s infinite alternate; }
+@keyframes twinkle { from { opacity: 0.3; transform: scale(1); } to { opacity: 1; transform: scale(1.4); } }
+
+/* ===== LOGIN SCREEN ===== */
+#loginScreen {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  align-items: center; justify-content: center; flex-direction: column; gap: 24px;
+}
+.login-logo { font-size: 90px; animation: bounce 1.5s ease-in-out infinite; }
+@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-18px)} }
+.login-title {
+  font-family: 'Fredoka One', 'Tajawal', sans-serif;
+  font-size: clamp(28px, 6vw, 48px);
+  color: white;
+  text-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  text-align: center;
+}
+.login-subtitle { color: rgba(255,255,255,0.8); font-size: 18px; text-align: center; }
+.profiles-grid {
+  display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;
+  max-width: 600px; padding: 10px;
+}
+.profile-card {
+  background: rgba(255,255,255,0.18);
+  backdrop-filter: blur(12px);
+  border: 2px solid rgba(255,255,255,0.35);
+  border-radius: 24px;
+  padding: 24px 28px;
+  cursor: pointer;
+  text-align: center;
+  color: white;
+  transition: all 0.25s;
+  min-width: 130px;
+}
+.profile-card:hover { transform: scale(1.08) translateY(-4px); background: rgba(255,255,255,0.28); }
+.profile-avatar { font-size: 52px; margin-bottom: 10px; }
+.profile-name { font-size: 18px; font-weight: 700; }
+.profile-age { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+.add-profile-btn {
+  background: rgba(255,255,255,0.12);
+  border: 2.5px dashed rgba(255,255,255,0.5);
+  border-radius: 24px;
+  padding: 24px 28px;
+  cursor: pointer;
+  text-align: center;
+  color: white;
+  min-width: 130px;
+  font-size: 40px;
+  transition: all 0.2s;
+}
+.add-profile-btn:hover { background: rgba(255,255,255,0.22); }
+/* Add profile modal */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6); z-index: 1000;
+  align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+  background: white; border-radius: 28px; padding: 36px;
+  max-width: 380px; width: 90%; box-shadow: 0 24px 80px rgba(0,0,0,0.3);
+  direction: rtl;
+}
+.modal-box h3 { font-size: 22px; font-weight: 800; margin-bottom: 20px; color: var(--navy); text-align: center; }
+.modal-box input, .modal-box select {
+  width: 100%; padding: 14px 16px; border-radius: 14px;
+  border: 2px solid #e5e7eb; font-size: 16px; margin-bottom: 14px;
+  font-family: inherit; outline: none;
+}
+.modal-box input:focus, .modal-box select:focus { border-color: var(--purple); }
+.avatar-picker { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; justify-content: center; }
+.avatar-opt { font-size: 32px; cursor: pointer; padding: 6px; border-radius: 12px; border: 3px solid transparent; transition: all 0.2s; }
+.avatar-opt.selected { border-color: var(--purple); background: #f3f0ff; transform: scale(1.15); }
+.btn-primary {
+  width: 100%; padding: 14px; border-radius: 16px;
+  background: linear-gradient(135deg, var(--purple), #764ba2);
+  color: white; font-size: 18px; font-weight: 700;
+  border: none; cursor: pointer; font-family: inherit;
+  transition: transform 0.15s; box-shadow: 0 6px 20px rgba(167,139,250,0.4);
+}
+.btn-primary:active { transform: scale(0.97); }
+
+/* ===== MAIN MENU ===== */
+#menuScreen { background: linear-gradient(160deg, #a8edea 0%, #fed6e3 100%); }
+.topbar {
+  background: rgba(255,255,255,0.75);
+  backdrop-filter: blur(12px);
+  padding: 14px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 2px solid rgba(255,255,255,0.6);
+  position: sticky; top: 0; z-index: 10;
+}
+.topbar-user { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; color: var(--navy); }
+.topbar-avatar { font-size: 32px; }
+.back-btn, .logout-btn {
+  background: rgba(255,255,255,0.8); border: 2px solid #e5e7eb;
+  border-radius: 12px; padding: 8px 16px;
+  font-family: inherit; font-size: 14px; font-weight: 700;
+  cursor: pointer; color: var(--navy); transition: all 0.2s;
+}
+.back-btn:hover, .logout-btn:hover { background: white; border-color: var(--purple); }
+
+.menu-greeting {
+  text-align: center; padding: 28px 20px 16px;
+  font-size: clamp(22px, 5vw, 34px); font-weight: 900; color: var(--navy);
+}
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 18px;
+  padding: 10px 20px 30px;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+}
+.menu-card {
+  background: var(--card-bg);
+  border-radius: 28px;
+  padding: 30px 20px;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  border: 3px solid transparent;
+  transition: all 0.25s;
+  position: relative;
+  overflow: hidden;
+}
+.menu-card::before {
+  content: ''; position: absolute; inset: 0;
+  background: var(--mc); opacity: 0.08; border-radius: inherit;
+}
+.menu-card:hover { transform: translateY(-6px) scale(1.03); border-color: var(--mc); box-shadow: 0 16px 48px rgba(0,0,0,0.15); }
+.menu-icon { font-size: 56px; margin-bottom: 12px; display: block; }
+.menu-label { font-size: 18px; font-weight: 800; color: var(--navy); }
+.menu-sublabel { font-size: 13px; color: #666; margin-top: 4px; }
+
+/* ===== PROGRESS BAR ===== */
+.progress-strip {
+  background: rgba(255,255,255,0.7);
+  margin: 0 20px 10px;
+  border-radius: 16px;
+  padding: 12px 20px;
+  display: flex; align-items: center; gap: 14px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+}
+.progress-strip .label { font-weight: 700; color: var(--navy); font-size: 14px; white-space: nowrap; }
+.prog-bar { flex: 1; height: 14px; background: #e9ecef; border-radius: 99px; overflow: hidden; }
+.prog-fill { height: 100%; background: linear-gradient(90deg, var(--grass), var(--sky)); border-radius: 99px; transition: width 0.5s; }
+.prog-pct { font-weight: 900; color: var(--navy); font-size: 14px; }
+.stars-count { font-size: 16px; font-weight: 700; color: var(--sun); text-shadow: 0 1px 4px rgba(0,0,0,0.15); }
+
+/* ===== ARABIC LETTERS SCREEN ===== */
+#arabicScreen { background: linear-gradient(135deg, #ffecd2, #fcb69f); }
+.letters-header { text-align: center; padding: 20px; font-size: 26px; font-weight: 900; color: var(--navy); }
+.letter-tabs {
+  display: flex; gap: 10px; justify-content: center; padding: 0 16px 16px; flex-wrap: wrap;
+}
+.letter-tab {
+  padding: 8px 20px; border-radius: 99px;
+  border: 2.5px solid #e5e7eb; background: white;
+  font-size: 14px; font-weight: 700; cursor: pointer;
+  color: #555; transition: all 0.2s; font-family: inherit;
+}
+.letter-tab.active { background: var(--coral); color: white; border-color: var(--coral); }
+
+.arabic-letters-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 14px; padding: 0 16px 20px; max-width: 900px; margin: 0 auto; width: 100%;
+}
+.arabic-letter-card {
+  background: white; border-radius: 22px; padding: 16px 12px;
+  text-align: center; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  border: 3px solid transparent; transition: all 0.22s;
+}
+.arabic-letter-card:hover { transform: scale(1.06); border-color: var(--coral); }
+.arabic-letter-card.completed { border-color: var(--grass); background: #f0fff4; }
+.arabic-letter-card.completed::after { content: '✓'; position: absolute; top: 8px; left: 8px; background: var(--grass); color: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
+.arabic-letter-card { position: relative; }
+.ar-letter-main { font-size: 52px; font-weight: 900; color: var(--coral); line-height: 1.1; font-family: 'Tajawal', sans-serif; }
+.ar-letter-name { font-size: 14px; font-weight: 700; color: #444; margin-top: 6px; }
+.ar-letter-sound { font-size: 12px; color: #888; }
+
+/* ===== LETTER PRACTICE SCREEN ===== */
+#practiceScreen { background: linear-gradient(135deg, #e0f7fa, #b2ebf2); }
+.practice-header { text-align: center; padding: 16px; }
+.practice-letter-display {
+  font-size: 120px; font-weight: 900; color: var(--coral); line-height: 1;
+  font-family: 'Tajawal', sans-serif; text-shadow: 0 8px 32px rgba(255,107,107,0.25);
+}
+.practice-name { font-size: 22px; font-weight: 700; color: var(--navy); margin-top: 8px; }
+.forms-section {
+  display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
+  padding: 16px;
+}
+.form-card {
+  background: white; border-radius: 20px; padding: 20px; text-align: center;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.1); min-width: 120px;
+  border: 3px solid transparent; transition: all 0.2s;
+}
+.form-label { font-size: 13px; font-weight: 700; color: #888; margin-bottom: 8px; }
+.form-char { font-size: 48px; font-weight: 900; color: var(--navy); font-family: 'Tajawal', sans-serif; }
+.form-example { font-size: 13px; color: #555; margin-top: 4px; }
+
+/* CANVAS AREA */
+.canvas-section {
+  padding: 16px; max-width: 700px; margin: 0 auto; width: 100%;
+}
+.canvas-prompt {
+  text-align: center; font-size: 18px; font-weight: 700; color: var(--navy);
+  margin-bottom: 12px;
+}
+.canvas-wrapper {
+  background: white; border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  overflow: hidden; position: relative;
+  border: 4px solid var(--sky);
+}
+.letter-guide {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 200px; font-weight: 900; color: rgba(108,195,245,0.12);
+  font-family: 'Tajawal', sans-serif; pointer-events: none; z-index: 0;
+  user-select: none;
+}
+#drawCanvas { display: block; width: 100%; touch-action: none; position: relative; z-index: 1; cursor: crosshair; }
+.canvas-controls {
+  display: flex; gap: 12px; justify-content: center; padding: 14px;
+  flex-wrap: wrap;
+}
+.ctrl-btn {
+  padding: 10px 22px; border-radius: 14px; border: none;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  font-family: inherit; transition: all 0.2s;
+}
+.ctrl-btn.clear { background: #fee2e2; color: #dc2626; }
+.ctrl-btn.check { background: linear-gradient(135deg, var(--grass), #34d399); color: white; box-shadow: 0 4px 16px rgba(107,203,119,0.4); }
+.ctrl-btn.next { background: linear-gradient(135deg, var(--purple), #764ba2); color: white; }
+.color-palette { display: flex; gap: 8px; align-items: center; }
+.color-dot {
+  width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
+  border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  transition: transform 0.15s;
+}
+.color-dot:hover { transform: scale(1.2); }
+.color-dot.active { transform: scale(1.3); box-shadow: 0 0 0 3px var(--navy), 0 2px 8px rgba(0,0,0,0.3); }
+.stroke-size { display: flex; gap: 6px; align-items: center; }
+.size-btn {
+  background: white; border: 2px solid #e5e7eb; border-radius: 50%;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.size-btn.active { border-color: var(--purple); background: #f3f0ff; }
+
+/* ===== ENGLISH LETTERS ===== */
+#englishScreen { background: linear-gradient(135deg, #d4fc79, #96e6a1); }
+.eng-letters-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 12px; padding: 16px; max-width: 900px; margin: 0 auto; width: 100%;
+}
+.eng-letter-card {
+  background: white; border-radius: 20px; padding: 18px 10px;
+  text-align: center; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  border: 3px solid transparent; transition: all 0.22s; position: relative;
+}
+.eng-letter-card:hover { transform: scale(1.07); border-color: var(--grass); }
+.eng-letter-card.completed { border-color: var(--grass); background: #f0fff4; }
+.eng-upper { font-size: 48px; font-weight: 900; color: var(--grass); font-family: 'Fredoka One', sans-serif; line-height: 1; }
+.eng-lower { font-size: 28px; font-weight: 700; color: #aaa; font-family: 'Fredoka One', sans-serif; }
+.eng-word { font-size: 12px; color: #555; margin-top: 4px; font-weight: 600; }
+
+/* ===== WORD-IMAGE MATCHING ===== */
+#matchScreen { background: linear-gradient(135deg, #fbc2eb, #a6c1ee); }
+.match-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 16px; padding: 16px; max-width: 900px; margin: 0 auto; width: 100%;
+}
+.match-card {
+  background: white; border-radius: 24px; padding: 20px 14px;
+  text-align: center; box-shadow: var(--shadow); cursor: pointer;
+  border: 3px solid transparent; transition: all 0.25s; position: relative;
+}
+.match-card:hover { transform: translateY(-5px); border-color: var(--purple); }
+.match-emoji { font-size: 62px; display: block; line-height: 1.1; }
+.match-arabic { font-size: 28px; font-weight: 900; color: var(--navy); font-family: 'Tajawal', sans-serif; margin-top: 8px; }
+.match-english { font-size: 15px; color: #666; font-weight: 600; margin-top: 4px; font-family: 'Fredoka One', sans-serif; }
+.match-card.flip .card-inner { transform: rotateY(180deg); }
+.card-inner { transition: transform 0.5s; transform-style: preserve-3d; position: relative; min-height: 160px; }
+.card-front, .card-back { backface-visibility: hidden; }
+.card-back { transform: rotateY(180deg); position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+/* ===== NUMBERS & MATH ===== */
+#mathScreen { background: linear-gradient(135deg, #f6d365, #fda085); }
+.math-tabs {
+  display: flex; gap: 10px; justify-content: center; padding: 16px; flex-wrap: wrap;
+}
+.math-tab {
+  padding: 10px 24px; border-radius: 99px;
+  border: 2.5px solid #e5e7eb; background: white;
+  font-size: 16px; font-weight: 800; cursor: pointer;
+  transition: all 0.2s; font-family: inherit; color: var(--navy);
+}
+.math-tab.active { background: var(--orange); color: white; border-color: var(--orange); }
+.numbers-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: 12px; padding: 16px; max-width: 600px; margin: 0 auto; width: 100%;
+}
+.number-card {
+  background: white; border-radius: 20px; padding: 16px 8px;
+  text-align: center; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  border: 3px solid transparent; transition: all 0.22s;
+}
+.number-card:hover { transform: scale(1.1); border-color: var(--orange); }
+.number-big { font-size: 42px; font-weight: 900; color: var(--orange); font-family: 'Fredoka One', sans-serif; }
+.number-dots { font-size: 20px; margin-top: 4px; color: var(--coral); line-height: 1.2; }
+.number-arabic { font-size: 14px; color: #888; font-family: 'Tajawal', sans-serif; font-weight: 700; }
+
+/* Math quiz */
+.math-quiz {
+  max-width: 500px; margin: 0 auto; padding: 20px;
+  display: flex; flex-direction: column; align-items: center; gap: 20px;
+}
+.math-problem {
+  background: white; border-radius: 28px; padding: 36px 48px;
+  font-size: 52px; font-weight: 900; color: var(--navy);
+  font-family: 'Fredoka One', sans-serif;
+  box-shadow: var(--shadow); text-align: center;
+  min-width: 280px;
+}
+.math-operation { color: var(--orange); }
+.math-options {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%;
+}
+.math-opt {
+  background: white; border: 3px solid #e5e7eb; border-radius: 20px;
+  padding: 20px; font-size: 36px; font-weight: 900; text-align: center;
+  cursor: pointer; font-family: 'Fredoka One', sans-serif; color: var(--navy);
+  transition: all 0.2s; box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+}
+.math-opt:hover { border-color: var(--orange); transform: scale(1.04); }
+.math-opt.correct { background: #f0fff4; border-color: var(--grass); color: var(--grass); animation: popIn 0.4s; }
+.math-opt.wrong { background: #fff5f5; border-color: var(--coral); color: var(--coral); animation: shake 0.4s; }
+@keyframes popIn { 0%{transform:scale(1)} 50%{transform:scale(1.12)} 100%{transform:scale(1)} }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+
+/* ===== PARENT PANEL ===== */
+#parentScreen { background: linear-gradient(135deg, #2d3748, #4a5568); }
+.parent-topbar { background: rgba(0,0,0,0.3); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; }
+.parent-topbar h2 { color: white; font-size: 22px; font-weight: 800; }
+.parent-tabs {
+  display: flex; gap: 10px; padding: 16px; overflow-x: auto;
+}
+.parent-tab {
+  padding: 10px 22px; border-radius: 99px; background: rgba(255,255,255,0.1);
+  color: white; border: 2px solid rgba(255,255,255,0.2);
+  font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap;
+  transition: all 0.2s; font-family: inherit;
+}
+.parent-tab.active { background: var(--purple); border-color: var(--purple); }
+.parent-content { padding: 16px; }
+.word-form {
+  background: rgba(255,255,255,0.1); backdrop-filter: blur(12px);
+  border-radius: 24px; padding: 24px; border: 1px solid rgba(255,255,255,0.2);
+}
+.word-form h3 { color: white; font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+.word-form textarea {
+  width: 100%; padding: 14px; border-radius: 16px;
+  border: 2px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.12);
+  color: white; font-size: 20px; font-family: 'Tajawal', sans-serif;
+  resize: vertical; min-height: 100px; outline: none; direction: rtl;
+}
+.word-form textarea::placeholder { color: rgba(255,255,255,0.5); }
+.word-form .btn-primary { margin-top: 12px; }
+.custom-words-list { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
+.custom-word-item {
+  background: rgba(255,255,255,0.12); border-radius: 16px; padding: 14px 18px;
+  display: flex; align-items: center; justify-content: space-between; color: white;
+}
+.custom-word-text { font-size: 22px; font-weight: 700; font-family: 'Tajawal', sans-serif; }
+.delete-word-btn {
+  background: rgba(255,107,107,0.25); color: #fca5a5; border: none;
+  border-radius: 10px; padding: 6px 12px; cursor: pointer; font-family: inherit;
+}
+/* Progress charts */
+.progress-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+.prog-card {
+  background: rgba(255,255,255,0.1); backdrop-filter: blur(12px);
+  border-radius: 20px; padding: 20px; border: 1px solid rgba(255,255,255,0.2); color: white;
+}
+.prog-card h4 { font-size: 15px; opacity: 0.75; margin-bottom: 10px; }
+.prog-card .big-num { font-size: 48px; font-weight: 900; color: var(--sun); font-family: 'Fredoka One', sans-serif; }
+.prog-card .sub { font-size: 13px; opacity: 0.6; margin-top: 4px; }
+
+/* ===== CUSTOM WRITING PRACTICE ===== */
+#customScreen { background: linear-gradient(135deg, #e8f5e9, #c8e6c9); }
+.custom-word-display {
+  text-align: center; padding: 24px;
+  font-size: 72px; font-weight: 900; color: var(--navy);
+  font-family: 'Tajawal', sans-serif; letter-spacing: 4px;
+  text-shadow: 0 4px 16px rgba(0,0,0,0.1);
+}
+.custom-word-dots {
+  display: flex; gap: 6px; justify-content: center; padding: 0 16px 16px;
+}
+.custom-dot {
+  width: 12px; height: 12px; border-radius: 50%; background: #e5e7eb;
+  cursor: pointer; transition: background 0.2s;
+}
+.custom-dot.active { background: var(--grass); }
+
+/* ===== CELEBRATION ===== */
+.celebration {
+  display: none; position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,0,0,0.75); align-items: center; justify-content: center;
+}
+.celebration.show { display: flex; }
+.celebration-box {
+  background: white; border-radius: 36px; padding: 48px 40px;
+  text-align: center; max-width: 360px; width: 90%;
+  animation: zoomIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes zoomIn { from{transform:scale(0.5);opacity:0} to{transform:scale(1);opacity:1} }
+.celebration-emoji { font-size: 80px; display: block; animation: bounce 0.6s ease-in-out infinite; }
+.celebration-title { font-size: 32px; font-weight: 900; color: var(--navy); margin: 16px 0 8px; }
+.celebration-msg { font-size: 18px; color: #555; margin-bottom: 24px; }
+.stars-earned { font-size: 36px; color: var(--sun); font-weight: 900; margin-bottom: 20px; }
+
+/* ===== CONFETTI ===== */
+.confetti-piece {
+  position: fixed; top: -10px; border-radius: 4px;
+  animation: confettiFall linear forwards; pointer-events: none; z-index: 600;
+}
+@keyframes confettiFall {
+  to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 480px) {
+  .arabic-letters-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .numbers-grid { grid-template-columns: repeat(4, 1fr); }
+  .practice-letter-display { font-size: 80px; }
+}
 </style>
 </head>
 <body>
 
-<!-- ═══ LOGIN ══════════════════════════════════════════════════════ -->
-<div id="loginScreen">
-  <div>
-    <div class="login-box">
-      <div class="login-logo">
-        <div class="logo-icon">F</div>
-        <span style="font-size:18px;font-weight:700">Flow<span style="color:var(--accent)">OS</span></span>
-      </div>
-      <div class="login-title">Welcome back</div>
-      <div class="login-desc">Sign in to your FlowOS account</div>
-      <div id="loginErr" class="login-err"></div>
-      <label class="fl">Email</label>
-      <input id="lemail" type="email" class="fi" placeholder="Enter your email" onkeydown="if(event.key==='Enter')doLogin()"/>
-      <label class="fl">Password</label>
-      <div class="fpw">
-        <input id="lpass" type="password" class="fi" placeholder="Enter your password" onkeydown="if(event.key==='Enter')doLogin()"/>
-        <button class="ptog" onclick="this.previousElementSibling.type=this.previousElementSibling.type==='password'?'text':'password'">👁️</button>
-      </div>
-      <button id="lbtn" class="login-btn" onclick="doLogin()">Sign In</button>
+<!-- STARS -->
+<div class="stars" id="starsContainer"></div>
 
-      <!-- Quick login hints -->
-      <div class="accounts-hint">
-        <div class="accounts-hint-title">Quick Login — Click to fill</div>
-        <div id="accountsList"></div>
-      </div>
+<!-- =========== LOGIN SCREEN =========== -->
+<div id="loginScreen" class="screen active">
+  <div style="font-size:90px;animation:bounce 1.5s ease-in-out infinite;">🦁</div>
+  <div class="login-title">روضة الحروف 🌟</div>
+  <div class="login-subtitle">Kids Learning Hub — اختر ملفك</div>
+  <div class="profiles-grid" id="profilesGrid"></div>
+  <button class="btn-primary" style="max-width:240px;margin-top:8px;" onclick="showModal('addProfileModal')">👨‍💼 دخول الوالدين</button>
+</div>
+
+<!-- ADD PROFILE MODAL -->
+<div class="modal-overlay" id="addProfileModal">
+  <div class="modal-box">
+    <h3>🌟 إضافة طفل جديد</h3>
+    <div>اختر رمزاً:</div>
+    <div class="avatar-picker" id="avatarPicker"></div>
+    <input type="text" id="childName" placeholder="اسم الطفل" maxlength="20">
+    <select id="childAge">
+      <option value="">العمر...</option>
+      <option value="3">3 سنوات</option>
+      <option value="4">4 سنوات</option>
+      <option value="5">5 سنوات</option>
+      <option value="6">6 سنوات</option>
+      <option value="7">7 سنوات</option>
+      <option value="8">8 سنوات</option>
+    </select>
+    <input type="password" id="childPin" placeholder="رمز دخول (4 أرقام)" maxlength="4" pattern="[0-9]*" inputmode="numeric">
+    <button class="btn-primary" onclick="addProfile()">✅ إضافة</button>
+    <button onclick="hideModal('addProfileModal')" style="width:100%;margin-top:10px;padding:10px;border:none;background:none;cursor:pointer;color:#888;font-family:inherit;font-size:15px;">إلغاء</button>
+  </div>
+</div>
+
+<!-- PIN MODAL -->
+<div class="modal-overlay" id="pinModal">
+  <div class="modal-box" style="text-align:center;">
+    <div id="pinAvatar" style="font-size:60px;margin-bottom:8px;"></div>
+    <h3 id="pinName">مرحباً!</h3>
+    <p style="color:#888;margin-bottom:16px;">أدخل رمز الدخول</p>
+    <input type="password" id="pinInput" placeholder="••••" maxlength="4" pattern="[0-9]*" inputmode="numeric" style="text-align:center;font-size:28px;letter-spacing:8px;">
+    <div id="pinError" style="color:#dc2626;font-size:14px;margin-top:8px;display:none;">❌ رمز خطأ!</div>
+    <button class="btn-primary" style="margin-top:12px;" onclick="checkPin()">دخول 🚀</button>
+    <button onclick="hideModal('pinModal')" style="width:100%;margin-top:10px;padding:10px;border:none;background:none;cursor:pointer;color:#888;font-family:inherit;font-size:15px;">إلغاء</button>
+  </div>
+</div>
+
+<!-- PARENT PIN MODAL -->
+<div class="modal-overlay" id="parentPinModal">
+  <div class="modal-box" style="text-align:center;">
+    <div style="font-size:52px;margin-bottom:8px;">👨‍💼</div>
+    <h3>دخول الوالدين</h3>
+    <p style="color:#888;margin-bottom:16px;">رمز الوالدين الافتراضي: 1234</p>
+    <input type="password" id="parentPinInput" placeholder="••••" maxlength="4" pattern="[0-9]*" inputmode="numeric" style="text-align:center;font-size:28px;letter-spacing:8px;">
+    <div id="parentPinError" style="color:#dc2626;font-size:14px;margin-top:8px;display:none;">❌ رمز خطأ!</div>
+    <button class="btn-primary" style="margin-top:12px;" onclick="checkParentPin()">دخول 🔐</button>
+    <button onclick="hideModal('parentPinModal')" style="width:100%;margin-top:10px;padding:10px;border:none;background:none;cursor:pointer;color:#888;font-family:inherit;font-size:15px;">إلغاء</button>
+  </div>
+</div>
+
+<!-- =========== MAIN MENU =========== -->
+<div id="menuScreen" class="screen">
+  <div class="topbar">
+    <div class="topbar-user">
+      <span class="topbar-avatar" id="menuAvatar"></span>
+      <span id="menuName"></span>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <span class="stars-count" id="menuStars">⭐ 0</span>
+      <button class="logout-btn" onclick="logout()">🚪 خروج</button>
+    </div>
+  </div>
+  <div class="menu-greeting" id="menuGreeting">مرحباً! 👋</div>
+  <div class="progress-strip">
+    <span class="label">تقدمك 🎯</span>
+    <div class="prog-bar"><div class="prog-fill" id="overallProgress" style="width:0%"></div></div>
+    <span class="prog-pct" id="overallPct">0%</span>
+  </div>
+  <div class="menu-grid">
+    <div class="menu-card" style="--mc:#FF6B6B" onclick="showScreen('arabicScreen')">
+      <span class="menu-icon">🔤</span>
+      <div class="menu-label">الحروف العربية</div>
+      <div class="menu-sublabel">تعلم واكتب بالعربي</div>
+    </div>
+    <div class="menu-card" style="--mc:#6BCB77" onclick="showScreen('englishScreen')">
+      <span class="menu-icon">🔡</span>
+      <div class="menu-label">English Letters</div>
+      <div class="menu-sublabel">Learn & Write ABC</div>
+    </div>
+    <div class="menu-card" style="--mc:#A78BFA" onclick="showScreen('matchScreen')">
+      <span class="menu-icon">🖼️</span>
+      <div class="menu-label">كلمات وصور</div>
+      <div class="menu-sublabel">وصّل الاسم بالصورة</div>
+    </div>
+    <div class="menu-card" style="--mc:#FFD93D" onclick="showScreen('mathScreen')">
+      <span class="menu-icon">🔢</span>
+      <div class="menu-label">الأرقام والحساب</div>
+      <div class="menu-sublabel">جمع وطرح وضرب وقسمة</div>
+    </div>
+    <div class="menu-card" style="--mc:#4ECDC4" onclick="showScreen('customScreen')">
+      <span class="menu-icon">✏️</span>
+      <div class="menu-label">كلماتي</div>
+      <div class="menu-sublabel">اكتب كلمات خاصة</div>
     </div>
   </div>
 </div>
 
-<!-- ═══ HQ APP ══════════════════════════════════════════════════════ -->
-<div id="appScreen" style="display:flex;height:100vh">
-  <aside class="sidebar">
-    <div class="slogo"><div class="sli">F</div><span style="font-size:13px;font-weight:700">Flow<span style="color:var(--accent)">OS</span></span></div>
-    <nav style="flex:1;overflow-y:auto;padding:6px 0">
-      <div class="nsec"><div class="nlbl">Overview</div>
-        <div class="nitem active" data-p="dashboard" onclick="showPage('dashboard')"><span class="ni">⬡</span>Dashboard</div>
-        <div class="nitem" data-p="inbox" onclick="showPage('inbox')"><span class="ni">📥</span>Inbox<span class="nb" id="ibadge" style="display:none">0</span></div>
-      </div>
-      <div class="nsec"><div class="nlbl">Work</div>
-        <div class="nitem" data-p="wf" onclick="showPage('wf')"><span class="ni">⚡</span>Workflows</div>
-        <div class="nitem" data-p="proj" onclick="showPage('proj')"><span class="ni">📋</span>Projects</div>
-        <div class="nitem" data-p="forms" onclick="showPage('forms')"><span class="ni">📝</span>Forms</div>
-        <div class="nitem" data-p="cases" onclick="showPage('cases')"><span class="ni">🗂️</span>Cases</div>
-      </div>
-      <div class="nsec"><div class="nlbl">Insights</div>
-        <div class="nitem" data-p="analytics" onclick="showPage('analytics')"><span class="ni">📊</span>Analytics</div>
-        <div class="nitem" data-p="team" onclick="showPage('team')"><span class="ni">👥</span>Team</div>
-      </div>
-      <div class="nsec"><div class="nlbl">System</div>
-        <div class="nitem" data-p="settings" onclick="showPage('settings')"><span class="ni">⚙️</span>Settings</div>
-      </div>
-    </nav>
-    <div class="suser"><div class="ucard">
-      <div class="uav" id="usavatar" style="background:linear-gradient(135deg,var(--accent),var(--accent2))">A</div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:11px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="usname">Admin</div>
-        <div style="font-size:9px;color:var(--text3)" id="usrole">Administrator</div>
-      </div>
-      <button class="logbtn" onclick="doLogout()" title="Sign out">⏻</button>
-    </div></div>
-  </aside>
-  <div class="main">
-    <div class="topbar">
-      <span style="font-size:14px;font-weight:700" id="ptitle">Dashboard</span>
-      <div class="tsearch"><span style="font-size:12px">🔍</span><input type="text" placeholder="Search…"/></div>
-      <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
-        <div style="width:30px;height:30px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;position:relative" onclick="showPage('inbox')">
-          🔔<span id="bellBadge" style="display:none;position:absolute;top:5px;right:5px;width:7px;height:7px;background:var(--accent5);border-radius:50%;border:2px solid var(--surface)"></span>
-        </div>
-        <button class="nbtn" onclick="openM('newModal')">+ New</button>
-      </div>
+<!-- =========== ARABIC LETTERS SCREEN =========== -->
+<div id="arabicScreen" class="screen">
+  <div class="topbar">
+    <div class="topbar-user"><span>🔤 الحروف العربية</span></div>
+    <button class="back-btn" onclick="showScreen('menuScreen')">← رجوع</button>
+  </div>
+  <div class="letter-tabs">
+    <button class="letter-tab active" onclick="filterLetters('all',this)">الكل</button>
+    <button class="letter-tab" onclick="filterLetters('completed',this)">✅ مكتمل</button>
+    <button class="letter-tab" onclick="filterLetters('pending',this)">⏳ باقي</button>
+  </div>
+  <div class="arabic-letters-grid" id="arabicLettersGrid"></div>
+</div>
+
+<!-- =========== PRACTICE SCREEN =========== -->
+<div id="practiceScreen" class="screen">
+  <div class="topbar">
+    <div class="topbar-user">
+      <span id="practiceTitle">تدرّب</span>
     </div>
-    <div class="content">
-      <!-- DASHBOARD -->
-      <div class="page active" id="page-dashboard">
-        <div class="sgrid" id="dstats"></div>
-        <div class="g2">
-          <div class="card"><div class="shd"><div class="stit">Active Workflows</div><div class="slnk" onclick="showPage('wf')">View all →</div></div><table class="tbl"><thead><tr><th>Name</th><th>Status</th><th>Progress</th><th>Dept</th></tr></thead><tbody id="dwf"></tbody></table></div>
-          <div class="card"><div class="shd"><div class="stit">Staff Requests</div><div class="slnk" onclick="showPage('inbox')">Open inbox →</div></div><table class="tbl"><thead><tr><th>Title</th><th>From</th><th>Priority</th><th>Status</th></tr></thead><tbody id="dib"></tbody></table></div>
-        </div>
-      </div>
-      <!-- WORKFLOWS -->
-      <div class="page" id="page-wf"><div style="margin-bottom:16px"><button class="btn" style="padding:7px 14px;border-radius:9px;font-size:11px;font-weight:600;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;cursor:pointer;font-family:Sora,sans-serif" onclick="openWFModal(null)">+ Create Workflow</button></div><div class="g3" id="wfgrid"></div></div>
-      <!-- PROJECTS -->
-      <div class="page" id="page-proj">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-          <div class="tabrow"><button class="tbtn active" onclick="togglePV(this,'b')">Board</button><button class="tbtn" onclick="togglePV(this,'l')">List</button></div>
-          <button class="btn" style="padding:7px 14px;border-radius:9px;font-size:11px;font-weight:600;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;cursor:pointer;font-family:Sora,sans-serif" onclick="openTaskModal(null)">+ Add Task</button>
-        </div>
-        <div id="kboard" class="kboard"></div>
-        <div id="listView" style="display:none"><div class="card" style="padding:0;overflow:hidden"><table class="tbl"><thead><tr><th>Task</th><th>Dept</th><th>Assignee</th><th>Priority</th><th>Status</th><th>Actions</th></tr></thead><tbody id="listBody"></tbody></table></div></div>
-      </div>
-      <!-- FORMS -->
-      <div class="page" id="page-forms"><div style="margin-bottom:16px"><button class="btn" style="padding:7px 14px;border-radius:9px;font-size:11px;font-weight:600;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;cursor:pointer;font-family:Sora,sans-serif" onclick="openFormModal(null)">+ Create Form</button></div><div class="g3" id="fgrid"></div></div>
-      <!-- CASES -->
-      <div class="page" id="page-cases">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-          <div class="tabrow"><button class="tbtn active" onclick="setCT(this,'All')">All</button><button class="tbtn" onclick="setCT(this,'Open')">Open</button><button class="tbtn" onclick="setCT(this,'In Progress')">In Progress</button><button class="tbtn" onclick="setCT(this,'Resolved')">Resolved</button></div>
-          <button class="btn" style="padding:7px 14px;border-radius:9px;font-size:11px;font-weight:600;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;cursor:pointer;font-family:Sora,sans-serif" onclick="openCaseModal(null)">+ New Case</button>
-        </div>
-        <div class="card" style="padding:0;overflow:hidden"><table class="tbl"><thead><tr><th>#</th><th>Title</th><th>Category</th><th>Assignee</th><th>Priority</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead><tbody id="ctbody"></tbody></table></div>
-      </div>
-      <!-- INBOX -->
-      <div class="page" id="page-inbox">
-        <div class="inlay">
-          <div class="inlist" id="inlist"></div>
-          <div id="idet" style="padding:20px;overflow-y:auto;display:flex;align-items:center;justify-content:center;flex-direction:column;color:var(--text3);font-size:12px;gap:7px"><div style="font-size:28px;opacity:.2">📬</div>Select a message</div>
-        </div>
-      </div>
-      <!-- ANALYTICS -->
-      <div class="page" id="page-analytics"><div class="sgrid" id="astats"></div><div class="g2"><div class="card"><div class="stit" style="margin-bottom:14px">Monthly Completions</div><div id="achart"></div></div><div class="card"><div class="stit" style="margin-bottom:14px">Tasks by Status</div><div id="atasks"></div></div></div></div>
-      <!-- TEAM -->
-      <div class="page" id="page-team"><div style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center"><button class="btn" style="padding:7px 14px;border-radius:9px;font-size:11px;font-weight:600;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;cursor:pointer;font-family:Sora,sans-serif" onclick="openMemberModal(null)">+ Add Member</button></div><div class="g3" id="tgrid"></div></div>
-      <!-- SETTINGS -->
-      <div class="page" id="page-settings">
-        <div class="g2">
-          <div class="card"><div class="stit" style="margin-bottom:14px">Account Credentials</div>
-            <div style="background:rgba(79,110,247,.07);border:1px solid rgba(79,110,247,.2);border-radius:8px;padding:11px 13px;margin-bottom:14px;font-size:11px;color:var(--text2)">
-              💡 All login accounts are managed directly in the app code. Edit the <code style="color:var(--accent)">ACCOUNTS</code> array to add/change users.
-            </div>
-            <div id="accountsTable"></div>
-          </div>
-          <div class="card"><div class="stit" style="margin-bottom:12px">Notifications</div>
-            <div class="trow"><div><div style="font-size:12px;font-weight:500">Email Notifications</div><div style="font-size:10px;color:var(--text3)">Task assignments and approvals</div></div><input type="checkbox" class="toggle" checked/></div>
-            <div class="trow"><div><div style="font-size:12px;font-weight:500">SLA Breach Alerts</div></div><input type="checkbox" class="toggle" checked/></div>
-            <div class="trow"><div><div style="font-size:12px;font-weight:500">Weekly Digest</div></div><input type="checkbox" class="toggle"/></div>
-          </div>
-          <div class="card"><div class="stit" style="margin-bottom:12px">Firebase Config</div>
-            <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Connected to Firebase Realtime Database</div>
-            <div id="fbStatus" style="display:flex;align-items:center;gap:7px;font-size:12px"><div style="width:8px;height:8px;border-radius:50%;background:var(--accent3)"></div>Connected</div>
-          </div>
-        </div>
-      </div>
+    <button class="back-btn" id="practiceBack">← رجوع</button>
+  </div>
+  <div class="practice-header">
+    <div class="practice-letter-display" id="practiceLetter">أ</div>
+    <div class="practice-name" id="practiceName">الألف</div>
+  </div>
+  <div class="forms-section" id="formsSection"></div>
+  <div class="canvas-section">
+    <div class="canvas-prompt" id="canvasPrompt">اكتب الحرف هنا 👇</div>
+    <div class="canvas-wrapper">
+      <div class="letter-guide" id="letterGuide"></div>
+      <canvas id="drawCanvas" height="280"></canvas>
+    </div>
+    <div class="canvas-controls">
+      <div class="color-palette" id="colorPalette"></div>
+      <div class="stroke-size" id="strokeSize"></div>
+      <button class="ctrl-btn clear" onclick="clearCanvas()">🗑️ مسح</button>
+      <button class="ctrl-btn check" onclick="checkWriting()">✅ تحقق</button>
+      <button class="ctrl-btn next" id="nextBtn" onclick="nextLetter()">التالي ➡</button>
     </div>
   </div>
 </div>
 
-<!-- ═══ STAFF PORTAL ═════════════════════════════════════════════════ -->
-<div id="staffScreen">
-  <div class="staffhd">
-    <div style="display:flex;align-items:center;gap:8px"><div class="sli">F</div><span style="font-size:13px;font-weight:700">Flow<span style="color:var(--accent)">OS</span></span><span style="color:var(--text3);font-size:10px;margin-left:3px">· Employee Portal</span></div>
-    <div style="margin-left:auto;display:flex;align-items:center;gap:9px">
-      <div style="text-align:right"><div style="font-size:12px;font-weight:600" id="sname">Employee</div><div style="font-size:9px;color:var(--text3)" id="srole">Staff</div></div>
-      <div style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff" id="savatar" style="background:linear-gradient(135deg,var(--accent),var(--accent2))">S</div>
-      <button style="padding:5px 11px;border-radius:8px;font-size:11px;font-weight:600;background:var(--surface2);border:1px solid var(--border);color:var(--text2);cursor:pointer;font-family:Sora,sans-serif" onclick="doLogout()">Sign Out</button>
-    </div>
+<!-- =========== ENGLISH SCREEN =========== -->
+<div id="englishScreen" class="screen">
+  <div class="topbar">
+    <div class="topbar-user"><span>🔡 English Letters</span></div>
+    <button class="back-btn" onclick="showScreen('menuScreen')">← Back</button>
   </div>
-  <div class="stfcon">
-    <div class="stfinn">
-      <div style="margin-bottom:18px"><h1 style="font-size:19px;font-weight:700;margin-bottom:3px" id="sgreet">Good day! 👋</h1><p style="font-size:12px;color:var(--text3)">Submit requests and track their status below.</p></div>
-      <div class="stfstats">
-        <div class="stfstat"><div style="font-size:18px;margin-bottom:5px">📋</div><div style="font-size:21px;font-weight:700;font-family:var(--mono);color:var(--accent)" id="stotal">0</div><div style="font-size:10px;color:var(--text3)">My Requests</div></div>
-        <div class="stfstat"><div style="font-size:18px;margin-bottom:5px">⏳</div><div style="font-size:21px;font-weight:700;font-family:var(--mono);color:var(--accent4)" id="spend">0</div><div style="font-size:10px;color:var(--text3)">Pending</div></div>
-        <div class="stfstat"><div style="font-size:18px;margin-bottom:5px">✅</div><div style="font-size:21px;font-weight:700;font-family:var(--mono);color:var(--accent3)" id="sapprv">0</div><div style="font-size:10px;color:var(--text3)">Approved</div></div>
-        <div class="stfstat"><div style="font-size:18px;margin-bottom:5px">🔔</div><div style="font-size:21px;font-weight:700;font-family:var(--mono);color:var(--accent5)" id="snotif">0</div><div style="font-size:10px;color:var(--text3)">Unread</div></div>
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-        <div style="display:flex;gap:2px;background:var(--surface2);border-radius:8px;padding:3px">
-          <button class="stftab active" data-t="requests" onclick="setStaffTab('requests')">My Requests</button>
-          <button class="stftab" data-t="notifs" onclick="setStaffTab('notifs')">Notifications<span id="snbadge" style="display:none;background:var(--accent5);color:#fff;font-size:9px;padding:1px 5px;border-radius:10px;margin-left:4px">0</span></button>
-        </div>
-        <button style="padding:7px 14px;border-radius:9px;font-size:11px;font-weight:600;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;cursor:pointer;font-family:Sora,sans-serif" onclick="openM('staffReqModal')">+ New Request</button>
-      </div>
-      <div class="card" style="padding:0;overflow:hidden;min-height:100px" id="sreqlist"></div>
+  <div style="text-align:center;padding:16px;font-size:22px;font-weight:900;color:#1A1A3E;">Learn the Alphabet! 🌟</div>
+  <div class="eng-letters-grid" id="engLettersGrid"></div>
+</div>
+
+<!-- =========== MATCH SCREEN =========== -->
+<div id="matchScreen" class="screen">
+  <div class="topbar">
+    <div class="topbar-user"><span>🖼️ كلمات وصور</span></div>
+    <button class="back-btn" onclick="showScreen('menuScreen')">← رجوع</button>
+  </div>
+  <div style="text-align:center;padding:16px;font-size:20px;font-weight:700;color:var(--navy);">انقر على البطاقة لتقليبها! 🔄</div>
+  <div class="match-grid" id="matchGrid"></div>
+</div>
+
+<!-- =========== MATH SCREEN =========== -->
+<div id="mathScreen" class="screen">
+  <div class="topbar">
+    <div class="topbar-user"><span>🔢 الأرقام والحساب</span></div>
+    <button class="back-btn" onclick="showScreen('menuScreen')">← رجوع</button>
+  </div>
+  <div class="math-tabs">
+    <button class="math-tab active" onclick="switchMathTab('numbers',this)">🔢 الأرقام</button>
+    <button class="math-tab" onclick="switchMathTab('add',this)">➕ جمع</button>
+    <button class="math-tab" onclick="switchMathTab('sub',this)">➖ طرح</button>
+    <button class="math-tab" onclick="switchMathTab('mul',this)">✖️ ضرب</button>
+    <button class="math-tab" onclick="switchMathTab('div',this)">➗ قسمة</button>
+  </div>
+  <div id="mathContent"></div>
+</div>
+
+<!-- =========== CUSTOM PRACTICE SCREEN =========== -->
+<div id="customScreen" class="screen">
+  <div class="topbar">
+    <div class="topbar-user"><span>✏️ كلماتي</span></div>
+    <button class="back-btn" onclick="showScreen('menuScreen')">← رجوع</button>
+  </div>
+  <div id="customWordNav" style="display:flex;align-items:center;justify-content:center;gap:16px;padding:16px;">
+    <button class="ctrl-btn" style="background:#e0e7ff;color:#4f46e5;" onclick="prevCustomWord()">← السابق</button>
+    <span id="customWordCounter" style="font-weight:700;color:var(--navy);">1 / 1</span>
+    <button class="ctrl-btn" style="background:#e0e7ff;color:#4f46e5;" onclick="nextCustomWord()">التالي →</button>
+  </div>
+  <div class="custom-word-display" id="customWordDisplay">—</div>
+  <div class="canvas-section">
+    <div class="canvas-prompt">اكتب الكلمة بالأعلى 👆</div>
+    <div class="canvas-wrapper">
+      <canvas id="drawCanvas2" height="280"></canvas>
+    </div>
+    <div class="canvas-controls">
+      <div class="color-palette" id="colorPalette2"></div>
+      <button class="ctrl-btn clear" onclick="clearCanvas2()">🗑️ مسح</button>
+      <button class="ctrl-btn check" onclick="checkCustom()">✅ أحسنت!</button>
     </div>
   </div>
 </div>
 
-<!-- ═══ MODALS ════════════════════════════════════════════════════════ -->
-<div id="newModal" class="mback" onclick="if(event.target===this)closeM('newModal')"><div class="mbox"><div class="mhd"><div style="font-size:13px;font-weight:700">Create New</div><button class="mclose" onclick="closeM('newModal')">×</button></div><div class="mbody"><div class="ngrid"><div class="nopt" onclick="closeM('newModal');openWFModal(null)"><div style="font-size:24px;margin-bottom:7px">⚡</div><div style="font-size:11px;font-weight:700">Workflow</div></div><div class="nopt" onclick="closeM('newModal');openTaskModal(null)"><div style="font-size:24px;margin-bottom:7px">📋</div><div style="font-size:11px;font-weight:700">Task</div></div><div class="nopt" onclick="closeM('newModal');openFormModal(null)"><div style="font-size:24px;margin-bottom:7px">📝</div><div style="font-size:11px;font-weight:700">Form</div></div><div class="nopt" onclick="closeM('newModal');openCaseModal(null)"><div style="font-size:24px;margin-bottom:7px">🗂️</div><div style="font-size:11px;font-weight:700">Case</div></div></div><button style="width:100%;padding:8px;border-radius:8px;font-size:11px;font-weight:600;background:var(--surface2);border:1px solid var(--border);color:var(--text2);cursor:pointer;font-family:Sora,sans-serif" onclick="closeM('newModal')">Cancel</button></div></div></div>
+<!-- =========== PARENT SCREEN =========== -->
+<div id="parentScreen" class="screen">
+  <div class="parent-topbar">
+    <h2>👨‍💼 لوحة الوالدين</h2>
+    <button class="back-btn" style="background:rgba(255,255,255,0.15);color:white;border-color:rgba(255,255,255,0.3);" onclick="showScreen('loginScreen')">← رجوع</button>
+  </div>
+  <div class="parent-tabs">
+    <button class="parent-tab active" onclick="switchParentTab('words',this)">✏️ إضافة كلمات</button>
+    <button class="parent-tab" onclick="switchParentTab('progress',this)">📊 تقدم الأطفال</button>
+    <button class="parent-tab" onclick="switchParentTab('profiles',this)">👦 الملفات</button>
+  </div>
+  <div class="parent-content" id="parentContent"></div>
+</div>
 
-<div id="wfModal" class="mback" onclick="if(event.target===this)closeM('wfModal')"><div class="mbox"><div class="mhd"><div id="wfmtit">Workflow</div><button class="mclose" onclick="closeM('wfModal')">×</button></div><div class="mbody"><input type="hidden" id="wfid"/><div class="mf"><label class="ml">Name *</label><input id="wfname" class="mi" placeholder="e.g. Employee Onboarding"/></div><div class="mf"><label class="ml">Icon</label><div class="ipicker" id="wficons"></div></div><div class="mf"><label class="ml">Department *</label><select id="wfdept" class="ms"><option value="">Select dept</option><option>HR Department</option><option>Finance</option><option>IT Department</option><option>Procurement</option><option>Engineering</option><option>Legal</option><option>Operations</option><option>Marketing</option></select></div><div class="g2m"><div class="mf"><label class="ml">Steps</label><input id="wfsteps" type="number" class="mi" placeholder="5"/></div><div class="mf"><label class="ml">Status</label><select id="wfstatus" class="ms"><option>Active</option><option>Pending</option><option>In Review</option><option>Delayed</option><option>Archived</option></select></div></div><div class="mf"><label class="ml">Completion: <span id="wfpctv">0%</span></label><input id="wfpct" type="range" min="0" max="100" value="0"/></div><div style="display:flex;gap:9px"><button style="flex:1;padding:9px;border-radius:9px;font-size:12px;font-weight:600;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;cursor:pointer;font-family:Sora,sans-serif" onclick="saveWF()">Save</button><button style="flex:1;padding:9px;border-radius:9px;font-size:12px;font-weight:600;background:var(--surface2);border:1px solid var(--border);color:var(--text2);cursor:pointer;font-family:Sora,sans-serif" onclick="closeM('wfModal')">Cancel</button></div></div></div></div>
+<!-- CELEBRATION -->
+<div class="celebration" id="celebration">
+  <div class="celebration-box">
+    <span class="celebration-emoji" id="celebEmoji">🌟</span>
+    <div class="celebration-title" id="celebTitle">ممتاز!</div>
+    <div class="celebration-msg" id="celebMsg">أحسنت يا بطل!</div>
+    <div class="stars-earned" id="celebStars">+⭐⭐⭐</div>
+    <button class="btn-primary" onclick="closeCelebration()">استمر 🚀</button>
+  </div>
+</div>
 
-<div id="taskModal" class="mback" onclick="if(event.target===this)closeM('taskModal')"><div class="mbox"><div class="mhd"><div id="tkmtit">Task</div><button class="mclose" onclick="closeM('taskModal')">×</button></div><div class="mbody"><input type="hidden" id="tkid"/><div class="mf"><label class="ml">Title *</label><input id="tktitle" class="mi" placeholder="Task title"/></div><div class="g2m"><div class="mf"><label class="ml">Department</label><select id="tkdept" class="ms"><option value="">Select</option><option>Engineering</option><option>HR</option><option>Finance</option><option>IT</option><option>Legal</option><option>Design</option><option>Marketing</option></select></div><div class="mf"><label class="ml">Assignee</label><input id="tkassign" class="mi" placeholder="Name"/></div><div class="mf"><label class="ml">Priority</label><select id="tkprio" class="ms"><option>Low</option><option selected>Medium</option><option>High</option></select></div><div class="mf"><label class="ml">Status</label><select id="tkcol" class="ms"><option value="todo">To Do</option><option value="inprogress">In Progress</option><option value="review">In Review</option><option value="done">Done</option></select></div></div><div class="mf"><label class="ml">Due Date</label><input id="tkdue" type="date" class="mi"/></div><div style="display:flex;gap:9px"><button style="flex:1;padding:9px;border-radius:9px;font-size:12px;font-weight:600;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;cursor:pointer;font-family:Sora,sans-serif" onclick="saveTask()">Save</button><button style="flex:1;padding:9px;border-radius:9px;font-size:12px;font-weight:600;background:var(--surface2);border:1px solid var(--border);color:var(--text2);cursor:pointer;font-family:Sora,sans-serif" onclick="closeM('taskModal')">Cancel</button></div></div></div></div>
-
-<div id="formModal" class="mback" onclick="if(event.target===this)closeM('formModal')"><div class="mbox"><div class="mhd"><div id="fmtit">Form</div><button class="mclose" onclick="closeM('formModal')">×</button></div><div class="mbody"><input type="hidden" id="fmid"/><div class="mf"><label class="ml">Name *</label><input id="fmname" class="mi" placeholder="e.g. Leave Request Form"/></div><div class="mf"><label class="ml">Icon</label><div class="ipicker" id="fmicons"></div></div><div class="mf"><label class="ml">Department *</label><select id="fmdept" class="ms"><option value="">Select</option><option>HR Department</option><option>Finance</option><option>IT Department</option><option>Procurement</option><option>Engineering</option><option>Legal</option><option>Operations</option></select></div><div class="g2m"><div class="mf"><label class="ml">Fields</label><input id="fmfields" type="number" class="mi" value="5"/></div><div class="mf"><label class="ml">Status</label><select id="fmstatus" class="ms"><option>Draft</option><option>Published</option></select></div></div><div style="display:flex;gap:9px"><button style="flex:1;padding:9px;border-radius:9px;font-size:12px;font-weight:600;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;cursor:pointer;font-family:Sora,sans-serif" onclick="saveForm()">Save</button><button style="flex:1;padding:9px;border-radius:9px;font-size:12px;font-weight:600;background:var(--surface2);border:1px solid var(--border);color:var(--text2);cursor:pointer;font-family:Sora,sans-serif" onclick="closeM('formModal')">Cancel</button></div></div></div></div>
-
-<div id="caseModal" class="mback" onclick="if(event.target===this)closeM('caseModal')"><div class="mbox"><div class="mhd"><div id="cmtit">Case</div><button class="mclose" onclick="closeM('caseModal')">×</button></div><div class="mbody"><input type="hidden" id="cmid"/><div class="mf"><label class="ml">Title *</label><input id="cmtitle" class="mi" placeholder="Describe the issue"/></div><div class="g2m"><div class="mf"><label class="ml">Category</label><select id="cmcat" class="ms"><option>Finance</option><option>IT</option><option>HR</option><option>Procurement</option><option>Legal</option><option>Operations</option></select></div><div class="mf"><label class="ml">Assignee</label><input id="cmassign" class="mi" placeholder="Name"/></div><div class="mf"><label class="ml">Priority</label><select id="cmprio" class="ms"><option>Low</option><option selected>Medium</option><option>High</option></select></div><div class="mf"><label class="ml">Status</label><select id="cmstatus" class="ms"><option>Open</option><option>In Progress</option><option>Resolved</option><option>Closed</option></select></div></div><div class="mf"><label class="ml">Description</label><textarea id="cmdesc" class="mt" placeholder="Describe in detail..." rows="3"></textarea></div><div style="display:flex;gap:9px"><button style="flex:1;padding:9px;border-radius:9px;font-size:12px;font-weight:600;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;cursor:pointer;font-family:Sora,sans-serif" onclick="saveCase()">Save</button><button style="flex:1;padding:9px;border-radius:9px;font-size:12px;font-weight:600;background:var(--surface2);border:1px solid var(--border);color:var(--text2);cursor:pointer;font-family:Sora,sans-serif" onclick="closeM('caseModal')">Cancel</button></div></div></div></div>
-
-<div id="cdModal" class="mback" onclick="if(event.target===this)closeM('cdModal')"><div class="mbox wide"><div class="mhd"><div id="cdtit">Case Detail</div><button class="mclose" onclick="closeM('cdModal')">×</button></div><div class="mbody" id="cdbody"></div></div></div>
-
-<div id="respModal" class="mback" onclick="if(event.target===this)closeM('respModal')"><div class="mbox"><div class="mhd"><div>Respond to Request</div><button class="mclose" onclick="closeM('respModal')">×</button></div><div class="mbody"><div style="font-size:13px;font-weight:700;margin-bottom:12px">Action: <span id="respAction"></span></div><div class="mf"><label class="ml">Comment (shown to staff)</label><textarea id="respComment" class="mt" placeholder="Add a comment..." rows="3"></textarea></div><div style="display:flex;gap:9px"><button id="respBtn" style="flex:1;padding:9px;border-radius:9px;font-size:12px;font-weight:600;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;cursor:pointer;font-family:Sora,sans-serif" onclick="confirmRespond()">Confirm</button><button style="flex:1;padding:9px;border-radius:9px;font-size:12px;font-weight:600;background:var(--surface2);border:1px solid var(--border);color:var(--text2);cursor:pointer;font-family:Sora,sans-serif" onclick="closeM('respModal')">Cancel</button></div></div></div></div>
-
-<div id="memberModal" class="mback" onclick="if(event.target===this)closeM('memberModal')"><div class="mbox"><div class="mhd"><div id="mmtit">Member</div><button class="mclose" onclick="closeM('memberModal')">×</button></div><div class="mbody"><input type="hidden" id="mmid"/><div class="mf"><label class="ml">Name *</label><input id="mmname" class="mi" placeholder="Full name"/></div><div class="mf"><label class="ml">Email *</label><input id="mmemail" type="email" class="mi" placeholder="email@company.com"/></div><div class="mf"><label class="ml">Password *</label><input id="mmpass" type="password" class="mi" placeholder="Login password"/></div><div class="g2m"><div class="mf"><label class="ml">Role</label><select id="mmrole" class="ms"><option>Admin</option><option>Manager</option><option selected>Member</option><option>Viewer</option></select></div><div class="mf"><label class="ml">Department</label><select id="mmdept" class="ms"><option value="">Select</option><option>Engineering</option><option>HR</option><option>Finance</option><option>IT</option><option>Legal</option><option>Design</option><option>Marketing</option><option>Operations</option></select></div></div><div style="background:rgba(247,147,76,.08);border:1px solid rgba(247,147,76,.25);border-radius:8px;padding:9px 12px;font-size:11px;color:var(--accent4);margin-bottom:12px">⚠️ After saving, copy the credentials and share them manually with the team member.</div><div style="display:flex;gap:9px"><button style="flex:1;padding:9px;border-radius:9px;font-size:12px;font-weight:600;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;cursor:pointer;font-family:Sora,sans-serif" onclick="saveMember()">Save</button><button style="flex:1;padding:9px;border-radius:9px;font-size:12px;font-weight:600;background:var(--surface2);border:1px solid var(--border);color:var(--text2);cursor:pointer;font-family:Sora,sans-serif" onclick="closeM('memberModal')">Cancel</button></div></div></div></div>
-
-<div id="staffReqModal" class="mback" onclick="if(event.target===this)closeM('staffReqModal')"><div class="mbox"><div class="mhd"><div>Submit New Request</div><button class="mclose" onclick="closeM('staffReqModal')">×</button></div><div class="mbody"><div class="mf"><label class="ml">Type *</label><select id="sqtype" class="ms"><option>Leave Request</option><option>IT Asset Request</option><option>Purchase Request</option><option>Travel Request</option><option>Expense Claim</option><option>Training Request</option><option>Other</option></select></div><div class="mf"><label class="ml">Title *</label><input id="sqtitle" class="mi" placeholder="Brief description"/></div><div class="mf"><label class="ml">Priority</label><select id="sqprio" class="ms"><option>Low</option><option selected>Medium</option><option>High</option></select></div><div class="mf"><label class="ml">Details *</label><textarea id="sqdetails" class="mt" placeholder="Full details — dates, quantities, justification..." rows="5"></textarea></div><div style="display:flex;gap:9px"><button id="sqbtn" style="flex:1;padding:9px;border-radius:9px;font-size:12px;font-weight:600;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;cursor:pointer;font-family:Sora,sans-serif" onclick="submitStaffReq()">📤 Submit to HQ</button><button style="flex:1;padding:9px;border-radius:9px;font-size:12px;font-weight:600;background:var(--surface2);border:1px solid var(--border);color:var(--text2);cursor:pointer;font-family:Sora,sans-serif" onclick="closeM('staffReqModal')">Cancel</button></div></div></div></div>
-
-<div id="cfmModal" class="mback"><div class="mbox" style="max-width:340px"><div class="mbody" style="text-align:center;padding:24px"><div style="font-size:32px;margin-bottom:10px">🗑️</div><div style="font-size:13px;font-weight:700;margin-bottom:7px">Confirm Delete</div><div style="font-size:11px;color:var(--text3);margin-bottom:18px" id="cfmMsg">Are you sure?</div><div style="display:flex;gap:9px"><button id="cfmNo" style="flex:1;padding:8px;border-radius:8px;font-size:12px;font-weight:600;background:var(--surface2);border:1px solid var(--border);color:var(--text2);cursor:pointer;font-family:Sora,sans-serif">Cancel</button><button id="cfmOk" style="flex:1;padding:8px;border-radius:8px;font-size:12px;font-weight:600;background:var(--accent5);color:#fff;border:none;cursor:pointer;font-family:Sora,sans-serif">Delete</button></div></div></div></div>
-
-<div id="toast" class="toast"></div>
-
-<!-- ═══ FIREBASE + APP LOGIC ══════════════════════════════════════════ -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, push, update, remove, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-
-/* ════════════════════════════════════════════════════════════
-   FIREBASE CONFIG — Replace with your Firebase project config
-   Firebase Console → Project Settings → Your Apps → SDK setup
-   ════════════════════════════════════════════════════════════ */
-const firebaseConfig = {
-  apiKey: "AIzaSyB9DhSn5gDqAhpmLG9aVFAld1dSRYJWFDI",
-  authDomain: "opshub-f802f.firebaseapp.com",
-  databaseURL: "opshub-f802f.firebaseapp.com",   // ← Realtime Database URL
-  projectId: "opshub-f802f",
-  storageBucket: "opshub-f802f.firebasestorage.app",
-  messagingSenderId: "84176854270",
-  appId: "1:84176854270:web:f7a66b3b38e98b630859af",
-};
-/* ════════════════════════════════════════════════════════════ */
-
-/* ════════════════════════════════════════════════════════════
-   ACCOUNTS — Add / edit login accounts here
-   Roles: Admin, Manager, Member (staff see portal)
-   ════════════════════════════════════════════════════════════ */
-const ACCOUNTS = [
-  { name:"Raed Admin",    email:"obshubdev@gmail.com", password:"Raed_911",   role:"Admin",   dept:"Operations",   grad:"linear-gradient(135deg,#4f6ef7,#7c4dff)" },
-  { name:"Sarah Manager", email:"sarah@flowos.app",    password:"Sarah@2024", role:"Manager", dept:"Finance",      grad:"linear-gradient(135deg,#00d4a0,#00a87a)" },
-  { name:"Kevin Staff",   email:"kevin@flowos.app",    password:"Kevin@2024", role:"Member",  dept:"HR",           grad:"linear-gradient(135deg,#f7934c,#e07a30)" },
-  { name:"Maya Staff",    email:"maya@flowos.app",     password:"Maya@2024",  role:"Member",  dept:"Engineering",  grad:"linear-gradient(135deg,#7c4dff,#5c2ae8)" },
-  { name:"Tom Staff",     email:"tom@flowos.app",      password:"Tom@2024",   role:"Member",  dept:"IT",           grad:"linear-gradient(135deg,#f74f6e,#c73055)" },
+<script>
+// =========== DATA ===========
+const ARABIC_LETTERS = [
+  {letter:'أ',name:'الألف',sound:'a',start:'أَ',mid:'ـأـ',end:'ـأ',example:{start:'أسد',mid:'سأل',end:'قرأ'}},
+  {letter:'ب',name:'الباء',sound:'b',start:'بـ',mid:'ـبـ',end:'ـب',example:{start:'بيت',mid:'كتب',end:'كتب'}},
+  {letter:'ت',name:'التاء',sound:'t',start:'تـ',mid:'ـتـ',end:'ـت',example:{start:'تفاح',mid:'كتاب',end:'بيت'}},
+  {letter:'ث',name:'الثاء',sound:'th',start:'ثـ',mid:'ـثـ',end:'ـث',example:{start:'ثعلب',mid:'مثل',end:'لبث'}},
+  {letter:'ج',name:'الجيم',sound:'j',start:'جـ',mid:'ـجـ',end:'ـج',example:{start:'جمل',mid:'نجم',end:'تاج'}},
+  {letter:'ح',name:'الحاء',sound:'ḥ',start:'حـ',mid:'ـحـ',end:'ـح',example:{start:'حوت',mid:'بحر',end:'فتح'}},
+  {letter:'خ',name:'الخاء',sound:'kh',start:'خـ',mid:'ـخـ',end:'ـخ',example:{start:'خروف',mid:'أخضر',end:'طبخ'}},
+  {letter:'د',name:'الدال',sound:'d',start:'دـ',mid:'ـد',end:'ـد',example:{start:'دب',mid:'سدر',end:'ولد'}},
+  {letter:'ذ',name:'الذال',sound:'dh',start:'ذـ',mid:'ـذ',end:'ـذ',example:{start:'ذئب',mid:'تذكر',end:'نبذ'}},
+  {letter:'ر',name:'الراء',sound:'r',start:'رـ',mid:'ـر',end:'ـر',example:{start:'رمان',mid:'مرح',end:'بحر'}},
+  {letter:'ز',name:'الزاي',sound:'z',start:'زـ',mid:'ـز',end:'ـز',example:{start:'زرافة',mid:'مزح',end:'خبز'}},
+  {letter:'س',name:'السين',sound:'s',start:'سـ',mid:'ـسـ',end:'ـس',example:{start:'سمكة',mid:'أسد',end:'رأس'}},
+  {letter:'ش',name:'الشين',sound:'sh',start:'شـ',mid:'ـشـ',end:'ـش',example:{start:'شمس',mid:'عشب',end:'قرش'}},
+  {letter:'ص',name:'الصاد',sound:'ṣ',start:'صـ',mid:'ـصـ',end:'ـص',example:{start:'صقر',mid:'قصر',end:'قفص'}},
+  {letter:'ض',name:'الضاد',sound:'ḍ',start:'ضـ',mid:'ـضـ',end:'ـض',example:{start:'ضفدع',mid:'حضن',end:'بيض'}},
+  {letter:'ط',name:'الطاء',sound:'ṭ',start:'طـ',mid:'ـطـ',end:'ـط',example:{start:'طائر',mid:'قطر',end:'خيط'}},
+  {letter:'ظ',name:'الظاء',sound:'ẓ',start:'ظـ',mid:'ـظـ',end:'ـظ',example:{start:'ظبي',mid:'حظر',end:'حفظ'}},
+  {letter:'ع',name:'العين',sound:'ʿ',start:'عـ',mid:'ـعـ',end:'ـع',example:{start:'عصفور',mid:'شعر',end:'مرج'}},
+  {letter:'غ',name:'الغين',sound:'gh',start:'غـ',mid:'ـغـ',end:'ـغ',example:{start:'غزال',mid:'مغر',end:'دماغ'}},
+  {letter:'ف',name:'الفاء',sound:'f',start:'فـ',mid:'ـفـ',end:'ـف',example:{start:'فيل',mid:'دفر',end:'صيف'}},
+  {letter:'ق',name:'القاف',sound:'q',start:'قـ',mid:'ـقـ',end:'ـق',example:{start:'قط',mid:'نقر',end:'طريق'}},
+  {letter:'ك',name:'الكاف',sound:'k',start:'كـ',mid:'ـكـ',end:'ـك',example:{start:'كلب',mid:'بكر',end:'ملك'}},
+  {letter:'ل',name:'اللام',sound:'l',start:'لـ',mid:'ـلـ',end:'ـل',example:{start:'ليمون',mid:'علم',end:'جبل'}},
+  {letter:'م',name:'الميم',sound:'m',start:'مـ',mid:'ـمـ',end:'ـم',example:{start:'موزة',mid:'أمل',end:'قلم'}},
+  {letter:'ن',name:'النون',sound:'n',start:'نـ',mid:'ـنـ',end:'ـن',example:{start:'نمر',mid:'سنة',end:'حصن'}},
+  {letter:'ه',name:'الهاء',sound:'h',start:'هـ',mid:'ـهـ',end:'ـه',example:{start:'هرة',mid:'نهر',end:'وجه'}},
+  {letter:'و',name:'الواو',sound:'w',start:'وـ',mid:'ـو',end:'ـو',example:{start:'وردة',mid:'قوس',end:'نحو'}},
+  {letter:'ي',name:'الياء',sound:'y',start:'يـ',mid:'ـيـ',end:'ـي',example:{start:'يد',mid:'ليل',end:'كرسي'}},
 ];
-/* ════════════════════════════════════════════════════════════ */
 
-// ── Init Firebase ──────────────────────────────────────────────────────────
-const fbApp = initializeApp(firebaseConfig);
-const db = getDatabase(fbApp);
+const ENGLISH_LETTERS = [
+  {upper:'A',lower:'a',word:'Apple 🍎'},
+  {upper:'B',lower:'b',word:'Ball ⚽'},
+  {upper:'C',lower:'c',word:'Cat 🐱'},
+  {upper:'D',lower:'d',word:'Dog 🐶'},
+  {upper:'E',lower:'e',word:'Elephant 🐘'},
+  {upper:'F',lower:'f',word:'Fish 🐟'},
+  {upper:'G',lower:'g',word:'Giraffe 🦒'},
+  {upper:'H',lower:'h',word:'House 🏠'},
+  {upper:'I',lower:'i',word:'Ice cream 🍦'},
+  {upper:'J',lower:'j',word:'Juice 🧃'},
+  {upper:'K',lower:'k',word:'Kite 🪁'},
+  {upper:'L',lower:'l',word:'Lion 🦁'},
+  {upper:'M',lower:'m',word:'Moon 🌙'},
+  {upper:'N',lower:'n',word:'Nest 🪺'},
+  {upper:'O',lower:'o',word:'Orange 🍊'},
+  {upper:'P',lower:'p',word:'Pizza 🍕'},
+  {upper:'Q',lower:'q',word:'Queen 👑'},
+  {upper:'R',lower:'r',word:'Robot 🤖'},
+  {upper:'S',lower:'s',word:'Sun ☀️'},
+  {upper:'T',lower:'t',word:'Tiger 🐯'},
+  {upper:'U',lower:'u',word:'Umbrella ☂️'},
+  {upper:'V',lower:'v',word:'Violin 🎻'},
+  {upper:'W',lower:'w',word:'Whale 🐋'},
+  {upper:'X',lower:'x',word:'Xylophone 🎵'},
+  {upper:'Y',lower:'y',word:'Yacht ⛵'},
+  {upper:'Z',lower:'z',word:'Zebra 🦓'},
+];
 
-// ── App State ──────────────────────────────────────────────────────────────
-const S = {
-  currentUser: null,
-  workflows: {}, tasks: {}, forms: {}, cases: {}, requests: {}, members: {},
-  activeInboxId: null, caseTab: "All", staffTab: "requests",
-  pendingReqId: null, pendingAction: null, cfmCb: null
-};
+const WORD_IMAGES = [
+  {arabic:'أسد',english:'Lion',emoji:'🦁'},
+  {arabic:'قط',english:'Cat',emoji:'🐱'},
+  {arabic:'كلب',english:'Dog',emoji:'🐶'},
+  {arabic:'سمكة',english:'Fish',emoji:'🐟'},
+  {arabic:'حوت',english:'Whale',emoji:'🐋'},
+  {arabic:'فيل',english:'Elephant',emoji:'🐘'},
+  {arabic:'زرافة',english:'Giraffe',emoji:'🦒'},
+  {arabic:'نمر',english:'Tiger',emoji:'🐯'},
+  {arabic:'أرنب',english:'Rabbit',emoji:'🐰'},
+  {arabic:'دجاجة',english:'Chicken',emoji:'🐔'},
+  {arabic:'تفاحة',english:'Apple',emoji:'🍎'},
+  {arabic:'موزة',english:'Banana',emoji:'🍌'},
+  {arabic:'شمس',english:'Sun',emoji:'☀️'},
+  {arabic:'قمر',english:'Moon',emoji:'🌙'},
+  {arabic:'بيت',english:'House',emoji:'🏠'},
+  {arabic:'سيارة',english:'Car',emoji:'🚗'},
+  {arabic:'كتاب',english:'Book',emoji:'📚'},
+  {arabic:'قلم',english:'Pen',emoji:'✏️'},
+  {arabic:'كرة',english:'Ball',emoji:'⚽'},
+  {arabic:'زهرة',english:'Flower',emoji:'🌸'},
+];
 
-// ── Helpers ────────────────────────────────────────────────────────────────
-const isHQ    = () => ["Admin","Manager"].includes(S.currentUser?.role);
-const ini     = n  => (n||"U").split(" ").map(x=>x[0]).join("").toUpperCase().slice(0,2);
-const $       = id => document.getElementById(id);
-const $$      = s  => document.querySelector(s);
-const pct2c   = v  => v>=70?"var(--accent3)":v>=50?"var(--accent)":v>=30?"var(--accent4)":"var(--accent5)";
-const sv      = {Active:"bg",Pending:"bo","In Review":"bb",Delayed:"br",Archived:"bx",Published:"bg",Draft:"bx",Open:"bo","In Progress":"bb",Resolved:"bg",Closed:"bx",Approved:"bg",Rejected:"br","On Hold":"bo"};
-const pv      = {High:"br",Medium:"bo",Low:"bx"};
-const badge   = (t,c) => `<span class="badge ${c||sv[t]||"bx"}">${t}</span>`;
-const prog    = (v,c) => `<div class="pw"><div class="pf" style="width:${v}%;background:${c||pct2c(v)}"></div></div>`;
-const empty   = (ic,ti,de) => `<div style="text-align:center;padding:28px"><div style="font-size:28px;opacity:.3;margin-bottom:8px">${ic}</div><div style="font-size:13px;font-weight:700;margin-bottom:3px">${ti}</div><div style="font-size:11px;color:var(--text3)">${de}</div></div>`;
-const ts      = () => Date.now();
-const objArr  = o => o ? Object.entries(o).map(([id,v])=>({id,...v})).sort((a,b)=>(b.ts||0)-(a.ts||0)) : [];
+const ARABIC_NUMS = [
+  {num:0,dots:'',ar:'صفر'},{num:1,dots:'●',ar:'واحد'},{num:2,dots:'●●',ar:'اثنان'},
+  {num:3,dots:'●●●',ar:'ثلاثة'},{num:4,dots:'●●●●',ar:'أربعة'},
+  {num:5,dots:'●●●●●',ar:'خمسة'},{num:6,dots:'●●●●●●',ar:'ستة'},
+  {num:7,dots:'●●●●●●●',ar:'سبعة'},{num:8,dots:'●●●●●●●●',ar:'ثمانية'},
+  {num:9,dots:'●●●●●●●●●',ar:'تسعة'},{num:10,dots:'🔟',ar:'عشرة'},
+];
 
-window.toast = (msg, type="success") => {
-  const t=$("toast"); t.textContent=msg;
-  t.className=`toast ${{success:"ts",error:"te",info:"ti"}[type]||"ts"} show`;
-  setTimeout(()=>t.classList.remove("show"),3200);
-};
-window.closeM = id => $(id).style.display="none";
-window.openM  = id => $(id).style.display="flex";
-const cfm = (msg,cb) => { $("cfmMsg").textContent=msg; S.cfmCb=cb; openM("cfmModal"); };
+const AVATARS = ['🦁','🐯','🐸','🐼','🦊','🐻','🐨','🦄','🐧','🐬','🦋','⭐'];
 
-// ── LOGIN ──────────────────────────────────────────────────────────────────
-// Populate quick-login hints
-function buildAccountHints(){
-  const list = $("accountsList");
-  if(!list) return;
-  list.innerHTML = ACCOUNTS.map(a=>`
-    <div class="account-item" onclick="quickLogin('${a.email}','${a.password}')">
-      <div class="account-av" style="background:${a.grad}">${ini(a.name)}</div>
-      <div class="account-info">
-        <div class="account-name">${a.name}</div>
-        <div class="account-role">${a.role} · ${a.dept}</div>
-      </div>
-      <div class="account-arr">→</div>
-    </div>`).join("");
-  // Also populate settings accounts table
-  const tbl = $("accountsTable");
-  if(tbl) tbl.innerHTML = `<table class="tbl"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Dept</th></tr></thead><tbody>${ACCOUNTS.map(a=>`<tr><td style="font-weight:600">${a.name}</td><td style="font-size:11px;color:var(--text3)">${a.email}</td><td>${badge(a.role,{Admin:"bb",Manager:"bg",Member:"bx",Viewer:"bx"}[a.role])}</td><td style="font-size:11px;color:var(--text3)">${a.dept}</td></tr>`).join("")}</tbody></table>`;
+// =========== STATE ===========
+let profiles = JSON.parse(localStorage.getItem('rp_profiles') || '[]');
+let currentUser = null;
+let selectedAvatar = AVATARS[0];
+let currentLetterIdx = 0;
+let currentLang = 'arabic';
+let mathMode = 'numbers';
+let currentCustomIdx = 0;
+let canvas, ctx, canvas2, ctx2;
+let isDrawing = false;
+let currentColor = '#1A1A3E';
+let strokeWidth = 8;
+let pendingLoginProfile = null;
+let parentPin = localStorage.getItem('rp_parent_pin') || '1234';
+
+// =========== INIT ===========
+function init() {
+  createStars();
+  setupAvatarPicker();
+  renderProfiles();
+  setupCanvas();
+  renderArabicLetters();
+  renderEngLetters();
+  renderMatchGrid();
+  renderMathNumbers();
 }
 
-window.quickLogin = (email, pass) => {
-  $("lemail").value = email;
-  $("lpass").value = pass;
-  doLogin();
-};
+function createStars() {
+  const container = document.getElementById('starsContainer');
+  for (let i = 0; i < 18; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = Math.random() * 14 + 6;
+    s.style.cssText = `width:${size}px;height:${size}px;top:${Math.random()*100}%;left:${Math.random()*100}%;background:${['#FFD93D','#fff','#FF8FAB','#A78BFA'][Math.floor(Math.random()*4)]};animation-delay:${Math.random()*2}s;animation-duration:${1.5+Math.random()*2}s`;
+    container.appendChild(s);
+  }
+}
 
-window.doLogin = () => {
-  const email = $("lemail").value.trim().toLowerCase();
-  const pass  = $("lpass").value;
-  const btn   = $("lbtn");
-  const err   = $("loginErr");
-  err.style.display="none";
-  if(!email||!pass){ err.textContent="Please fill in all fields."; err.style.display="block"; return; }
-  const account = ACCOUNTS.find(a=>a.email.toLowerCase()===email && a.password===pass);
-  if(!account){ err.textContent="Invalid email or password. Check the accounts below."; err.style.display="block"; return; }
-  S.currentUser = {...account};
-  sessionStorage.setItem("flowos_user", JSON.stringify(account));
-  btn.textContent="Signing in…";
-  setTimeout(()=>{ btn.textContent="Sign In"; showApp(); },400);
-};
+function setupAvatarPicker() {
+  const picker = document.getElementById('avatarPicker');
+  AVATARS.forEach((av, i) => {
+    const el = document.createElement('div');
+    el.className = 'avatar-opt' + (i === 0 ? ' selected' : '');
+    el.textContent = av;
+    el.onclick = () => {
+      document.querySelectorAll('.avatar-opt').forEach(x => x.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedAvatar = av;
+    };
+    picker.appendChild(el);
+  });
+}
 
-window.doLogout = () => {
-  S.currentUser = null;
-  sessionStorage.removeItem("flowos_user");
-  $("appScreen").style.display="none";
-  $("staffScreen").style.display="none";
-  $("loginScreen").style.display="flex";
-  $("lemail").value=""; $("lpass").value="";
-  $("loginErr").style.display="none";
-};
+// =========== PROFILES ===========
+function renderProfiles() {
+  const grid = document.getElementById('profilesGrid');
+  grid.innerHTML = '';
+  profiles.forEach((p, i) => {
+    const card = document.createElement('div');
+    card.className = 'profile-card';
+    card.innerHTML = `<div class="profile-avatar">${p.avatar}</div><div class="profile-name">${p.name}</div><div class="profile-age">${p.age ? p.age + ' سنوات' : ''}</div>`;
+    card.onclick = () => loginProfile(i);
+    grid.appendChild(card);
+  });
+  const add = document.createElement('div');
+  add.className = 'add-profile-btn';
+  add.innerHTML = '+';
+  add.title = 'إضافة طفل';
+  add.onclick = () => showModal('addProfileModal');
+  grid.appendChild(add);
+}
 
-function showApp(){
-  $("loginScreen").style.display="none";
-  if(!isHQ()){
-    $("appScreen").style.display="none";
-    $("staffScreen").style.display="flex";
-    $("sname").textContent=S.currentUser.name;
-    $("srole").textContent=S.currentUser.role+" · "+S.currentUser.dept;
-    $("savatar").textContent=ini(S.currentUser.name);
-    $("savatar").style.background=S.currentUser.grad;
-    $("sgreet").textContent="Good day, "+S.currentUser.name.split(" ")[0]+"! 👋";
-    subscribeStaff();
+function addProfile() {
+  const name = document.getElementById('childName').value.trim();
+  const age = document.getElementById('childAge').value;
+  const pin = document.getElementById('childPin').value.trim();
+  if (!name) return alert('أدخل اسم الطفل');
+  if (pin && pin.length !== 4) return alert('الرمز يجب أن يكون 4 أرقام');
+  const profile = { name, age, avatar: selectedAvatar, pin: pin || '', progress: {}, stars: 0, customWords: [] };
+  profiles.push(profile);
+  saveProfiles();
+  renderProfiles();
+  hideModal('addProfileModal');
+  document.getElementById('childName').value = '';
+  document.getElementById('childPin').value = '';
+}
+
+function loginProfile(idx) {
+  const p = profiles[idx];
+  pendingLoginProfile = idx;
+  if (p.pin) {
+    document.getElementById('pinAvatar').textContent = p.avatar;
+    document.getElementById('pinName').textContent = `مرحباً ${p.name}!`;
+    document.getElementById('pinInput').value = '';
+    document.getElementById('pinError').style.display = 'none';
+    showModal('pinModal');
+  } else {
+    enterProfile(idx);
+  }
+}
+
+function checkPin() {
+  const input = document.getElementById('pinInput').value;
+  if (input === profiles[pendingLoginProfile].pin) {
+    hideModal('pinModal');
+    enterProfile(pendingLoginProfile);
+  } else {
+    document.getElementById('pinError').style.display = 'block';
+    document.getElementById('pinInput').value = '';
+  }
+}
+
+function checkParentPin() {
+  const input = document.getElementById('parentPinInput').value;
+  if (input === parentPin) {
+    hideModal('parentPinModal');
+    showScreen('parentScreen');
+    renderParentContent('words');
+  } else {
+    document.getElementById('parentPinError').style.display = 'block';
+    document.getElementById('parentPinInput').value = '';
+  }
+}
+
+function enterProfile(idx) {
+  currentUser = idx;
+  const p = profiles[idx];
+  document.getElementById('menuAvatar').textContent = p.avatar;
+  document.getElementById('menuName').textContent = p.name;
+  document.getElementById('menuGreeting').textContent = `أهلاً ${p.name}! 👋`;
+  document.getElementById('menuStars').textContent = `⭐ ${p.stars || 0}`;
+  updateOverallProgress();
+  showScreen('menuScreen');
+}
+
+function logout() {
+  currentUser = null;
+  showScreen('loginScreen');
+}
+
+function saveProfiles() {
+  localStorage.setItem('rp_profiles', JSON.stringify(profiles));
+}
+
+// =========== SCREENS ===========
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 'mathScreen') renderMathNumbers();
+}
+
+function showModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function hideModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+// =========== ARABIC LETTERS ===========
+function renderArabicLetters(filter = 'all') {
+  const grid = document.getElementById('arabicLettersGrid');
+  grid.innerHTML = '';
+  const p = currentUser !== null ? profiles[currentUser] : null;
+  ARABIC_LETTERS.forEach((l, i) => {
+    const done = p && p.progress && p.progress['ar_' + i];
+    if (filter === 'completed' && !done) return;
+    if (filter === 'pending' && done) return;
+    const card = document.createElement('div');
+    card.className = 'arabic-letter-card' + (done ? ' completed' : '');
+    card.innerHTML = `<div class="ar-letter-main">${l.letter}</div><div class="ar-letter-name">${l.name}</div><div class="ar-letter-sound">[${l.sound}]</div>`;
+    card.onclick = () => openArabicPractice(i);
+    grid.appendChild(card);
+  });
+}
+
+function filterLetters(type, btn) {
+  document.querySelectorAll('.letter-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderArabicLetters(type);
+}
+
+function openArabicPractice(idx) {
+  currentLetterIdx = idx;
+  currentLang = 'arabic';
+  const l = ARABIC_LETTERS[idx];
+  document.getElementById('practiceTitle').textContent = 'تدرّب — ' + l.name;
+  document.getElementById('practiceLetter').textContent = l.letter;
+  document.getElementById('practiceName').textContent = l.name;
+  document.getElementById('letterGuide').textContent = l.letter;
+  document.getElementById('canvasPrompt').textContent = `اكتب حرف "${l.letter}" هنا 👇`;
+  document.getElementById('practiceBack').onclick = () => showScreen('arabicScreen');
+
+  const forms = document.getElementById('formsSection');
+  forms.innerHTML = `
+    <div class="form-card">
+      <div class="form-label">في أول الكلمة</div>
+      <div class="form-char">${l.start}</div>
+      <div class="form-example">مثل: ${l.example.start}</div>
+    </div>
+    <div class="form-card">
+      <div class="form-label">في وسط الكلمة</div>
+      <div class="form-char">${l.mid}</div>
+      <div class="form-example">مثل: ${l.example.mid}</div>
+    </div>
+    <div class="form-card">
+      <div class="form-label">في آخر الكلمة</div>
+      <div class="form-char">${l.end}</div>
+      <div class="form-example">مثل: ${l.example.end}</div>
+    </div>
+  `;
+  clearCanvas();
+  showScreen('practiceScreen');
+}
+
+// =========== ENGLISH LETTERS ===========
+function renderEngLetters() {
+  const grid = document.getElementById('engLettersGrid');
+  grid.innerHTML = '';
+  const p = currentUser !== null ? profiles[currentUser] : null;
+  ENGLISH_LETTERS.forEach((l, i) => {
+    const done = p && p.progress && p.progress['en_' + i];
+    const card = document.createElement('div');
+    card.className = 'eng-letter-card' + (done ? ' completed' : '');
+    card.innerHTML = `<div class="eng-upper">${l.upper}</div><div class="eng-lower">${l.lower}</div><div class="eng-word">${l.word}</div>`;
+    card.onclick = () => openEngPractice(i);
+    grid.appendChild(card);
+  });
+}
+
+function openEngPractice(idx) {
+  currentLetterIdx = idx;
+  currentLang = 'english';
+  const l = ENGLISH_LETTERS[idx];
+  document.getElementById('practiceTitle').textContent = 'Practice — ' + l.upper;
+  document.getElementById('practiceLetter').textContent = l.upper;
+  document.getElementById('practiceName').textContent = l.word;
+  document.getElementById('letterGuide').textContent = l.upper;
+  document.getElementById('canvasPrompt').textContent = `Write the letter "${l.upper}" below 👇`;
+  document.getElementById('practiceBack').onclick = () => showScreen('englishScreen');
+
+  const forms = document.getElementById('formsSection');
+  forms.innerHTML = `
+    <div class="form-card" style="border-color:var(--grass);">
+      <div class="form-label">Uppercase</div>
+      <div class="form-char" style="font-family:'Fredoka One',sans-serif;font-size:56px;color:var(--grass);">${l.upper}</div>
+    </div>
+    <div class="form-card" style="border-color:var(--sky);">
+      <div class="form-label">Lowercase</div>
+      <div class="form-char" style="font-family:'Fredoka One',sans-serif;font-size:56px;color:var(--sky);">${l.lower}</div>
+    </div>
+    <div class="form-card" style="border-color:var(--orange);">
+      <div class="form-label">Word</div>
+      <div class="form-char" style="font-size:32px;">${l.word.split(' ')[1] || ''}</div>
+      <div class="form-example">${l.word.split(' ')[0]}</div>
+    </div>
+  `;
+  clearCanvas();
+  showScreen('practiceScreen');
+}
+
+// =========== CANVAS DRAWING ===========
+function setupCanvas() {
+  canvas = document.getElementById('drawCanvas');
+  ctx = canvas.getContext('2d');
+  canvas2 = document.getElementById('drawCanvas2');
+  ctx2 = canvas2.getContext('2d');
+
+  // Canvas 1
+  setupCanvasEvents(canvas, ctx);
+  // Canvas 2
+  setupCanvasEvents(canvas2, ctx2);
+
+  // Color palettes
+  const colors = ['#1A1A3E','#FF6B6B','#6BCB77','#6EC6F5','#FFD93D','#A78BFA','#FF8FAB','#FF7043'];
+  [['colorPalette', canvas, ctx], ['colorPalette2', canvas2, ctx2]].forEach(([pid, cv, cx]) => {
+    const pal = document.getElementById(pid);
+    if (!pal) return;
+    colors.forEach((c, i) => {
+      const dot = document.createElement('div');
+      dot.className = 'color-dot' + (i === 0 ? ' active' : '');
+      dot.style.background = c;
+      dot.onclick = () => {
+        currentColor = c;
+        pal.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+        dot.classList.add('active');
+      };
+      pal.appendChild(dot);
+    });
+  });
+
+  // Stroke sizes
+  const sizes = [4, 8, 14, 20];
+  const sizeContainer = document.getElementById('strokeSize');
+  sizes.forEach((s, i) => {
+    const btn = document.createElement('div');
+    btn.className = 'size-btn' + (i === 1 ? ' active' : '');
+    btn.style.cssText = `width:${s+16}px;height:${s+16}px;`;
+    btn.innerHTML = `<div style="width:${s}px;height:${s}px;border-radius:50%;background:${currentColor};"></div>`;
+    btn.onclick = () => {
+      strokeWidth = s;
+      document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    };
+    sizeContainer.appendChild(btn);
+  });
+
+  resizeCanvases();
+  window.addEventListener('resize', resizeCanvases);
+}
+
+function resizeCanvases() {
+  [canvas, canvas2].forEach(cv => {
+    if (!cv) return;
+    const rect = cv.parentElement.getBoundingClientRect();
+    const w = rect.width || 340;
+    cv.width = w;
+    cv.style.width = w + 'px';
+  });
+}
+
+function setupCanvasEvents(cv, cx) {
+  const getPos = (e) => {
+    const rect = cv.getBoundingClientRect();
+    const src = e.touches ? e.touches[0] : e;
+    return { x: src.clientX - rect.left, y: src.clientY - rect.top };
+  };
+  const startDraw = (e) => {
+    e.preventDefault();
+    isDrawing = true;
+    const pos = getPos(e);
+    cx.beginPath();
+    cx.moveTo(pos.x, pos.y);
+  };
+  const draw = (e) => {
+    if (!isDrawing) return;
+    e.preventDefault();
+    const pos = getPos(e);
+    cx.lineWidth = strokeWidth;
+    cx.lineCap = 'round';
+    cx.lineJoin = 'round';
+    cx.strokeStyle = currentColor;
+    cx.lineTo(pos.x, pos.y);
+    cx.stroke();
+  };
+  const stopDraw = () => { isDrawing = false; };
+
+  cv.addEventListener('mousedown', startDraw);
+  cv.addEventListener('mousemove', draw);
+  cv.addEventListener('mouseup', stopDraw);
+  cv.addEventListener('mouseleave', stopDraw);
+  cv.addEventListener('touchstart', startDraw, {passive: false});
+  cv.addEventListener('touchmove', draw, {passive: false});
+  cv.addEventListener('touchend', stopDraw);
+}
+
+function clearCanvas() {
+  if (!ctx) return;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function clearCanvas2() {
+  if (!ctx2) return;
+  ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
+}
+
+function checkWriting() {
+  // Check if canvas has content
+  const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const hasContent = imgData.data.some((v, i) => i % 4 === 3 && v > 10);
+  if (!hasContent) {
+    alert('✏️ ارسم الحرف أولاً!');
     return;
   }
-  $("appScreen").style.display="flex";
-  $("staffScreen").style.display="none";
-  $("usavatar").textContent=ini(S.currentUser.name);
-  $("usavatar").style.background=S.currentUser.grad;
-  $("usname").textContent=S.currentUser.name;
-  $("usrole").textContent=S.currentUser.role+" · "+S.currentUser.dept;
-  // Sync ACCOUNTS to Firebase members
-  ACCOUNTS.forEach(a=>{ set(ref(db,"members/"+btoa(a.email)),{name:a.name,email:a.email,role:a.role,dept:a.dept,grad:a.grad,status:"Active"}); });
-  subscribeHQ();
-  showPage("dashboard");
+  // Mark as completed
+  if (currentUser !== null) {
+    const key = (currentLang === 'arabic' ? 'ar_' : 'en_') + currentLetterIdx;
+    if (!profiles[currentUser].progress) profiles[currentUser].progress = {};
+    if (!profiles[currentUser].progress[key]) {
+      profiles[currentUser].progress[key] = true;
+      profiles[currentUser].stars = (profiles[currentUser].stars || 0) + 3;
+      saveProfiles();
+      document.getElementById('menuStars').textContent = `⭐ ${profiles[currentUser].stars}`;
+    }
+    saveProfiles();
+    renderArabicLetters();
+    renderEngLetters();
+    updateOverallProgress();
+  }
+  celebrate('أحسنت! 🌟', 'لقد كتبت الحرف بشكل رائع!', '+⭐⭐⭐');
 }
 
-// ── Firebase Subscriptions ─────────────────────────────────────────────────
-function subscribeHQ(){
-  onValue(ref(db,"workflows"), s=>{ S.workflows=s.val()||{}; reDash(); if($$(".page.active")?.id==="page-wf") reWF(); });
-  onValue(ref(db,"tasks"),     s=>{ S.tasks=s.val()||{};     if($$(".page.active")?.id==="page-proj") reProj(); });
-  onValue(ref(db,"forms"),     s=>{ S.forms=s.val()||{};     if($$(".page.active")?.id==="page-forms") reForms(); });
-  onValue(ref(db,"cases"),     s=>{ S.cases=s.val()||{};     if($$(".page.active")?.id==="page-cases") reCases(); });
-  onValue(ref(db,"members"),   s=>{ S.members=s.val()||{};   if($$(".page.active")?.id==="page-team") reTeam(); });
-  onValue(ref(db,"requests"),  s=>{
-    S.requests=s.val()||{};
-    const pending=objArr(S.requests).filter(r=>r.status==="Pending").length;
-    $("ibadge").textContent=pending; $("ibadge").style.display=pending?"inline":"none";
-    $("bellBadge").style.display=pending?"block":"none";
-    reDash(); if($$(".page.active")?.id==="page-inbox") reInbox();
+function nextLetter() {
+  if (currentLang === 'arabic') {
+    const next = (currentLetterIdx + 1) % ARABIC_LETTERS.length;
+    openArabicPractice(next);
+  } else {
+    const next = (currentLetterIdx + 1) % ENGLISH_LETTERS.length;
+    openEngPractice(next);
+  }
+}
+
+// =========== WORD-IMAGE MATCH ===========
+function renderMatchGrid() {
+  const grid = document.getElementById('matchGrid');
+  grid.innerHTML = '';
+  WORD_IMAGES.forEach((item) => {
+    const card = document.createElement('div');
+    card.className = 'match-card';
+    let flipped = false;
+    card.innerHTML = `
+      <div class="card-inner" id="ci_${item.arabic}">
+        <div class="card-front" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:160px;">
+          <span class="match-emoji">${item.emoji}</span>
+          <div style="font-size:13px;font-weight:700;color:#888;margin-top:8px;">انقر للكشف!</div>
+        </div>
+        <div class="card-back">
+          <span style="font-size:52px;">${item.emoji}</span>
+          <div class="match-arabic">${item.arabic}</div>
+          <div class="match-english">${item.english}</div>
+        </div>
+      </div>`;
+    card.onclick = () => {
+      flipped = !flipped;
+      const inner = card.querySelector('.card-inner');
+      if (flipped) {
+        inner.style.transform = 'rotateY(180deg)';
+        setTimeout(() => {
+          inner.style.transform = '';
+        }, 2500);
+        flipped = false;
+      }
+    };
+    // Simple flip on click
+    card.style.perspective = '1000px';
+    card.querySelector('.card-inner').style.transition = 'transform 0.5s';
+    card.querySelector('.card-inner').style.transformStyle = 'preserve-3d';
+    card.querySelector('.card-front').style.backfaceVisibility = 'hidden';
+    card.querySelector('.card-back').style.backfaceVisibility = 'hidden';
+    card.querySelector('.card-back').style.position = 'absolute';
+    card.querySelector('.card-back').style.inset = '0';
+    card.querySelector('.card-back').style.transform = 'rotateY(180deg)';
+    card.onclick = () => {
+      const inner = card.querySelector('.card-inner');
+      const isFlipped = inner.style.transform === 'rotateY(180deg)';
+      inner.style.transform = isFlipped ? '' : 'rotateY(180deg)';
+    };
+    grid.appendChild(card);
   });
 }
 
-function subscribeStaff(){
-  const uid = btoa(S.currentUser.email);
-  onValue(ref(db,"requests"), s=>{
-    const all = s.val()||{};
-    S.requests = Object.fromEntries(Object.entries(all).filter(([,v])=>v.submitterEmail===S.currentUser.email));
-    reStaff();
+// =========== MATH ===========
+function switchMathTab(mode, btn) {
+  mathMode = mode;
+  document.querySelectorAll('.math-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  if (mode === 'numbers') renderMathNumbers();
+  else renderMathQuiz(mode);
+}
+
+function renderMathNumbers() {
+  const container = document.getElementById('mathContent');
+  container.innerHTML = '<div class="numbers-grid" id="numbersGrid"></div>';
+  const grid = document.getElementById('numbersGrid');
+  ARABIC_NUMS.forEach(n => {
+    const card = document.createElement('div');
+    card.className = 'number-card';
+    card.innerHTML = `<div class="number-big">${n.num}</div><div class="number-dots">${n.dots}</div><div class="number-arabic">${n.ar}</div>`;
+    card.onclick = () => {
+      if (window.speechSynthesis) {
+        const u = new SpeechSynthesisUtterance(n.ar);
+        u.lang = 'ar-SA';
+        speechSynthesis.speak(u);
+      }
+      card.style.transform = 'scale(1.2)';
+      setTimeout(() => card.style.transform = '', 300);
+    };
+    grid.appendChild(card);
   });
-  // Staff notifications = requests with hq_comment or non-pending status
-  onValue(ref(db,"requests"), s=>{
-    const all = objArr(s.val()||{}).filter(r=>r.submitterEmail===S.currentUser.email && r.status!=="Pending");
-    const unread = all.filter(r=>!r.staffRead).length;
-    $("snbadge").textContent=unread; $("snbadge").style.display=unread?"inline":"none";
-    $("snotif").textContent=unread;
-    if(S.staffTab==="notifs") reNotifs(all);
+}
+
+let mathCurrentQ = null;
+function renderMathQuiz(op) {
+  const container = document.getElementById('mathContent');
+  container.innerHTML = '<div class="math-quiz" id="mathQuizArea"></div>';
+  generateMathQ(op);
+}
+
+function generateMathQ(op) {
+  const area = document.getElementById('mathQuizArea');
+  if (!area) return;
+  let a, b, answer, symbol;
+  if (op === 'add') {
+    a = Math.floor(Math.random() * 10); b = Math.floor(Math.random() * 10);
+    answer = a + b; symbol = '+';
+  } else if (op === 'sub') {
+    a = Math.floor(Math.random() * 10) + 5; b = Math.floor(Math.random() * (a+1));
+    answer = a - b; symbol = '-';
+  } else if (op === 'mul') {
+    a = Math.floor(Math.random() * 6) + 1; b = Math.floor(Math.random() * 6) + 1;
+    answer = a * b; symbol = '×';
+  } else {
+    b = Math.floor(Math.random() * 5) + 1; answer = Math.floor(Math.random() * 6) + 1;
+    a = b * answer; symbol = '÷';
+  }
+  mathCurrentQ = { a, b, answer, op };
+
+  // Generate wrong answers
+  const options = new Set([answer]);
+  while (options.size < 4) {
+    const wrong = answer + Math.floor(Math.random() * 7) - 3;
+    if (wrong >= 0 && wrong !== answer) options.add(wrong);
+  }
+  const optArr = [...options].sort(() => Math.random() - 0.5);
+
+  area.innerHTML = `
+    <div class="math-problem">
+      ${a} <span class="math-operation">${symbol}</span> ${b} = <span style="color:var(--purple)">?</span>
+    </div>
+    <div class="math-options" id="mathOpts"></div>
+    <div id="mathFeedback" style="font-size:22px;font-weight:800;color:var(--navy);display:none;text-align:center;"></div>
+  `;
+  const opts = document.getElementById('mathOpts');
+  optArr.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'math-opt';
+    btn.textContent = opt;
+    btn.onclick = () => checkMathAnswer(opt, btn);
+    opts.appendChild(btn);
   });
 }
 
-// ── NAVIGATION ─────────────────────────────────────────────────────────────
-window.showPage = id => {
-  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-  document.querySelectorAll(".nitem").forEach(n=>n.classList.remove("active"));
-  const pg=$("page-"+id); if(pg) pg.classList.add("active");
-  const ni=$$('.nitem[data-p="'+id+'"]'); if(ni) ni.classList.add("active");
-  $("ptitle").textContent={dashboard:"Dashboard",wf:"Workflows",proj:"Projects",forms:"Forms",cases:"Cases",inbox:"Inbox",analytics:"Analytics",team:"Team",settings:"Settings"}[id]||"FlowOS";
-  ({dashboard:reDash,wf:reWF,proj:reProj,forms:reForms,cases:reCases,inbox:reInbox,analytics:reAnalytics,team:reTeam,settings:()=>buildAccountHints()}[id]||(() => {}))();
-};
-
-// ── DASHBOARD ──────────────────────────────────────────────────────────────
-function reDash(){
-  const wf=objArr(S.workflows), reqs=objArr(S.requests), cs=objArr(S.cases), tk=objArr(S.tasks);
-  $("dstats").innerHTML=`
-    <div class="scard" style="--tc:linear-gradient(90deg,var(--accent),var(--accent2))"><div class="sicon">⚡</div><div class="slbl">Active Workflows</div><div class="sval" style="color:var(--accent)">${wf.filter(w=>w.status==="Active").length}</div><div class="schg">${wf.length} total</div></div>
-    <div class="scard" style="--tc:linear-gradient(90deg,var(--accent3),#00a87a)"><div class="sicon">📥</div><div class="slbl">Pending Requests</div><div class="sval" style="color:var(--accent3)">${reqs.filter(r=>r.status==="Pending").length}</div><div class="schg">${reqs.length} total requests</div></div>
-    <div class="scard" style="--tc:linear-gradient(90deg,var(--accent4),#e07a30)"><div class="sicon">🗂️</div><div class="slbl">Open Cases</div><div class="sval" style="color:var(--accent4)">${cs.filter(c=>c.status==="Open").length}</div><div class="schg">${cs.length} total</div></div>
-    <div class="scard" style="--tc:linear-gradient(90deg,var(--accent5),#c73055)"><div class="sicon">✅</div><div class="slbl">Tasks Done</div><div class="sval" style="color:var(--accent5)">${tk.filter(t=>t.column==="done").length}</div><div class="schg">${tk.length} total tasks</div></div>`;
-  $("dwf").innerHTML=wf.length===0?`<tr><td colspan="4">${empty("⚡","No workflows","Create your first.")}</td></tr>`:wf.slice(0,5).map(w=>`<tr><td style="font-weight:600">${w.icon||"⚡"} ${w.name}</td><td>${badge(w.status)}</td><td style="min-width:80px">${prog(w.pct||0)}</td><td style="font-size:11px;color:var(--text3)">${w.dept||""}</td></tr>`).join("");
-  $("dib").innerHTML=reqs.length===0?`<tr><td colspan="4" style="text-align:center;padding:14px;color:var(--text3)">No requests yet</td></tr>`:reqs.slice(0,4).map(r=>`<tr style="cursor:pointer" onclick="showPage('inbox')"><td style="font-weight:600;font-size:12px">${r.title}</td><td style="font-size:11px;color:var(--text3)">${r.submitterName||""}</td><td>${badge(r.priority||"Medium",pv[r.priority||"Medium"])}</td><td>${badge(r.status||"Pending")}</td></tr>`).join("");
+function checkMathAnswer(val, btn) {
+  const opts = document.querySelectorAll('.math-opt');
+  opts.forEach(b => b.onclick = null);
+  if (val === mathCurrentQ.answer) {
+    btn.classList.add('correct');
+    if (currentUser !== null) {
+      profiles[currentUser].stars = (profiles[currentUser].stars || 0) + 1;
+      document.getElementById('menuStars').textContent = `⭐ ${profiles[currentUser].stars}`;
+      saveProfiles();
+    }
+    setTimeout(() => {
+      celebrate('ممتاز! 🎉', `${mathCurrentQ.a} ${mathCurrentQ.op === 'add' ? '+' : mathCurrentQ.op === 'sub' ? '-' : mathCurrentQ.op === 'mul' ? '×' : '÷'} ${mathCurrentQ.b} = ${mathCurrentQ.answer} ✅`, '+⭐');
+      setTimeout(() => generateMathQ(mathMode), 200);
+    }, 800);
+  } else {
+    btn.classList.add('wrong');
+    opts.forEach(b => { if (parseInt(b.textContent) === mathCurrentQ.answer) b.classList.add('correct'); });
+    setTimeout(() => generateMathQ(mathMode), 1800);
+  }
 }
 
-// ── WORKFLOWS ──────────────────────────────────────────────────────────────
-function reWF(){
-  const wf=objArr(S.workflows);
-  $("wfgrid").innerHTML=wf.map(w=>`<div class="card"><div style="display:flex;align-items:start;justify-content:space-between;margin-bottom:9px"><span style="font-size:22px">${w.icon||"⚡"}</span>${badge(w.status)}</div><div style="font-size:13px;font-weight:700;margin-bottom:3px">${w.name}</div><div style="font-size:11px;color:var(--text3);margin-bottom:10px">${w.steps||0} steps · ${w.dept||""}</div>${prog(w.pct||0)}<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin:5px 0 10px">${w.instances||0} instances · ${w.pct||0}%</div><div style="display:flex;gap:5px;border-top:1px solid var(--border);padding-top:9px"><button class="bsm" onclick="editWF('${w.id}')">✏️ Edit</button><button class="bsm" style="color:var(--accent3)" onclick="toggleWF('${w.id}','${w.status}')">${w.status==="Active"?"⏸":"▶"}</button><button class="bsm" style="color:var(--accent5)" onclick="delWF('${w.id}')">🗑</button></div></div>`).join("")+`<div class="card card-d" onclick="openWFModal(null)"><div style="font-size:28px;opacity:.3">+</div><div style="font-size:12px;color:var(--text3)">Create Workflow</div></div>`;
-}
-window.toggleWF=async(id,cur)=>{ await update(ref(db,"workflows/"+id),{status:cur==="Active"?"Pending":"Active"}); toast("Status updated!"); };
-window.delWF=id=>cfm("Delete this workflow?",async()=>{ await remove(ref(db,"workflows/"+id)); toast("Deleted.","info"); });
-window.editWF=id=>openWFModal(objArr(S.workflows).find(w=>w.id===id));
-window.openWFModal=wf=>{
-  $("wfmtit").textContent=wf?"Edit Workflow":"Create Workflow"; $("wfid").value=wf?.id||""; $("wfname").value=wf?.name||""; $("wfdept").value=wf?.dept||""; $("wfsteps").value=wf?.steps||""; $("wfstatus").value=wf?.status||"Active"; $("wfpct").value=wf?.pct||0; $("wfpctv").textContent=(wf?.pct||0)+"%";
-  const ics=["👤","💰","💻","🏖️","🏢","📦","🔧","📊","🎯","🚀","📝","🔗"];
-  $("wficons").innerHTML=ics.map(ic=>`<button class="ibtn ${(wf?.icon||"👤")===ic?"on":""}" onclick="selIco(this)" data-i="${ic}">${ic}</button>`).join("");
-  $("wfpct").oninput=e=>$("wfpctv").textContent=e.target.value+"%";
-  openM("wfModal");
-};
-window.selIco=btn=>{ document.querySelectorAll("#wficons .ibtn").forEach(b=>b.classList.remove("on")); btn.classList.add("on"); };
-window.saveWF=async()=>{
-  const id=$("wfid").value, name=$("wfname").value.trim(), dept=$("wfdept").value, steps=parseInt($("wfsteps").value)||1, status=$("wfstatus").value, pct=parseInt($("wfpct").value)||0, icon=$$("#wficons .ibtn.on")?.dataset?.i||"⚡";
-  if(!name||!dept) return toast("Name and department required.","error");
-  const row={name,dept,steps,status,pct,icon,instances:0,ts:ts()};
-  if(id) await update(ref(db,"workflows/"+id),row); else await push(ref(db,"workflows"),row);
-  toast(id?"Updated!":"Created!"); closeM("wfModal");
-};
-
-// ── TASKS / KANBAN ─────────────────────────────────────────────────────────
-const COLS=[{id:"todo",lbl:"To Do",c:"var(--text3)"},{id:"inprogress",lbl:"In Progress",c:"var(--accent)"},{id:"review",lbl:"In Review",c:"var(--accent2)"},{id:"done",lbl:"Done",c:"var(--accent3)"}];
-function reProj(){
-  const tasks=objArr(S.tasks);
-  $("kboard").innerHTML=COLS.map(col=>{const cards=tasks.filter(t=>t.column===col.id);return`<div class="kcol"><div class="kch"><div class="kdot" style="background:${col.c}"></div><span style="font-size:11px;font-weight:700">${col.lbl}</span><span class="kct">${cards.length}</span></div><div class="kcards">${cards.length===0?`<div style="font-size:10px;color:var(--text3);text-align:center;padding:12px">No tasks</div>`:cards.map(t=>`<div class="kcard ${t.column==="done"?"done":""}"><div style="font-size:11px;font-weight:600;margin-bottom:5px${t.column==="done"?";text-decoration:line-through":""}">${t.title}</div><div style="font-size:10px;color:var(--text3);margin-bottom:6px">${t.dept||""}</div><div style="display:flex;align-items:center;justify-content:space-between"><div class="kav">${(t.assignee||"?").slice(0,2).toUpperCase()}</div><span style="font-size:9px;font-weight:600;color:${t.priority==="High"?"var(--accent5)":t.priority==="Medium"?"var(--accent4)":"var(--text3)"}">● ${t.priority||"Low"}</span></div><div style="display:flex;gap:4px;margin-top:7px;padding-top:7px;border-top:1px solid var(--border)"><button class="bsm" style="flex:1" onclick="editTask('${t.id}')">Edit</button>${t.column!=="done"?`<button class="bsm" style="color:var(--accent3)" onclick="moveTask('${t.id}','${col.id}')">→</button>`:""}<button class="bsm" style="color:var(--accent5)" onclick="delTask('${t.id}')">🗑</button></div></div>`).join("")}</div><div class="kadd" onclick="openTaskModal(null,'${col.id}')">+ Add card</div></div>`;}).join("");
-  $("listBody").innerHTML=tasks.map(t=>`<tr><td style="font-weight:600;font-size:12px">${t.title}</td><td style="font-size:11px;color:var(--text3)">${t.dept||""}</td><td style="font-size:11px;color:var(--text3)">${t.assignee||""}</td><td>${badge(t.priority||"Medium",pv[t.priority||"Medium"])}</td><td>${badge(COLS.find(c=>c.id===t.column)?.lbl||t.column)}</td><td><div style="display:flex;gap:4px"><button class="bsm" onclick="editTask('${t.id}')">Edit</button><button class="bsm" style="color:var(--accent5)" onclick="delTask('${t.id}')">Del</button></div></td></tr>`).join("");
-}
-window.togglePV=(btn,v)=>{ document.querySelectorAll("#page-proj .tbtn").forEach(b=>b.classList.remove("active")); btn.classList.add("active"); $("kboard").style.display=v==="b"?"grid":"none"; $("listView").style.display=v==="l"?"block":"none"; };
-window.editTask=id=>openTaskModal(objArr(S.tasks).find(t=>t.id===id));
-window.delTask=id=>cfm("Delete this task?",async()=>{ await remove(ref(db,"tasks/"+id)); toast("Deleted.","info"); });
-window.moveTask=async(id,cur)=>{ const o=["todo","inprogress","review","done"],n=o[o.indexOf(cur)+1]; if(n){ await update(ref(db,"tasks/"+id),{column:n}); toast("Moved!","info"); } };
-window.openTaskModal=(task,col="todo")=>{
-  $("tkmtit").textContent=task?"Edit Task":"Add Task"; $("tkid").value=task?.id||""; $("tktitle").value=task?.title||""; $("tkdept").value=task?.dept||""; $("tkassign").value=task?.assignee||""; $("tkprio").value=task?.priority||"Medium"; $("tkcol").value=task?.column||col; $("tkdue").value=task?.due||"";
-  openM("taskModal");
-};
-window.saveTask=async()=>{
-  const id=$("tkid").value, title=$("tktitle").value.trim(), dept=$("tkdept").value, assignee=$("tkassign").value, priority=$("tkprio").value, column=$("tkcol").value, due=$("tkdue").value;
-  if(!title) return toast("Title required.","error");
-  const row={title,dept,assignee,priority,column,due,ts:ts()};
-  if(id) await update(ref(db,"tasks/"+id),row); else await push(ref(db,"tasks"),row);
-  toast(id?"Updated!":"Created!"); closeM("taskModal");
-};
-
-// ── FORMS ──────────────────────────────────────────────────────────────────
-function reForms(){
-  const forms=objArr(S.forms);
-  $("fgrid").innerHTML=forms.map(f=>`<div class="card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px"><span style="font-size:22px">${f.icon||"📋"}</span>${badge(f.status)}</div><div style="font-size:13px;font-weight:700;margin-bottom:3px">${f.name}</div><div style="font-size:11px;color:var(--text3);margin-bottom:8px">${f.dept||""} · ${f.fields||0} fields</div><div style="font-size:11px;color:var(--text2);margin-bottom:12px">📥 <strong>${f.submissions||0}</strong> submissions</div><div style="display:flex;gap:5px;border-top:1px solid var(--border);padding-top:9px"><button class="bsm" onclick="editForm('${f.id}')">✏️ Edit</button><button class="bsm" style="color:var(--accent3)" onclick="toggleForm('${f.id}','${f.status}')">${f.status==="Published"?"Unpublish":"Publish"}</button><button class="bsm" style="color:var(--accent5)" onclick="delForm('${f.id}')">🗑</button></div></div>`).join("")+`<div class="card card-d" onclick="openFormModal(null)"><div style="font-size:28px;opacity:.3">+</div><div style="font-size:12px;color:var(--text3)">Create Form</div></div>`;
-}
-window.editForm=id=>openFormModal(objArr(S.forms).find(f=>f.id===id));
-window.toggleForm=async(id,cur)=>{ await update(ref(db,"forms/"+id),{status:cur==="Published"?"Draft":"Published"}); toast("Updated!"); };
-window.delForm=id=>cfm("Delete this form?",async()=>{ await remove(ref(db,"forms/"+id)); toast("Deleted.","info"); });
-window.openFormModal=fm=>{
-  $("fmtit").textContent=fm?"Edit Form":"Create Form"; $("fmid").value=fm?.id||""; $("fmname").value=fm?.name||""; $("fmdept").value=fm?.dept||""; $("fmfields").value=fm?.fields||"5"; $("fmstatus").value=fm?.status||"Draft";
-  const ics=["📋","🛒","💻","📝","📊","🎯","🔧","📦","🏢","👤"];
-  $("fmicons").innerHTML=ics.map(ic=>`<button class="ibtn ${(fm?.icon||"📋")===ic?"on":""}" onclick="selFmIco(this)" data-i="${ic}">${ic}</button>`).join("");
-  openM("formModal");
-};
-window.selFmIco=btn=>{ document.querySelectorAll("#fmicons .ibtn").forEach(b=>b.classList.remove("on")); btn.classList.add("on"); };
-window.saveForm=async()=>{
-  const id=$("fmid").value, name=$("fmname").value.trim(), dept=$("fmdept").value, fields=parseInt($("fmfields").value)||1, status=$("fmstatus").value, icon=$$("#fmicons .ibtn.on")?.dataset?.i||"📋";
-  if(!name||!dept) return toast("Name and department required.","error");
-  const row={name,dept,fields,status,icon,submissions:0,ts:ts()};
-  if(id) await update(ref(db,"forms/"+id),row); else await push(ref(db,"forms"),row);
-  toast(id?"Updated!":"Created!"); closeM("formModal");
-};
-
-// ── CASES ──────────────────────────────────────────────────────────────────
-function reCases(){
-  const list=objArr(S.cases).filter(c=>S.caseTab==="All"||c.status===S.caseTab);
-  $("ctbody").innerHTML=list.length===0?`<tr><td colspan="8">${empty("🗂️","No cases","Create your first.")}</td></tr>`:list.map(c=>`<tr><td style="font-family:var(--mono);font-size:10px;color:var(--text3)">#${c.id.slice(-6)}</td><td style="font-weight:600;cursor:pointer;color:var(--accent)" onclick="caseDetail('${c.id}')">${c.title}</td><td>${badge(c.cat||"IT","bb")}</td><td style="font-size:11px;color:var(--text3)">${c.assignee||""}</td><td>${badge(c.priority||"Medium",pv[c.priority||"Medium"])}</td><td>${badge(c.status||"Open")}</td><td style="font-size:11px;color:var(--text3)">${c.date||""}</td><td><div style="display:flex;gap:4px"><button class="bsm" onclick="editCase('${c.id}')">Edit</button><button class="bsm" style="color:var(--accent5)" onclick="delCase('${c.id}')">🗑</button></div></td></tr>`).join("");
-}
-window.setCT=(btn,t)=>{ S.caseTab=t; document.querySelectorAll("#page-cases .tbtn").forEach(b=>b.classList.remove("active")); btn.classList.add("active"); reCases(); };
-window.editCase=id=>openCaseModal(objArr(S.cases).find(c=>c.id===id));
-window.delCase=id=>cfm("Delete this case?",async()=>{ await remove(ref(db,"cases/"+id)); toast("Deleted.","info"); });
-window.caseDetail=id=>{
-  const c=objArr(S.cases).find(x=>x.id===id); if(!c)return;
-  $("cdtit").textContent=c.title;
-  $("cdbody").innerHTML=`<div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:11px">${badge(c.priority,pv[c.priority])} ${badge(c.status)} ${badge(c.cat||"IT","bb")}</div><p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:13px">${c.description||"No description."}</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:13px"><div><span style="font-size:10px;color:var(--text3)">Assignee</span><div style="font-size:12px;font-weight:600">${c.assignee||"—"}</div></div><div><span style="font-size:10px;color:var(--text3)">Date</span><div style="font-size:12px;font-weight:600">${c.date||"—"}</div></div></div><div style="display:flex;gap:8px;align-items:center"><button class="bsm" onclick="editCase('${c.id}');closeM('cdModal')">✏️ Edit</button><select onchange="update(window._fbRef('cases/${c.id}'),{status:this.value}).then(()=>toast('Updated!'))" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 11px;color:var(--text1);font-size:11px;outline:none">${["Open","In Progress","Resolved","Closed"].map(s=>`<option ${c.status===s?"selected":""}>${s}</option>`).join("")}</select></div>`;
-  openM("cdModal");
-};
-window._fbRef = path => ref(db, path);
-window.openCaseModal=c=>{
-  $("cmtit").textContent=c?"Edit Case":"New Case"; $("cmid").value=c?.id||""; $("cmtitle").value=c?.title||""; $("cmcat").value=c?.cat||"IT"; $("cmassign").value=c?.assignee||""; $("cmprio").value=c?.priority||"Medium"; $("cmstatus").value=c?.status||"Open"; $("cmdesc").value=c?.description||"";
-  openM("caseModal");
-};
-window.saveCase=async()=>{
-  const id=$("cmid").value, title=$("cmtitle").value.trim(), cat=$("cmcat").value, assignee=$("cmassign").value, priority=$("cmprio").value, status=$("cmstatus").value, description=$("cmdesc").value;
-  if(!title) return toast("Title required.","error");
-  const row={title,cat,assignee,priority,status,description,date:new Date().toISOString().slice(0,10),ts:ts()};
-  if(id) await update(ref(db,"cases/"+id),row); else await push(ref(db,"cases"),row);
-  toast(id?"Updated!":"Created!"); closeM("caseModal");
-};
-
-// ── INBOX ──────────────────────────────────────────────────────────────────
-function reInbox(){
-  const reqs=objArr(S.requests);
-  $("inlist").innerHTML=reqs.length===0?`<div style="text-align:center;padding:28px;color:var(--text3);font-size:12px">📭 No requests yet</div>`:reqs.map(r=>`<div class="init ${S.activeInboxId===r.id?"active":""}" onclick="selInbox('${r.id}')"><div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:10px;color:var(--text2);font-weight:500">${r.submitterName||"Staff"}</span><span style="font-size:10px;color:var(--text3)">${r.date||""}</span></div><div style="font-size:12px;font-weight:600;margin-bottom:2px">${r.title}</div><div style="font-size:11px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.type||""}</div><div style="margin-top:3px">${badge(r.status||"Pending")} ${badge(r.priority||"Medium",pv[r.priority||"Medium"])}</div>${r.status==="Pending"?'<div class="udot"></div>':""}</div>`).join("");
-  if(!S.activeInboxId&&reqs.length>0) selInbox(reqs[0].id);
-}
-window.selInbox=id=>{
-  S.activeInboxId=id; const r=objArr(S.requests).find(x=>x.id===id); if(!r)return;
-  $("idet").innerHTML=`<div style="padding:19px;height:100%;overflow-y:auto"><div style="margin-bottom:16px;padding-bottom:13px;border-bottom:1px solid var(--border)"><h2 style="font-size:16px;font-weight:700;margin-bottom:8px">${r.title}</h2><div style="display:flex;gap:13px;flex-wrap:wrap"><div style="font-size:11px;color:var(--text2)">From: <strong style="color:var(--text1)">${r.submitterName||"Staff"}</strong> · ${r.submitterDept||""}</div><div style="font-size:11px;color:var(--text2)">Type: <strong>${r.type||""}</strong></div><div style="font-size:11px;color:var(--text2)">Priority: ${badge(r.priority||"Medium",pv[r.priority||"Medium"])}</div><div style="font-size:11px;color:var(--text2)">Status: <strong style="color:${r.status==="Approved"?"var(--accent3)":r.status==="Rejected"?"var(--accent5)":"var(--accent4)"}">${r.status||"Pending"}</strong></div></div></div><p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:16px;white-space:pre-line">${r.details||"No details."}</p>${r.hq_comment?`<div style="background:var(--surface2);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:10px 13px;margin-bottom:16px"><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Your Response</div><div style="font-size:12px;color:var(--text2);font-style:italic">"${r.hq_comment}"</div></div>":""}<div style="display:flex;gap:8px">${r.status==="Pending"?`<button style="padding:8px 16px;border-radius:9px;font-size:11px;font-weight:600;background:linear-gradient(135deg,var(--accent3),#00a87a);color:#fff;border:none;cursor:pointer;font-family:Sora,sans-serif" onclick="openRespond('${r.id}','Approved')">✓ Approve</button><button style="padding:8px 16px;border-radius:9px;font-size:11px;font-weight:600;background:var(--surface2);border:1px solid rgba(247,79,110,.4);color:var(--accent5);cursor:pointer;font-family:Sora,sans-serif" onclick="openRespond('${r.id}','Rejected')">✗ Reject</button><button style="padding:8px 16px;border-radius:9px;font-size:11px;font-weight:600;background:var(--surface2);border:1px solid var(--border);color:var(--text2);cursor:pointer;font-family:Sora,sans-serif" onclick="openRespond('${r.id}','On Hold')">⏸ Hold</button>`:`<div style="display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:9px;font-size:12px;font-weight:600;border:1px solid;background:${r.status==="Approved"?"rgba(0,212,160,.1)":r.status==="Rejected"?"rgba(247,79,110,.1)":"rgba(247,147,76,.1)"};border-color:${r.status==="Approved"?"rgba(0,212,160,.3)":r.status==="Rejected"?"rgba(247,79,110,.3)":"rgba(247,147,76,.3)"};color:${r.status==="Approved"?"var(--accent3)":r.status==="Rejected"?"var(--accent5)":"var(--accent4)"}">${r.status==="Approved"?"✓":r.status==="Rejected"?"✗":"⏸"} ${r.status}</div>`}</div></div>`;
-  reInbox();
-};
-window.openRespond=(id,action)=>{ S.pendingReqId=id; S.pendingAction=action; $("respAction").textContent=action; $("respAction").style.color=action==="Approved"?"var(--accent3)":action==="Rejected"?"var(--accent5)":"var(--accent4)"; $("respComment").value=""; openM("respModal"); };
-window.confirmRespond=async()=>{
-  const comment=$("respComment").value, btn=$("respBtn"); btn.disabled=true; btn.textContent="Processing…";
-  try{
-    await update(ref(db,"requests/"+S.pendingReqId),{status:S.pendingAction,hq_comment:comment,respondedBy:S.currentUser.name,respondedAt:ts()});
-    toast("Request "+S.pendingAction+"!",S.pendingAction==="Approved"?"success":"info");
-    closeM("respModal"); selInbox(S.pendingReqId);
-  }catch(e){ toast("Failed: "+e.message,"error"); }
-  finally{ btn.disabled=false; btn.textContent="Confirm"; }
-};
-
-// ── ANALYTICS ─────────────────────────────────────────────────────────────
-function reAnalytics(){
-  const wf=objArr(S.workflows),tk=objArr(S.tasks),cs=objArr(S.cases),reqs=objArr(S.requests);
-  $("astats").innerHTML=`
-    <div class="scard" style="--tc:linear-gradient(90deg,var(--accent),var(--accent2))"><div class="sicon">⚡</div><div class="slbl">Workflows</div><div class="sval" style="color:var(--accent)">${wf.length}</div><div class="schg">${wf.filter(w=>w.status==="Active").length} active</div></div>
-    <div class="scard" style="--tc:linear-gradient(90deg,var(--accent3),#00a87a)"><div class="sicon">✅</div><div class="slbl">Tasks Done</div><div class="sval" style="color:var(--accent3)">${tk.filter(t=>t.column==="done").length}</div><div class="schg">${tk.length} total</div></div>
-    <div class="scard" style="--tc:linear-gradient(90deg,var(--accent4),#e07a30)"><div class="sicon">🗂️</div><div class="slbl">Open Cases</div><div class="sval" style="color:var(--accent4)">${cs.filter(c=>c.status==="Open").length}</div><div class="schg">${cs.length} total</div></div>
-    <div class="scard" style="--tc:linear-gradient(90deg,var(--accent5),#c73055)"><div class="sicon">📨</div><div class="slbl">Requests</div><div class="sval" style="color:var(--accent5)">${reqs.length}</div><div class="schg">${reqs.filter(r=>r.status==="Approved").length} approved</div></div>`;
-  const vals=[62,78,55,84,71,98],mx=Math.max(...vals),mnths=["Jan","Feb","Mar","Apr","May","Jun"];
-  $("achart").innerHTML=`<div style="display:flex;align-items:flex-end;gap:8px;height:120px;padding-bottom:18px">${vals.map((v,i)=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="font-size:9px;color:var(--text3);margin-bottom:2px">${v}</div><div style="width:100%;height:${Math.round((v/mx)*100)}px;border-radius:3px 3px 0 0;background:linear-gradient(180deg,${i===5?"var(--accent2)":"var(--accent)"},rgba(79,110,247,.25))"></div><div style="font-size:9px;color:var(--text3)">${mnths[i]}</div></div>`).join("")}</div>`;
-  const todo=tk.filter(t=>t.column==="todo").length,inp=tk.filter(t=>t.column==="inprogress").length,rev=tk.filter(t=>t.column==="review").length,done=tk.filter(t=>t.column==="done").length,tot=tk.length||1;
-  $("atasks").innerHTML=`<div style="display:flex;gap:14px;align-items:center"><svg width="90" height="90" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--border)" stroke-width="3"/><circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--text3)" stroke-width="3" stroke-dasharray="${todo/tot*100} ${100-todo/tot*100}" stroke-dashoffset="25" transform="rotate(-90 18 18)"/><circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--accent)" stroke-width="3" stroke-dasharray="${inp/tot*100} ${100-inp/tot*100}" stroke-dashoffset="${25-todo/tot*100}" transform="rotate(-90 18 18)"/><circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--accent2)" stroke-width="3" stroke-dasharray="${rev/tot*100} ${100-rev/tot*100}" stroke-dashoffset="${25-(todo+inp)/tot*100}" transform="rotate(-90 18 18)"/><circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--accent3)" stroke-width="3" stroke-dasharray="${done/tot*100} ${100-done/tot*100}" stroke-dashoffset="${25-(todo+inp+rev)/tot*100}" transform="rotate(-90 18 18)"/></svg><div>${[["To Do",todo,"var(--text3)"],["In Progress",inp,"var(--accent)"],["In Review",rev,"var(--accent2)"],["Done",done,"var(--accent3)"]].map(([l,v,c])=>`<div style="display:flex;align-items:center;gap:7px;margin-bottom:5px"><div style="width:7px;height:7px;border-radius:50%;background:${c}"></div><span style="font-size:11px;color:var(--text2)">${l}: <strong>${v}</strong></span></div>`).join("")}</div></div>`;
+// =========== CUSTOM WORDS ===========
+function renderCustomWords() {
+  const p = currentUser !== null ? profiles[currentUser] : null;
+  const words = p ? (p.customWords || []) : [];
+  const display = document.getElementById('customWordDisplay');
+  const counter = document.getElementById('customWordCounter');
+  if (words.length === 0) {
+    display.textContent = 'لا توجد كلمات بعد 📝';
+    counter.textContent = '0 / 0';
+    return;
+  }
+  if (currentCustomIdx >= words.length) currentCustomIdx = 0;
+  display.textContent = words[currentCustomIdx];
+  counter.textContent = `${currentCustomIdx + 1} / ${words.length}`;
 }
 
-// ── TEAM ───────────────────────────────────────────────────────────────────
-function reTeam(){
-  const team=objArr(S.members);
-  $("tgrid").innerHTML=team.map(m=>`<div class="card" style="text-align:center"><div style="width:48px;height:48px;border-radius:50%;background:${m.grad||"linear-gradient(135deg,var(--accent),var(--accent2))"};display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;margin:0 auto 10px">${ini(m.name)}</div><div style="font-size:13px;font-weight:700;margin-bottom:2px">${m.name||"Unknown"}</div><div style="font-size:11px;color:var(--text3);margin-bottom:4px">${m.role||"Member"} · ${m.dept||""}</div><div style="font-size:10px;color:var(--text3);margin-bottom:8px">${m.email||""}</div><div style="margin-bottom:10px">${badge(m.status||"Active",{Active:"bg",Away:"bo",Inactive:"bx"}[m.status||"Active"])}</div></div>`).join("")+`<div class="card card-d" onclick="openMemberModal(null)"><div style="font-size:28px;opacity:.3">+</div><div style="font-size:12px;color:var(--text3)">Add Member</div></div>`;
+function prevCustomWord() {
+  const p = currentUser !== null ? profiles[currentUser] : null;
+  const words = p ? (p.customWords || []) : [];
+  if (!words.length) return;
+  currentCustomIdx = (currentCustomIdx - 1 + words.length) % words.length;
+  renderCustomWords();
 }
-window.openMemberModal=m=>{
-  $("mmtit").textContent=m?"Edit Member":"Add Member"; $("mmid").value=m?.id||""; $("mmname").value=m?.name||""; $("mmemail").value=m?.email||""; $("mmpass").value=""; $("mmrole").value=m?.role||"Member"; $("mmdept").value=m?.dept||"";
-  openM("memberModal");
-};
-window.saveMember=async()=>{
-  const id=$("mmid").value, name=$("mmname").value.trim(), email=$("mmemail").value.trim(), pass=$("mmpass").value, role=$("mmrole").value, dept=$("mmdept").value;
-  if(!name||!email||!pass) return toast("Name, email and password required.","error");
-  // Add to ACCOUNTS array in memory and Firebase
-  const grads=["linear-gradient(135deg,#4f6ef7,#7c4dff)","linear-gradient(135deg,#00d4a0,#00a87a)","linear-gradient(135deg,#f7934c,#e07a30)","linear-gradient(135deg,#7c4dff,#5c2ae8)","linear-gradient(135deg,#f74f6e,#c73055)"];
-  const grad=grads[Math.floor(Math.random()*grads.length)];
-  const row={name,email,role,dept,grad,status:"Active",ts:ts()};
-  await set(ref(db,"members/"+btoa(email)),row);
-  // Add to runtime ACCOUNTS so they can login immediately
-  const existing=ACCOUNTS.findIndex(a=>a.email===email);
-  if(existing>=0) ACCOUNTS[existing]={...ACCOUNTS[existing],name,role,dept,password:pass};
-  else ACCOUNTS.push({name,email,password:pass,role,dept,grad});
-  toast("Member added! Share credentials: "+email+" / "+pass);
-  closeM("memberModal");
-};
 
-// ── STAFF PORTAL ───────────────────────────────────────────────────────────
-function reStaff(){
-  const reqs=objArr(S.requests);
-  $("stotal").textContent=reqs.length; $("spend").textContent=reqs.filter(r=>r.status==="Pending").length; $("sapprv").textContent=reqs.filter(r=>r.status==="Approved").length;
-  if(S.staffTab==="requests") reStaffReqs(reqs); else reNotifs(reqs.filter(r=>r.status!=="Pending"));
+function nextCustomWord() {
+  const p = currentUser !== null ? profiles[currentUser] : null;
+  const words = p ? (p.customWords || []) : [];
+  if (!words.length) return;
+  currentCustomIdx = (currentCustomIdx + 1) % words.length;
+  renderCustomWords();
 }
-function reStaffReqs(reqs){
-  $("sreqlist").innerHTML=reqs.length===0?`<div style="text-align:center;padding:32px"><div style="font-size:30px;opacity:.3;margin-bottom:9px">📋</div><div style="font-size:13px;font-weight:700;margin-bottom:3px">No requests yet</div><div style="font-size:11px;color:var(--text3)">Submit your first request to HQ</div></div>`:
-  `<table style="width:100%;border-collapse:collapse"><thead><tr>${["Type","Title","Priority","Status","Date","HQ Comment"].map(h=>`<th style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)">${h}</th>`).join("")}</tr></thead><tbody>${reqs.map(r=>`<tr><td style="padding:9px 12px;border-bottom:1px solid rgba(35,40,56,.5)">${badge(r.type||"Request","bb")}</td><td style="padding:9px 12px;border-bottom:1px solid rgba(35,40,56,.5);font-weight:600;font-size:12px">${r.title}</td><td style="padding:9px 12px;border-bottom:1px solid rgba(35,40,56,.5)">${badge(r.priority||"Medium",pv[r.priority||"Medium"])}</td><td style="padding:9px 12px;border-bottom:1px solid rgba(35,40,56,.5)">${badge(r.status||"Pending",sv[r.status||"Pending"])}</td><td style="padding:9px 12px;border-bottom:1px solid rgba(35,40,56,.5);font-size:11px;color:var(--text3)">${r.date||""}</td><td style="padding:9px 12px;border-bottom:1px solid rgba(35,40,56,.5);font-size:11px;color:var(--text2);font-style:italic">${r.hq_comment?`"${r.hq_comment.slice(0,50)}${r.hq_comment.length>50?"…":""}"`:"-"}</td></tr>`).join("")}</tbody></table>`;
+
+function checkCustom() {
+  const imgData = ctx2.getImageData(0, 0, canvas2.width, canvas2.height);
+  const hasContent = imgData.data.some((v, i) => i % 4 === 3 && v > 10);
+  if (!hasContent) { alert('✏️ اكتب الكلمة أولاً!'); return; }
+  if (currentUser !== null) {
+    profiles[currentUser].stars = (profiles[currentUser].stars || 0) + 2;
+    document.getElementById('menuStars').textContent = `⭐ ${profiles[currentUser].stars}`;
+    saveProfiles();
+  }
+  clearCanvas2();
+  celebrate('رائع! 🌟', 'لقد كتبت الكلمة!', '+⭐⭐');
 }
-function reNotifs(responded){
-  $("sreqlist").innerHTML=!responded||responded.length===0?`<div style="text-align:center;padding:32px"><div style="font-size:30px;opacity:.3;margin-bottom:9px">🔔</div><div style="font-size:13px;font-weight:700;margin-bottom:3px">No notifications yet</div><div style="font-size:11px;color:var(--text3)">You'll be notified when HQ responds</div></div>`:
-  responded.map(r=>`<div style="display:flex;gap:10px;padding:11px 14px;border-bottom:1px solid var(--border)"><div style="width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;background:${r.status==="Approved"?"rgba(0,212,160,.15)":r.status==="Rejected"?"rgba(247,79,110,.15)":"rgba(247,147,76,.15)"}">${r.status==="Approved"?"✓":r.status==="Rejected"?"✗":"⏸"}</div><div style="flex:1"><div style="font-size:12px;font-weight:600;margin-bottom:2px">Your request "${r.title}" was ${r.status}</div><div style="font-size:11px;color:var(--text3)">${r.hq_comment||`Responded by ${r.respondedBy||"HQ"}`}</div></div></div>`).join("");
-}
-window.setStaffTab=t=>{ S.staffTab=t; document.querySelectorAll(".stftab").forEach(b=>b.classList.toggle("active",b.dataset.t===t)); reStaff(); };
-window.submitStaffReq=async()=>{
-  const type=$("sqtype").value, title=$("sqtitle").value.trim(), priority=$("sqprio").value, details=$("sqdetails").value.trim();
-  if(!title||!details) return toast("Title and details are required.","error");
-  const btn=$("sqbtn"); btn.disabled=true; btn.textContent="Submitting…";
-  try{
-    await push(ref(db,"requests"),{type,title,priority,details,status:"Pending",submitterEmail:S.currentUser.email,submitterName:S.currentUser.name,submitterDept:S.currentUser.dept,date:new Date().toISOString().slice(0,10),ts:ts()});
-    toast("Request submitted to HQ! 📤"); closeM("staffReqModal");
-  }catch(e){ toast("Failed: "+e.message,"error"); }
-  finally{ btn.disabled=false; btn.textContent="📤 Submit to HQ"; }
+
+// Show custom screen
+const origShowScreen = showScreen;
+window.showScreen = function(id) {
+  origShowScreen(id);
+  if (id === 'customScreen') { currentCustomIdx = 0; renderCustomWords(); }
 };
 
-// ── Init ───────────────────────────────────────────────────────────────────
-buildAccountHints();
-$("cfmOk").onclick=()=>{ if(S.cfmCb) S.cfmCb(); closeM("cfmModal"); S.cfmCb=null; };
-$("cfmNo").onclick=()=>closeM("cfmModal");
-document.querySelectorAll(".mback").forEach(m=>m.addEventListener("click",e=>{ if(e.target===m) m.style.display="none"; }));
+// =========== PARENT PANEL ===========
+function renderParentContent(tab) {
+  const content = document.getElementById('parentContent');
+  if (tab === 'words') {
+    content.innerHTML = `
+      <div class="word-form">
+        <h3>✏️ إضافة كلمات للتدرب عليها</h3>
+        <select id="targetChild" style="width:100%;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.12);color:white;font-family:inherit;font-size:15px;margin-bottom:12px;">
+          <option value="">اختر الطفل...</option>
+          ${profiles.map((p,i) => `<option value="${i}">${p.avatar} ${p.name}</option>`).join('')}
+        </select>
+        <textarea id="wordInput" placeholder="اكتب الكلمة أو الجملة هنا..." style="direction:rtl;"></textarea>
+        <button class="btn-primary" onclick="addCustomWord()">➕ إضافة كلمة</button>
+      </div>
+      <div class="custom-words-list" id="customWordsList"></div>
+    `;
+    renderCustomWordsList();
+  } else if (tab === 'progress') {
+    content.innerHTML = `<div class="progress-cards">${profiles.map(p => `
+      <div class="prog-card">
+        <div style="font-size:36px;margin-bottom:8px;">${p.avatar}</div>
+        <div style="font-weight:800;font-size:18px;margin-bottom:12px;">${p.name}</div>
+        <h4>نجوم</h4><div class="big-num">${p.stars || 0}</div>
+        <div class="sub" style="margin-top:8px;">حروف عربية: ${Object.keys(p.progress||{}).filter(k=>k.startsWith('ar_')).length} / ${ARABIC_LETTERS.length}</div>
+        <div class="sub">حروف إنجليزية: ${Object.keys(p.progress||{}).filter(k=>k.startsWith('en_')).length} / ${ENGLISH_LETTERS.length}</div>
+        <div class="sub">كلمات مخصصة: ${(p.customWords||[]).length}</div>
+      </div>`).join('')}</div>`;
+  } else if (tab === 'profiles') {
+    content.innerHTML = `
+      <div style="color:white;margin-bottom:16px;font-size:16px;font-weight:700;">إدارة ملفات الأطفال:</div>
+      ${profiles.map((p,i) => `
+        <div style="background:rgba(255,255,255,0.1);border-radius:16px;padding:16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;color:white;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span style="font-size:36px;">${p.avatar}</span>
+            <div><div style="font-weight:800;font-size:18px;">${p.name}</div><div style="opacity:0.6;font-size:13px;">${p.age || '—'} سنوات · ⭐ ${p.stars||0}</div></div>
+          </div>
+          <button onclick="deleteProfile(${i})" style="background:rgba(255,107,107,0.25);color:#fca5a5;border:none;border-radius:10px;padding:8px 14px;cursor:pointer;font-family:inherit;font-size:14px;">🗑️ حذف</button>
+        </div>`).join('')}
+      <div style="margin-top:16px;">
+        <button class="btn-primary" onclick="showModal('addProfileModal')">➕ إضافة طفل جديد</button>
+      </div>
+    `;
+  }
+}
 
-// Check session (stay logged in on refresh)
-const saved = sessionStorage.getItem("flowos_user");
-if(saved){ try{ S.currentUser=JSON.parse(saved); showApp(); }catch(e){ sessionStorage.removeItem("flowos_user"); } }
+function switchParentTab(tab, btn) {
+  document.querySelectorAll('.parent-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderParentContent(tab);
+}
 
+function addCustomWord() {
+  const childIdx = document.getElementById('targetChild').value;
+  const word = document.getElementById('wordInput').value.trim();
+  if (!childIdx) return alert('اختر طفلاً أولاً');
+  if (!word) return alert('اكتب كلمة أو جملة');
+  if (!profiles[childIdx].customWords) profiles[childIdx].customWords = [];
+  profiles[childIdx].customWords.push(word);
+  saveProfiles();
+  document.getElementById('wordInput').value = '';
+  renderCustomWordsList();
+}
+
+function renderCustomWordsList() {
+  const list = document.getElementById('customWordsList');
+  if (!list) return;
+  list.innerHTML = '';
+  profiles.forEach((p, pi) => {
+    if (!p.customWords || !p.customWords.length) return;
+    p.customWords.forEach((w, wi) => {
+      const item = document.createElement('div');
+      item.className = 'custom-word-item';
+      item.innerHTML = `<div style="display:flex;align-items:center;gap:10px;"><span style="font-size:24px;">${p.avatar}</span><div><div class="custom-word-text">${w}</div><div style="font-size:12px;opacity:0.6;">${p.name}</div></div></div><button class="delete-word-btn" onclick="deleteCustomWord(${pi},${wi})">✕</button>`;
+      list.appendChild(item);
+    });
+  });
+}
+
+function deleteCustomWord(pi, wi) {
+  profiles[pi].customWords.splice(wi, 1);
+  saveProfiles();
+  renderCustomWordsList();
+}
+
+function deleteProfile(idx) {
+  if (!confirm(`حذف ملف ${profiles[idx].name}؟`)) return;
+  profiles.splice(idx, 1);
+  saveProfiles();
+  renderParentContent('profiles');
+  renderProfiles();
+}
+
+// =========== PROGRESS ===========
+function updateOverallProgress() {
+  if (currentUser === null) return;
+  const p = profiles[currentUser];
+  const total = ARABIC_LETTERS.length + ENGLISH_LETTERS.length;
+  const done = Object.keys(p.progress || {}).length;
+  const pct = Math.round((done / total) * 100);
+  document.getElementById('overallProgress').style.width = pct + '%';
+  document.getElementById('overallPct').textContent = pct + '%';
+}
+
+// =========== CELEBRATION ===========
+function celebrate(title, msg, stars) {
+  document.getElementById('celebTitle').textContent = title;
+  document.getElementById('celebMsg').textContent = msg;
+  document.getElementById('celebStars').textContent = stars;
+  document.getElementById('celebration').classList.add('show');
+  spawnConfetti();
+  try {
+    const u = new SpeechSynthesisUtterance('أحسنت يا بطل');
+    u.lang = 'ar-SA'; u.rate = 0.9;
+    speechSynthesis.speak(u);
+  } catch(e) {}
+}
+
+function closeCelebration() {
+  document.getElementById('celebration').classList.remove('show');
+}
+
+function spawnConfetti() {
+  const colors = ['#FFD93D','#FF6B6B','#6BCB77','#6EC6F5','#A78BFA','#FF8FAB'];
+  for (let i = 0; i < 60; i++) {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'confetti-piece';
+      const size = Math.random() * 10 + 6;
+      el.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;background:${colors[Math.floor(Math.random()*colors.length)]};animation-duration:${1.5+Math.random()*2}s;animation-delay:${Math.random()*0.5}s;border-radius:${Math.random()>0.5?'50%':'3px'};`;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 3500);
+    }, i * 40);
+  }
+}
+
+// =========== PARENT LOGIN ===========
+document.querySelector('.btn-primary').onclick = function() {
+  document.getElementById('parentPinInput').value = '';
+  document.getElementById('parentPinError').style.display = 'none';
+  showModal('parentPinModal');
+};
+
+// =========== BOOT ===========
+init();
 </script>
 </body>
 </html>
