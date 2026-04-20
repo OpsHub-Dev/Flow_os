@@ -2,504 +2,1163 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>روضة الحروف - Kids Learning</title>
-<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Tajawal:wght@400;700;900&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>روضة النجوم ✨</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;500;600;700;800&family=Fredoka+One&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
 <style>
+/* ═══════════════════════════════════════
+   DESIGN SYSTEM — Dreamy Night Garden
+   Rich deep navy + soft pastels + gold
+═══════════════════════════════════════ */
 :root {
-  --sky: #6EC6F5;
-  --sun: #FFD93D;
-  --grass: #6BCB77;
-  --coral: #FF6B6B;
-  --purple: #A78BFA;
-  --orange: #FFAB40;
-  --pink: #FF8FAB;
-  --teal: #4ECDC4;
-  --navy: #1A1A3E;
-  --white: #FFFEF7;
-  --card-bg: rgba(255,255,255,0.92);
-  --shadow: 0 8px 32px rgba(26,26,62,0.13);
+  --bg-deep:    #0d1b2a;
+  --bg-mid:     #1a2f47;
+  --bg-card:    #1e3554;
+  --bg-glass:   rgba(30,53,84,0.85);
+  --gold:       #f5c842;
+  --gold-light: #fde68a;
+  --coral:      #ff7b7b;
+  --mint:       #6ee7b7;
+  --sky:        #7dd3fc;
+  --lavender:   #c4b5fd;
+  --peach:      #fdba74;
+  --pink:       #f9a8d4;
+  --white:      #f0f9ff;
+  --text-main:  #e2f0fb;
+  --text-muted: #94b4cc;
+  --border:     rgba(125,211,252,0.18);
+  --shadow-sm:  0 4px 16px rgba(0,0,0,0.35);
+  --shadow-md:  0 8px 32px rgba(0,0,0,0.45);
+  --shadow-glow: 0 0 30px rgba(245,200,66,0.3);
+  --r-sm: 16px;
+  --r-md: 24px;
+  --r-lg: 32px;
+  --font-ar: 'Baloo Bhaijaan 2', sans-serif;
+  --font-en: 'Fredoka One', cursive;
+  --font-body: 'Nunito', sans-serif;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; }
-html, body { height: 100%; overflow: hidden; }
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; }
 body {
-  font-family: 'Tajawal', 'Nunito', sans-serif;
-  background: linear-gradient(160deg, #a8edea 0%, #fed6e3 100%);
-  min-height: 100vh;
+  font-family: var(--font-ar);
+  background: var(--bg-deep);
+  color: var(--text-main);
+  height: 100%;
+  overflow: hidden;
   position: relative;
 }
 
-/* ===== SCREENS ===== */
-.screen { display: none; width: 100vw; height: 100vh; overflow-y: auto; overflow-x: hidden; position: absolute; top: 0; left: 0; }
+/* ── ANIMATED BACKGROUND ── */
+.sky-bg {
+  position: fixed; inset: 0; z-index: 0; overflow: hidden;
+  background: radial-gradient(ellipse at 20% 10%, #1a3a6b 0%, #0d1b2a 60%);
+}
+.sky-bg::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 80% 90%, rgba(100,60,160,0.3) 0%, transparent 60%);
+}
+.floating-star {
+  position: absolute; border-radius: 50%;
+  animation: floatStar linear infinite;
+  pointer-events: none;
+}
+@keyframes floatStar {
+  0%   { opacity: 0; transform: translateY(0) scale(0); }
+  20%  { opacity: 1; transform: translateY(-10px) scale(1); }
+  80%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-40px) scale(0.5); }
+}
+
+/* ── SCREENS ── */
+.screen {
+  display: none; position: absolute; inset: 0;
+  z-index: 10; overflow-y: auto; overflow-x: hidden;
+}
 .screen.active { display: flex; flex-direction: column; }
 
-/* ===== STARS BG ===== */
-.stars { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
-.star { position: absolute; border-radius: 50%; animation: twinkle 2s infinite alternate; }
-@keyframes twinkle { from { opacity: 0.3; transform: scale(1); } to { opacity: 1; transform: scale(1.4); } }
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
 
-/* ===== LOGIN SCREEN ===== */
+/* ══════════════════════════════
+   LOGIN SCREEN
+══════════════════════════════ */
 #loginScreen {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  align-items: center; justify-content: center; flex-direction: column; gap: 24px;
+  align-items: center; justify-content: flex-start;
+  padding: 40px 20px 40px;
+  gap: 0;
 }
-.login-logo { font-size: 90px; animation: bounce 1.5s ease-in-out infinite; }
-@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-18px)} }
+.login-hero {
+  text-align: center; margin-bottom: 32px;
+}
+.login-mascot {
+  font-size: 88px; display: block;
+  animation: mascotBounce 2.5s ease-in-out infinite;
+  filter: drop-shadow(0 8px 24px rgba(245,200,66,0.5));
+}
+@keyframes mascotBounce {
+  0%,100% { transform: translateY(0) rotate(-3deg); }
+  50%      { transform: translateY(-16px) rotate(3deg); }
+}
 .login-title {
-  font-family: 'Fredoka One', 'Tajawal', sans-serif;
-  font-size: clamp(28px, 6vw, 48px);
-  color: white;
-  text-shadow: 0 4px 16px rgba(0,0,0,0.25);
-  text-align: center;
+  font-family: var(--font-ar);
+  font-size: clamp(30px, 8vw, 52px);
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--gold), var(--peach), var(--pink));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 6px; line-height: 1.2;
 }
-.login-subtitle { color: rgba(255,255,255,0.8); font-size: 18px; text-align: center; }
-.profiles-grid {
-  display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;
-  max-width: 600px; padding: 10px;
+.login-sub {
+  font-size: 15px; color: var(--text-muted);
+  font-family: var(--font-body); letter-spacing: 0.5px;
+}
+
+/* Profile cards */
+.profiles-wrap {
+  display: flex; flex-wrap: wrap; gap: 16px; justify-content: center;
+  max-width: 640px; width: 100%; margin-bottom: 20px;
 }
 .profile-card {
-  background: rgba(255,255,255,0.18);
-  backdrop-filter: blur(12px);
-  border: 2px solid rgba(255,255,255,0.35);
-  border-radius: 24px;
-  padding: 24px 28px;
-  cursor: pointer;
-  text-align: center;
-  color: white;
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  border: 2px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 22px 20px;
+  cursor: pointer; text-align: center;
+  transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  min-width: 120px; position: relative; overflow: hidden;
+}
+.profile-card::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(245,200,66,0.08), transparent);
+  opacity: 0; transition: opacity 0.3s;
+}
+.profile-card:hover { transform: translateY(-8px) scale(1.04); border-color: var(--gold); }
+.profile-card:hover::before { opacity: 1; }
+.profile-card:active { transform: scale(0.97); }
+.p-avatar { font-size: 50px; display: block; margin-bottom: 8px; }
+.p-name { font-size: 16px; font-weight: 700; color: var(--white); }
+.p-stars { font-size: 13px; color: var(--gold); margin-top: 4px; }
+
+.btn-add-profile {
+  background: rgba(245,200,66,0.1);
+  border: 2px dashed rgba(245,200,66,0.4);
+  border-radius: var(--r-md);
+  padding: 22px 20px; cursor: pointer;
+  text-align: center; color: var(--gold);
+  font-size: 32px; min-width: 120px;
   transition: all 0.25s;
-  min-width: 130px;
 }
-.profile-card:hover { transform: scale(1.08) translateY(-4px); background: rgba(255,255,255,0.28); }
-.profile-avatar { font-size: 52px; margin-bottom: 10px; }
-.profile-name { font-size: 18px; font-weight: 700; }
-.profile-age { font-size: 13px; opacity: 0.8; margin-top: 4px; }
-.add-profile-btn {
-  background: rgba(255,255,255,0.12);
-  border: 2.5px dashed rgba(255,255,255,0.5);
-  border-radius: 24px;
-  padding: 24px 28px;
-  cursor: pointer;
-  text-align: center;
-  color: white;
-  min-width: 130px;
-  font-size: 40px;
-  transition: all 0.2s;
+.btn-add-profile:hover { background: rgba(245,200,66,0.18); border-style: solid; }
+
+.btn-parent {
+  background: linear-gradient(135deg, rgba(196,181,253,0.2), rgba(196,181,253,0.1));
+  border: 2px solid rgba(196,181,253,0.35);
+  border-radius: 99px; padding: 12px 28px;
+  color: var(--lavender); font-size: 15px; font-weight: 700;
+  cursor: pointer; font-family: var(--font-ar);
+  transition: all 0.25s; display: flex; align-items: center; gap: 8px;
 }
-.add-profile-btn:hover { background: rgba(255,255,255,0.22); }
-/* Add profile modal */
+.btn-parent:hover { background: rgba(196,181,253,0.25); }
+
+/* ══════════════════════════════
+   MODALS
+══════════════════════════════ */
 .modal-overlay {
-  display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,0.6); z-index: 1000;
-  align-items: center; justify-content: center;
+  display: none; position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,0,0,0.7); backdrop-filter: blur(6px);
+  align-items: center; justify-content: center; padding: 20px;
 }
 .modal-overlay.open { display: flex; }
 .modal-box {
-  background: white; border-radius: 28px; padding: 36px;
-  max-width: 380px; width: 90%; box-shadow: 0 24px 80px rgba(0,0,0,0.3);
+  background: var(--bg-mid);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-lg); padding: 36px;
+  max-width: 400px; width: 100%;
+  box-shadow: var(--shadow-md);
+  animation: modalIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
   direction: rtl;
 }
-.modal-box h3 { font-size: 22px; font-weight: 800; margin-bottom: 20px; color: var(--navy); text-align: center; }
-.modal-box input, .modal-box select {
-  width: 100%; padding: 14px 16px; border-radius: 14px;
-  border: 2px solid #e5e7eb; font-size: 16px; margin-bottom: 14px;
-  font-family: inherit; outline: none;
+@keyframes modalIn { from{transform:scale(0.7) translateY(20px);opacity:0} to{transform:scale(1);opacity:1} }
+.modal-box h3 {
+  font-size: 22px; font-weight: 800; color: var(--white);
+  text-align: center; margin-bottom: 24px;
 }
-.modal-box input:focus, .modal-box select:focus { border-color: var(--purple); }
-.avatar-picker { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; justify-content: center; }
-.avatar-opt { font-size: 32px; cursor: pointer; padding: 6px; border-radius: 12px; border: 3px solid transparent; transition: all 0.2s; }
-.avatar-opt.selected { border-color: var(--purple); background: #f3f0ff; transform: scale(1.15); }
-.btn-primary {
-  width: 100%; padding: 14px; border-radius: 16px;
-  background: linear-gradient(135deg, var(--purple), #764ba2);
-  color: white; font-size: 18px; font-weight: 700;
-  border: none; cursor: pointer; font-family: inherit;
-  transition: transform 0.15s; box-shadow: 0 6px 20px rgba(167,139,250,0.4);
+.field-label { font-size: 13px; color: var(--text-muted); margin-bottom: 6px; margin-top: 12px; }
+.modal-input {
+  width: 100%; padding: 13px 16px; border-radius: var(--r-sm);
+  background: rgba(255,255,255,0.07); border: 1.5px solid var(--border);
+  color: var(--white); font-size: 16px; font-family: var(--font-ar);
+  outline: none; transition: border-color 0.2s;
 }
-.btn-primary:active { transform: scale(0.97); }
+.modal-input:focus { border-color: var(--gold); }
+.modal-input::placeholder { color: var(--text-muted); }
+.avatar-grid { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; justify-content: center; }
+.av-btn {
+  font-size: 30px; padding: 8px; border-radius: 12px; cursor: pointer;
+  border: 2.5px solid transparent; transition: all 0.2s; background: rgba(255,255,255,0.06);
+}
+.av-btn.sel { border-color: var(--gold); background: rgba(245,200,66,0.15); transform: scale(1.15); }
+.btn-confirm {
+  width: 100%; padding: 14px; margin-top: 16px;
+  background: linear-gradient(135deg, var(--gold), #f59e0b);
+  color: #1a1200; font-size: 17px; font-weight: 800;
+  border: none; border-radius: var(--r-sm); cursor: pointer;
+  font-family: var(--font-ar);
+  box-shadow: 0 6px 20px rgba(245,200,66,0.35);
+  transition: all 0.2s;
+}
+.btn-confirm:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(245,200,66,0.45); }
+.btn-cancel {
+  width: 100%; padding: 10px; margin-top: 8px;
+  background: none; border: none; color: var(--text-muted);
+  font-size: 14px; cursor: pointer; font-family: var(--font-ar);
+}
+.error-msg { color: var(--coral); font-size: 13px; text-align: center; margin-top: 6px; display: none; }
 
-/* ===== MAIN MENU ===== */
-#menuScreen { background: linear-gradient(160deg, #a8edea 0%, #fed6e3 100%); }
+/* ══════════════════════════════
+   TOPBAR
+══════════════════════════════ */
 .topbar {
-  background: rgba(255,255,255,0.75);
-  backdrop-filter: blur(12px);
-  padding: 14px 20px;
   display: flex; align-items: center; justify-content: space-between;
-  border-bottom: 2px solid rgba(255,255,255,0.6);
-  position: sticky; top: 0; z-index: 10;
+  padding: 12px 18px;
+  background: rgba(13,27,42,0.9);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 100; flex-shrink: 0;
 }
-.topbar-user { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; color: var(--navy); }
-.topbar-avatar { font-size: 32px; }
-.back-btn, .logout-btn {
-  background: rgba(255,255,255,0.8); border: 2px solid #e5e7eb;
-  border-radius: 12px; padding: 8px 16px;
-  font-family: inherit; font-size: 14px; font-weight: 700;
-  cursor: pointer; color: var(--navy); transition: all 0.2s;
+.topbar-left { display: flex; align-items: center; gap: 10px; }
+.topbar-title { font-size: 17px; font-weight: 800; color: var(--white); }
+.topbar-sub { font-size: 12px; color: var(--text-muted); }
+.btn-back {
+  background: rgba(255,255,255,0.08); border: 1px solid var(--border);
+  color: var(--text-main); border-radius: 12px; padding: 8px 16px;
+  font-size: 14px; font-weight: 700; cursor: pointer;
+  font-family: var(--font-ar); transition: all 0.2s;
+  display: flex; align-items: center; gap: 6px;
 }
-.back-btn:hover, .logout-btn:hover { background: white; border-color: var(--purple); }
+.btn-back:hover { background: rgba(255,255,255,0.14); border-color: var(--sky); }
+.stars-badge {
+  background: linear-gradient(135deg, rgba(245,200,66,0.2), rgba(245,200,66,0.1));
+  border: 1px solid rgba(245,200,66,0.3);
+  border-radius: 99px; padding: 6px 14px;
+  font-size: 15px; font-weight: 800; color: var(--gold);
+  display: flex; align-items: center; gap: 4px;
+}
 
-.menu-greeting {
-  text-align: center; padding: 28px 20px 16px;
-  font-size: clamp(22px, 5vw, 34px); font-weight: 900; color: var(--navy);
+/* ══════════════════════════════
+   MAIN MENU
+══════════════════════════════ */
+#menuScreen { background: transparent; }
+.menu-hero {
+  padding: 24px 20px 12px;
+  display: flex; align-items: center; gap: 14px;
 }
+.menu-avatar-big { font-size: 54px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4)); }
+.menu-greeting-text { font-size: clamp(20px,5vw,28px); font-weight: 800; color: var(--white); }
+.menu-greeting-sub { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+/* Progress bar */
+.prog-wrap {
+  margin: 0 18px 18px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border); border-radius: var(--r-md);
+  padding: 14px 18px;
+}
+.prog-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.prog-label { font-size: 13px; color: var(--text-muted); }
+.prog-stars { font-size: 14px; color: var(--gold); font-weight: 800; margin-right: auto; }
+.prog-bar-bg { height: 10px; background: rgba(255,255,255,0.1); border-radius: 99px; flex: 1; overflow: hidden; }
+.prog-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--mint), var(--sky)); transition: width 0.6s ease; }
+
+/* Menu grid */
 .menu-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 18px;
-  padding: 10px 20px 30px;
-  max-width: 900px;
-  margin: 0 auto;
-  width: 100%;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 14px; padding: 0 18px 30px;
 }
-.menu-card {
-  background: var(--card-bg);
-  border-radius: 28px;
-  padding: 30px 20px;
-  text-align: center;
+.menu-tile {
+  background: var(--bg-glass);
+  backdrop-filter: blur(16px);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 24px 14px 18px;
+  text-align: center; cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  position: relative; overflow: hidden;
+}
+.menu-tile::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+  height: 3px; background: var(--tc); opacity: 0; transition: opacity 0.3s;
+}
+.menu-tile:hover { transform: translateY(-6px); border-color: var(--tc); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+.menu-tile:hover::after { opacity: 1; }
+.menu-tile:active { transform: scale(0.97); }
+.tile-icon { font-size: 50px; display: block; margin-bottom: 12px; }
+.tile-label { font-size: 15px; font-weight: 800; color: var(--white); }
+.tile-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+.tile-badge {
+  position: absolute; top: 10px; left: 10px;
+  background: var(--tc); color: var(--bg-deep);
+  font-size: 10px; font-weight: 800; padding: 2px 7px;
+  border-radius: 99px;
+}
+
+/* ══════════════════════════════
+   LETTERS GRID
+══════════════════════════════ */
+.section-header {
+  padding: 18px 18px 12px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.section-title { font-size: 20px; font-weight: 800; color: var(--white); }
+.filter-pills { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 18px 14px; }
+.pill {
+  padding: 6px 16px; border-radius: 99px;
+  background: rgba(255,255,255,0.07); border: 1px solid var(--border);
+  color: var(--text-muted); font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: all 0.2s; font-family: var(--font-ar);
+}
+.pill.active { background: var(--gold); border-color: var(--gold); color: #1a1200; }
+
+.letters-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(120px,1fr));
+  gap: 12px; padding: 0 18px 28px;
+}
+.letter-card {
+  background: var(--bg-glass); backdrop-filter: blur(12px);
+  border: 1.5px solid var(--border); border-radius: var(--r-md);
+  padding: 18px 10px; text-align: center;
+  cursor: pointer; position: relative; overflow: hidden;
+  transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+}
+.letter-card:hover { transform: scale(1.07) translateY(-4px); border-color: var(--coral); }
+.letter-card.done { border-color: var(--mint); }
+.letter-card.done::after {
+  content: '✓'; position: absolute; top: 6px; right: 6px;
+  background: var(--mint); color: var(--bg-deep);
+  width: 20px; height: 20px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 900;
+}
+.lc-main {
+  font-size: 52px; font-weight: 800; color: var(--coral);
+  font-family: var(--font-ar); line-height: 1.1;
+}
+.lc-name { font-size: 13px; font-weight: 700; color: var(--text-main); margin-top: 6px; }
+.lc-tr { font-size: 11px; color: var(--text-muted); }
+
+/* ══════════════════════════════
+   PRACTICE SCREEN
+══════════════════════════════ */
+#practiceScreen { background: transparent; }
+.practice-top {
+  display: flex; align-items: center; justify-content: center; gap: 20px;
+  padding: 20px 18px 10px; flex-wrap: wrap;
+}
+.practice-letter-big {
+  font-size: 110px; font-weight: 900; line-height: 1;
+  font-family: var(--font-ar);
+  background: linear-gradient(135deg, var(--coral), var(--peach));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 4px 16px rgba(255,123,123,0.35));
+  animation: letterPop 0.5s cubic-bezier(0.34,1.56,0.64,1);
   cursor: pointer;
-  box-shadow: var(--shadow);
-  border: 3px solid transparent;
-  transition: all 0.25s;
-  position: relative;
-  overflow: hidden;
 }
-.menu-card::before {
-  content: ''; position: absolute; inset: 0;
-  background: var(--mc); opacity: 0.08; border-radius: inherit;
+@keyframes letterPop { from{transform:scale(0);opacity:0} to{transform:scale(1);opacity:1} }
+.practice-letter-big:hover { transform: scale(1.05); filter: drop-shadow(0 4px 24px rgba(255,123,123,0.55)); }
+.practice-info { text-align: center; }
+.practice-name-ar { font-size: 24px; font-weight: 800; color: var(--white); }
+.practice-sound { font-size: 14px; color: var(--text-muted); margin-top: 4px; }
+.sound-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(245,200,66,0.15); border: 1px solid rgba(245,200,66,0.3);
+  border-radius: 99px; padding: 7px 16px; margin-top: 8px;
+  color: var(--gold); font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: all 0.2s; font-family: var(--font-ar);
 }
-.menu-card:hover { transform: translateY(-6px) scale(1.03); border-color: var(--mc); box-shadow: 0 16px 48px rgba(0,0,0,0.15); }
-.menu-icon { font-size: 56px; margin-bottom: 12px; display: block; }
-.menu-label { font-size: 18px; font-weight: 800; color: var(--navy); }
-.menu-sublabel { font-size: 13px; color: #666; margin-top: 4px; }
+.sound-btn:hover { background: rgba(245,200,66,0.25); }
+.sound-btn.playing { animation: pulse 0.5s ease-in-out infinite alternate; }
+@keyframes pulse { from{transform:scale(1)} to{transform:scale(1.06)} }
 
-/* ===== PROGRESS BAR ===== */
-.progress-strip {
-  background: rgba(255,255,255,0.7);
-  margin: 0 20px 10px;
-  border-radius: 16px;
-  padding: 12px 20px;
-  display: flex; align-items: center; gap: 14px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+/* Letter forms */
+.forms-row {
+  display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+  padding: 8px 18px 14px;
 }
-.progress-strip .label { font-weight: 700; color: var(--navy); font-size: 14px; white-space: nowrap; }
-.prog-bar { flex: 1; height: 14px; background: #e9ecef; border-radius: 99px; overflow: hidden; }
-.prog-fill { height: 100%; background: linear-gradient(90deg, var(--grass), var(--sky)); border-radius: 99px; transition: width 0.5s; }
-.prog-pct { font-weight: 900; color: var(--navy); font-size: 14px; }
-.stars-count { font-size: 16px; font-weight: 700; color: var(--sun); text-shadow: 0 1px 4px rgba(0,0,0,0.15); }
+.form-chip {
+  background: var(--bg-glass); backdrop-filter: blur(12px);
+  border: 1.5px solid var(--border); border-radius: var(--r-sm);
+  padding: 14px 18px; text-align: center; cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  min-width: 110px;
+}
+.form-chip:hover { border-color: var(--sky); transform: scale(1.05); }
+.form-chip.active { border-color: var(--sky); background: rgba(125,211,252,0.12); }
+.form-pos { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.form-letter { font-size: 40px; font-weight: 900; color: var(--sky); font-family: var(--font-ar); }
+.form-example { font-size: 12px; color: var(--text-muted); margin-top: 4px; font-family: var(--font-ar); }
 
-/* ===== ARABIC LETTERS SCREEN ===== */
-#arabicScreen { background: linear-gradient(135deg, #ffecd2, #fcb69f); }
-.letters-header { text-align: center; padding: 20px; font-size: 26px; font-weight: 900; color: var(--navy); }
-.letter-tabs {
-  display: flex; gap: 10px; justify-content: center; padding: 0 16px 16px; flex-wrap: wrap;
-}
-.letter-tab {
-  padding: 8px 20px; border-radius: 99px;
-  border: 2.5px solid #e5e7eb; background: white;
-  font-size: 14px; font-weight: 700; cursor: pointer;
-  color: #555; transition: all 0.2s; font-family: inherit;
-}
-.letter-tab.active { background: var(--coral); color: white; border-color: var(--coral); }
-
-.arabic-letters-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 14px; padding: 0 16px 20px; max-width: 900px; margin: 0 auto; width: 100%;
-}
-.arabic-letter-card {
-  background: white; border-radius: 22px; padding: 16px 12px;
-  text-align: center; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-  border: 3px solid transparent; transition: all 0.22s;
-}
-.arabic-letter-card:hover { transform: scale(1.06); border-color: var(--coral); }
-.arabic-letter-card.completed { border-color: var(--grass); background: #f0fff4; }
-.arabic-letter-card.completed::after { content: '✓'; position: absolute; top: 8px; left: 8px; background: var(--grass); color: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
-.arabic-letter-card { position: relative; }
-.ar-letter-main { font-size: 52px; font-weight: 900; color: var(--coral); line-height: 1.1; font-family: 'Tajawal', sans-serif; }
-.ar-letter-name { font-size: 14px; font-weight: 700; color: #444; margin-top: 6px; }
-.ar-letter-sound { font-size: 12px; color: #888; }
-
-/* ===== LETTER PRACTICE SCREEN ===== */
-#practiceScreen { background: linear-gradient(135deg, #e0f7fa, #b2ebf2); }
-.practice-header { text-align: center; padding: 16px; }
-.practice-letter-display {
-  font-size: 120px; font-weight: 900; color: var(--coral); line-height: 1;
-  font-family: 'Tajawal', sans-serif; text-shadow: 0 8px 32px rgba(255,107,107,0.25);
-}
-.practice-name { font-size: 22px; font-weight: 700; color: var(--navy); margin-top: 8px; }
-.forms-section {
-  display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
-  padding: 16px;
-}
-.form-card {
-  background: white; border-radius: 20px; padding: 20px; text-align: center;
-  box-shadow: 0 6px 24px rgba(0,0,0,0.1); min-width: 120px;
-  border: 3px solid transparent; transition: all 0.2s;
-}
-.form-label { font-size: 13px; font-weight: 700; color: #888; margin-bottom: 8px; }
-.form-char { font-size: 48px; font-weight: 900; color: var(--navy); font-family: 'Tajawal', sans-serif; }
-.form-example { font-size: 13px; color: #555; margin-top: 4px; }
-
-/* CANVAS AREA */
-.canvas-section {
-  padding: 16px; max-width: 700px; margin: 0 auto; width: 100%;
-}
+/* ══════════════════════════════
+   CANVAS — FIXED
+══════════════════════════════ */
+.canvas-section { padding: 0 18px 20px; }
 .canvas-prompt {
-  text-align: center; font-size: 18px; font-weight: 700; color: var(--navy);
-  margin-bottom: 12px;
+  font-size: 16px; font-weight: 700; color: var(--text-muted);
+  text-align: center; margin-bottom: 12px;
 }
-.canvas-wrapper {
-  background: white; border-radius: 24px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-  overflow: hidden; position: relative;
-  border: 4px solid var(--sky);
+.canvas-wrap {
+  position: relative; border-radius: var(--r-md); overflow: hidden;
+  border: 2px solid var(--border);
+  background: #fafaf8;
+  box-shadow: var(--shadow-md);
+  /* CRITICAL: explicit dimensions */
+  width: 100%; height: 300px;
 }
-.letter-guide {
-  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-  font-size: 200px; font-weight: 900; color: rgba(108,195,245,0.12);
-  font-family: 'Tajawal', sans-serif; pointer-events: none; z-index: 0;
-  user-select: none;
+.canvas-guide {
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-ar); font-weight: 900;
+  color: rgba(180,200,220,0.2); user-select: none;
+  line-height: 1;
 }
-#drawCanvas { display: block; width: 100%; touch-action: none; position: relative; z-index: 1; cursor: crosshair; }
-.canvas-controls {
-  display: flex; gap: 12px; justify-content: center; padding: 14px;
-  flex-wrap: wrap;
+/* Lines guide */
+.canvas-lines {
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
 }
-.ctrl-btn {
-  padding: 10px 22px; border-radius: 14px; border: none;
-  font-size: 15px; font-weight: 700; cursor: pointer;
-  font-family: inherit; transition: all 0.2s;
+#drawCanvas, #drawCanvas2 {
+  position: absolute; top: 0; left: 0;
+  width: 100% !important; height: 100% !important;
+  touch-action: none; cursor: crosshair; z-index: 1;
+  display: block;
 }
-.ctrl-btn.clear { background: #fee2e2; color: #dc2626; }
-.ctrl-btn.check { background: linear-gradient(135deg, var(--grass), #34d399); color: white; box-shadow: 0 4px 16px rgba(107,203,119,0.4); }
-.ctrl-btn.next { background: linear-gradient(135deg, var(--purple), #764ba2); color: white; }
-.color-palette { display: flex; gap: 8px; align-items: center; }
-.color-dot {
-  width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
-  border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-  transition: transform 0.15s;
+.canvas-tools {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  justify-content: center; padding: 12px 0 0;
 }
-.color-dot:hover { transform: scale(1.2); }
-.color-dot.active { transform: scale(1.3); box-shadow: 0 0 0 3px var(--navy), 0 2px 8px rgba(0,0,0,0.3); }
-.stroke-size { display: flex; gap: 6px; align-items: center; }
-.size-btn {
-  background: white; border: 2px solid #e5e7eb; border-radius: 50%;
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
-  transition: all 0.15s;
+.color-swatch {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 3px solid transparent; cursor: pointer;
+  transition: transform 0.15s; box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+  flex-shrink: 0;
 }
-.size-btn.active { border-color: var(--purple); background: #f3f0ff; }
+.color-swatch.active { border-color: var(--white); transform: scale(1.25); }
+.size-dot {
+  border-radius: 50%; cursor: pointer;
+  background: rgba(255,255,255,0.2);
+  border: 2px solid rgba(255,255,255,0.15);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; flex-shrink: 0;
+}
+.size-dot.active { border-color: var(--gold); background: rgba(245,200,66,0.2); }
+.btn-tool {
+  padding: 9px 18px; border-radius: var(--r-sm); border: none;
+  font-size: 14px; font-weight: 800; cursor: pointer;
+  font-family: var(--font-ar); transition: all 0.2s; flex-shrink: 0;
+}
+.btn-clear { background: rgba(255,123,123,0.15); color: var(--coral); border: 1px solid rgba(255,123,123,0.3); }
+.btn-clear:hover { background: rgba(255,123,123,0.25); }
+.btn-check { background: linear-gradient(135deg, var(--mint), #34d399); color: var(--bg-deep); box-shadow: 0 4px 16px rgba(110,231,183,0.35); }
+.btn-next { background: linear-gradient(135deg, var(--lavender), #8b5cf6); color: white; }
+.btn-next:hover { transform: translateY(-2px); }
 
-/* ===== ENGLISH LETTERS ===== */
-#englishScreen { background: linear-gradient(135deg, #d4fc79, #96e6a1); }
-.eng-letters-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-  gap: 12px; padding: 16px; max-width: 900px; margin: 0 auto; width: 100%;
+/* ══════════════════════════════
+   ENGLISH LETTERS
+══════════════════════════════ */
+.eng-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(100px,1fr));
+  gap: 12px; padding: 0 18px 28px;
 }
-.eng-letter-card {
-  background: white; border-radius: 20px; padding: 18px 10px;
-  text-align: center; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-  border: 3px solid transparent; transition: all 0.22s; position: relative;
+.eng-card {
+  background: var(--bg-glass); backdrop-filter: blur(12px);
+  border: 1.5px solid var(--border); border-radius: var(--r-md);
+  padding: 16px 8px; text-align: center;
+  cursor: pointer; position: relative;
+  transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
 }
-.eng-letter-card:hover { transform: scale(1.07); border-color: var(--grass); }
-.eng-letter-card.completed { border-color: var(--grass); background: #f0fff4; }
-.eng-upper { font-size: 48px; font-weight: 900; color: var(--grass); font-family: 'Fredoka One', sans-serif; line-height: 1; }
-.eng-lower { font-size: 28px; font-weight: 700; color: #aaa; font-family: 'Fredoka One', sans-serif; }
-.eng-word { font-size: 12px; color: #555; margin-top: 4px; font-weight: 600; }
+.eng-card:hover { transform: scale(1.08) translateY(-4px); border-color: var(--mint); }
+.eng-card.done { border-color: var(--mint); }
+.eng-upper { font-family: var(--font-en); font-size: 46px; color: var(--mint); line-height: 1; }
+.eng-lower { font-family: var(--font-en); font-size: 26px; color: rgba(110,231,183,0.5); }
+.eng-word { font-size: 11px; color: var(--text-muted); margin-top: 6px; font-family: var(--font-body); }
 
-/* ===== WORD-IMAGE MATCHING ===== */
-#matchScreen { background: linear-gradient(135deg, #fbc2eb, #a6c1ee); }
+/* ══════════════════════════════
+   WORD-IMAGE CARDS
+══════════════════════════════ */
 .match-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 16px; padding: 16px; max-width: 900px; margin: 0 auto; width: 100%;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(155px,1fr));
+  gap: 14px; padding: 0 18px 28px;
 }
-.match-card {
-  background: white; border-radius: 24px; padding: 20px 14px;
-  text-align: center; box-shadow: var(--shadow); cursor: pointer;
-  border: 3px solid transparent; transition: all 0.25s; position: relative;
+.flip-card { perspective: 1000px; cursor: pointer; height: 190px; }
+.flip-inner {
+  position: relative; width: 100%; height: 100%;
+  transform-style: preserve-3d; transition: transform 0.55s cubic-bezier(0.4,0,0.2,1);
 }
-.match-card:hover { transform: translateY(-5px); border-color: var(--purple); }
-.match-emoji { font-size: 62px; display: block; line-height: 1.1; }
-.match-arabic { font-size: 28px; font-weight: 900; color: var(--navy); font-family: 'Tajawal', sans-serif; margin-top: 8px; }
-.match-english { font-size: 15px; color: #666; font-weight: 600; margin-top: 4px; font-family: 'Fredoka One', sans-serif; }
-.match-card.flip .card-inner { transform: rotateY(180deg); }
-.card-inner { transition: transform 0.5s; transform-style: preserve-3d; position: relative; min-height: 160px; }
-.card-front, .card-back { backface-visibility: hidden; }
-.card-back { transform: rotateY(180deg); position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.flip-card.flipped .flip-inner { transform: rotateY(180deg); }
+.flip-front, .flip-back {
+  position: absolute; inset: 0; backface-visibility: hidden;
+  background: var(--bg-glass); backdrop-filter: blur(12px);
+  border: 1.5px solid var(--border); border-radius: var(--r-md);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  padding: 14px;
+}
+.flip-back { transform: rotateY(180deg); border-color: var(--sky); background: rgba(125,211,252,0.1); }
+.flip-emoji { font-size: 58px; line-height: 1; }
+.flip-hint { font-size: 11px; color: var(--text-muted); font-family: var(--font-body); }
+.flip-arabic { font-size: 28px; font-weight: 900; color: var(--white); font-family: var(--font-ar); }
+.flip-english { font-size: 16px; color: var(--sky); font-family: var(--font-en); }
 
-/* ===== NUMBERS & MATH ===== */
-#mathScreen { background: linear-gradient(135deg, #f6d365, #fda085); }
-.math-tabs {
-  display: flex; gap: 10px; justify-content: center; padding: 16px; flex-wrap: wrap;
+/* ══════════════════════════════
+   MATH SCREEN
+══════════════════════════════ */
+#mathScreen { background: transparent; }
+.math-sub-tabs { display: flex; gap: 10px; padding: 14px 18px; overflow-x: auto; flex-shrink: 0; }
+.math-pill {
+  padding: 9px 20px; border-radius: 99px; white-space: nowrap;
+  background: rgba(255,255,255,0.07); border: 1.5px solid var(--border);
+  color: var(--text-muted); font-size: 14px; font-weight: 800;
+  cursor: pointer; transition: all 0.2s; font-family: var(--font-ar);
 }
-.math-tab {
-  padding: 10px 24px; border-radius: 99px;
-  border: 2.5px solid #e5e7eb; background: white;
-  font-size: 16px; font-weight: 800; cursor: pointer;
-  transition: all 0.2s; font-family: inherit; color: var(--navy);
-}
-.math-tab.active { background: var(--orange); color: white; border-color: var(--orange); }
-.numbers-grid {
-  display: grid; grid-template-columns: repeat(5, 1fr);
-  gap: 12px; padding: 16px; max-width: 600px; margin: 0 auto; width: 100%;
-}
-.number-card {
-  background: white; border-radius: 20px; padding: 16px 8px;
-  text-align: center; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-  border: 3px solid transparent; transition: all 0.22s;
-}
-.number-card:hover { transform: scale(1.1); border-color: var(--orange); }
-.number-big { font-size: 42px; font-weight: 900; color: var(--orange); font-family: 'Fredoka One', sans-serif; }
-.number-dots { font-size: 20px; margin-top: 4px; color: var(--coral); line-height: 1.2; }
-.number-arabic { font-size: 14px; color: #888; font-family: 'Tajawal', sans-serif; font-weight: 700; }
+.math-pill.active { background: linear-gradient(135deg, var(--gold), #f59e0b); border-color: var(--gold); color: #1a1200; }
 
-/* Math quiz */
-.math-quiz {
-  max-width: 500px; margin: 0 auto; padding: 20px;
+.numbers-showcase {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(100px,1fr));
+  gap: 12px; padding: 0 18px 28px;
+}
+.num-tile {
+  background: var(--bg-glass); backdrop-filter: blur(12px);
+  border: 1.5px solid var(--border); border-radius: var(--r-md);
+  padding: 18px 10px; text-align: center;
+  cursor: pointer; transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+}
+.num-tile:hover { transform: scale(1.1); border-color: var(--gold); }
+.num-big { font-family: var(--font-en); font-size: 44px; font-weight: 400; color: var(--gold); line-height: 1; }
+.num-dots { font-size: 16px; color: var(--coral); margin-top: 4px; letter-spacing: 1px; line-height: 1.2; min-height: 22px; }
+.num-ar { font-size: 13px; color: var(--text-muted); font-family: var(--font-ar); margin-top: 4px; font-weight: 700; }
+
+.math-quiz-area {
   display: flex; flex-direction: column; align-items: center; gap: 20px;
+  padding: 10px 18px 30px; max-width: 500px; margin: 0 auto; width: 100%;
 }
-.math-problem {
-  background: white; border-radius: 28px; padding: 36px 48px;
-  font-size: 52px; font-weight: 900; color: var(--navy);
-  font-family: 'Fredoka One', sans-serif;
-  box-shadow: var(--shadow); text-align: center;
-  min-width: 280px;
+.quiz-score-row {
+  display: flex; gap: 12px;
 }
-.math-operation { color: var(--orange); }
-.math-options {
+.score-chip {
+  padding: 6px 18px; border-radius: 99px; font-size: 14px; font-weight: 800;
+}
+.score-chip.correct { background: rgba(110,231,183,0.15); color: var(--mint); border: 1px solid rgba(110,231,183,0.3); }
+.score-chip.wrong { background: rgba(255,123,123,0.15); color: var(--coral); border: 1px solid rgba(255,123,123,0.3); }
+
+.math-card {
+  background: var(--bg-glass); backdrop-filter: blur(16px);
+  border: 2px solid var(--border); border-radius: var(--r-lg);
+  padding: 36px 48px; text-align: center;
+  box-shadow: var(--shadow-md);
+}
+.math-eq {
+  font-family: var(--font-en); font-size: 52px; font-weight: 400;
+  color: var(--white); display: flex; align-items: center; justify-content: center; gap: 12px;
+}
+.math-op { color: var(--gold); }
+.math-q { color: var(--lavender); }
+.math-choices {
   display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%;
 }
-.math-opt {
-  background: white; border: 3px solid #e5e7eb; border-radius: 20px;
-  padding: 20px; font-size: 36px; font-weight: 900; text-align: center;
-  cursor: pointer; font-family: 'Fredoka One', sans-serif; color: var(--navy);
-  transition: all 0.2s; box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+.choice-btn {
+  background: var(--bg-glass); border: 2px solid var(--border);
+  border-radius: var(--r-md); padding: 20px;
+  font-family: var(--font-en); font-size: 38px;
+  color: var(--white); cursor: pointer; text-align: center;
+  transition: all 0.2s; box-shadow: var(--shadow-sm);
 }
-.math-opt:hover { border-color: var(--orange); transform: scale(1.04); }
-.math-opt.correct { background: #f0fff4; border-color: var(--grass); color: var(--grass); animation: popIn 0.4s; }
-.math-opt.wrong { background: #fff5f5; border-color: var(--coral); color: var(--coral); animation: shake 0.4s; }
-@keyframes popIn { 0%{transform:scale(1)} 50%{transform:scale(1.12)} 100%{transform:scale(1)} }
-@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+.choice-btn:hover { border-color: var(--gold); transform: scale(1.04); }
+.choice-btn.right { background: rgba(110,231,183,0.15); border-color: var(--mint); color: var(--mint); animation: popBounce 0.4s; }
+.choice-btn.wrong { background: rgba(255,123,123,0.12); border-color: var(--coral); color: var(--coral); animation: shakeX 0.4s; }
+@keyframes popBounce { 0%{transform:scale(1)} 50%{transform:scale(1.12)} 100%{transform:scale(1)} }
+@keyframes shakeX { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
 
-/* ===== PARENT PANEL ===== */
-#parentScreen { background: linear-gradient(135deg, #2d3748, #4a5568); }
-.parent-topbar { background: rgba(0,0,0,0.3); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; }
-.parent-topbar h2 { color: white; font-size: 22px; font-weight: 800; }
-.parent-tabs {
-  display: flex; gap: 10px; padding: 16px; overflow-x: auto;
+/* Multiplication table */
+.times-table {
+  overflow-x: auto; padding: 0 18px 28px;
 }
+.times-table table { border-collapse: collapse; margin: 0 auto; }
+.times-table td {
+  width: 44px; height: 44px; text-align: center;
+  font-family: var(--font-en); font-size: 15px; font-weight: 700;
+  border: 1px solid var(--border); border-radius: 8px;
+  cursor: pointer; transition: all 0.15s;
+  color: var(--text-main);
+}
+.times-table td:first-child, .times-table tr:first-child td { color: var(--gold); font-weight: 900; background: rgba(245,200,66,0.1); }
+.times-table td:hover { background: rgba(125,211,252,0.15); color: var(--sky); transform: scale(1.1); }
+
+/* ══════════════════════════════
+   HUMAN BODY / ANIMALS / SHAPES
+══════════════════════════════ */
+#exploreScreen { background: transparent; }
+.explore-tabs { display: flex; gap: 10px; padding: 14px 18px; overflow-x: auto; flex-shrink: 0; }
+.explore-tab {
+  padding: 9px 20px; border-radius: 99px; white-space: nowrap;
+  background: rgba(255,255,255,0.07); border: 1.5px solid var(--border);
+  color: var(--text-muted); font-size: 14px; font-weight: 800;
+  cursor: pointer; transition: all 0.2s; font-family: var(--font-ar);
+}
+.explore-tab.active { background: var(--lavender); border-color: var(--lavender); color: var(--bg-deep); }
+
+.explore-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(140px,1fr));
+  gap: 14px; padding: 0 18px 28px;
+}
+.explore-card {
+  background: var(--bg-glass); backdrop-filter: blur(12px);
+  border: 1.5px solid var(--border); border-radius: var(--r-md);
+  padding: 20px 12px; text-align: center;
+  cursor: pointer; position: relative;
+  transition: all 0.28s cubic-bezier(0.34,1.56,0.64,1);
+}
+.explore-card:hover { transform: translateY(-6px) scale(1.04); border-color: var(--lavender); }
+.explore-card:active { transform: scale(0.97); }
+.ec-emoji { font-size: 56px; display: block; line-height: 1.1; }
+.ec-ar { font-size: 18px; font-weight: 800; color: var(--white); font-family: var(--font-ar); margin-top: 8px; }
+.ec-en { font-size: 14px; color: var(--sky); font-family: var(--font-en); margin-top: 2px; }
+.ec-play {
+  margin-top: 8px; display: inline-flex; align-items: center; gap: 4px;
+  background: rgba(196,181,253,0.15); border: 1px solid rgba(196,181,253,0.3);
+  border-radius: 99px; padding: 4px 12px;
+  font-size: 11px; color: var(--lavender); font-weight: 700;
+  font-family: var(--font-ar);
+}
+
+/* ══════════════════════════════
+   COLORING BOOK
+══════════════════════════════ */
+#coloringScreen { background: transparent; }
+.coloring-gallery {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(140px,1fr));
+  gap: 14px; padding: 0 18px 28px;
+}
+.coloring-thumb {
+  background: var(--bg-glass); backdrop-filter: blur(12px);
+  border: 1.5px solid var(--border); border-radius: var(--r-md);
+  aspect-ratio: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 8px;
+  cursor: pointer; font-size: 64px;
+  transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  position: relative; overflow: hidden;
+}
+.coloring-thumb:hover { transform: scale(1.07); border-color: var(--pink); }
+.ct-name { font-size: 13px; color: var(--text-muted); font-family: var(--font-ar); font-weight: 700; }
+.ct-type {
+  position: absolute; top: 8px; right: 8px;
+  font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 99px;
+}
+.ct-type.color { background: rgba(249,168,212,0.3); color: var(--pink); }
+.ct-type.dots { background: rgba(125,211,252,0.3); color: var(--sky); }
+
+/* Coloring canvas screen */
+#coloringCanvas { background: transparent; }
+.coloring-area {
+  padding: 0 18px 20px;
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+}
+.coloring-subject { font-size: 80px; display: block; text-align: center; }
+.svg-canvas-wrap {
+  width: 100%; max-width: 440px; position: relative;
+  border-radius: var(--r-md); overflow: hidden;
+  border: 2px solid var(--border);
+  background: white; box-shadow: var(--shadow-md);
+  height: 340px;
+}
+#svgCanvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
+.color-palette-big {
+  display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; max-width: 440px;
+}
+.big-swatch {
+  width: 42px; height: 42px; border-radius: 50%;
+  border: 3px solid transparent; cursor: pointer;
+  transition: transform 0.2s; box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+}
+.big-swatch.active { border-color: white; transform: scale(1.3); }
+.coloring-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+
+/* ══════════════════════════════
+   CUSTOM PRACTICE (parent words)
+══════════════════════════════ */
+#customScreen { background: transparent; }
+.custom-word-big {
+  text-align: center; padding: 24px 18px 10px;
+  font-size: clamp(48px,12vw,80px); font-weight: 900;
+  font-family: var(--font-ar); color: var(--white);
+  letter-spacing: 4px; text-shadow: 0 4px 24px rgba(0,0,0,0.4);
+  cursor: pointer; transition: transform 0.2s;
+}
+.custom-word-big:hover { transform: scale(1.03); }
+.custom-nav {
+  display: flex; align-items: center; justify-content: center; gap: 16px; padding: 0 18px 14px;
+}
+.nav-arrow {
+  background: rgba(255,255,255,0.08); border: 1px solid var(--border);
+  border-radius: var(--r-sm); padding: 10px 20px;
+  color: var(--text-main); font-size: 18px; cursor: pointer;
+  transition: all 0.2s; font-family: var(--font-ar);
+}
+.nav-arrow:hover { background: rgba(255,255,255,0.14); border-color: var(--sky); }
+.nav-counter { font-size: 15px; font-weight: 700; color: var(--text-muted); }
+
+/* ══════════════════════════════
+   PARENT PANEL
+══════════════════════════════ */
+#parentScreen { background: var(--bg-deep); }
+.parent-topbar {
+  display: flex; align-items: center; justify-content: space-between; padding: 16px 18px;
+  background: rgba(0,0,0,0.5); border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.parent-tabs { display: flex; gap: 10px; padding: 14px 18px; overflow-x: auto; flex-shrink: 0; }
 .parent-tab {
-  padding: 10px 22px; border-radius: 99px; background: rgba(255,255,255,0.1);
-  color: white; border: 2px solid rgba(255,255,255,0.2);
-  font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap;
-  transition: all 0.2s; font-family: inherit;
+  padding: 9px 20px; border-radius: 99px; white-space: nowrap;
+  background: rgba(255,255,255,0.07); border: 1.5px solid var(--border);
+  color: var(--text-muted); font-size: 14px; font-weight: 800;
+  cursor: pointer; transition: all 0.2s; font-family: var(--font-ar);
 }
-.parent-tab.active { background: var(--purple); border-color: var(--purple); }
-.parent-content { padding: 16px; }
-.word-form {
-  background: rgba(255,255,255,0.1); backdrop-filter: blur(12px);
-  border-radius: 24px; padding: 24px; border: 1px solid rgba(255,255,255,0.2);
+.parent-tab.active { background: var(--lavender); border-color: var(--lavender); color: var(--bg-deep); }
+.parent-section { padding: 0 18px 30px; }
+.parent-card {
+  background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+  border-radius: var(--r-md); padding: 22px; margin-bottom: 14px;
 }
-.word-form h3 { color: white; font-size: 18px; font-weight: 700; margin-bottom: 16px; }
-.word-form textarea {
-  width: 100%; padding: 14px; border-radius: 16px;
-  border: 2px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.12);
-  color: white; font-size: 20px; font-family: 'Tajawal', sans-serif;
-  resize: vertical; min-height: 100px; outline: none; direction: rtl;
+.parent-card h4 { font-size: 16px; font-weight: 800; color: var(--white); margin-bottom: 14px; }
+.word-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; border-radius: var(--r-sm);
+  background: rgba(255,255,255,0.06); margin-bottom: 8px;
+  border: 1px solid var(--border);
 }
-.word-form textarea::placeholder { color: rgba(255,255,255,0.5); }
-.word-form .btn-primary { margin-top: 12px; }
-.custom-words-list { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
-.custom-word-item {
-  background: rgba(255,255,255,0.12); border-radius: 16px; padding: 14px 18px;
-  display: flex; align-items: center; justify-content: space-between; color: white;
+.word-item-text { font-size: 20px; font-family: var(--font-ar); color: var(--white); font-weight: 700; }
+.word-owner { font-size: 12px; color: var(--text-muted); }
+.btn-del {
+  background: rgba(255,123,123,0.15); border: 1px solid rgba(255,123,123,0.25);
+  color: var(--coral); border-radius: 10px; padding: 6px 12px;
+  cursor: pointer; font-size: 13px; font-family: var(--font-ar);
 }
-.custom-word-text { font-size: 22px; font-weight: 700; font-family: 'Tajawal', sans-serif; }
-.delete-word-btn {
-  background: rgba(255,107,107,0.25); color: #fca5a5; border: none;
-  border-radius: 10px; padding: 6px 12px; cursor: pointer; font-family: inherit;
+.stat-card {
+  background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+  border-radius: var(--r-md); padding: 18px; text-align: center;
 }
-/* Progress charts */
-.progress-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
-.prog-card {
-  background: rgba(255,255,255,0.1); backdrop-filter: blur(12px);
-  border-radius: 20px; padding: 20px; border: 1px solid rgba(255,255,255,0.2); color: white;
-}
-.prog-card h4 { font-size: 15px; opacity: 0.75; margin-bottom: 10px; }
-.prog-card .big-num { font-size: 48px; font-weight: 900; color: var(--sun); font-family: 'Fredoka One', sans-serif; }
-.prog-card .sub { font-size: 13px; opacity: 0.6; margin-top: 4px; }
+.stat-big { font-family: var(--font-en); font-size: 48px; color: var(--gold); font-weight: 400; }
+.stat-label { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(130px,1fr)); gap: 12px; margin-top: 14px; }
 
-/* ===== CUSTOM WRITING PRACTICE ===== */
-#customScreen { background: linear-gradient(135deg, #e8f5e9, #c8e6c9); }
-.custom-word-display {
-  text-align: center; padding: 24px;
-  font-size: 72px; font-weight: 900; color: var(--navy);
-  font-family: 'Tajawal', sans-serif; letter-spacing: 4px;
-  text-shadow: 0 4px 16px rgba(0,0,0,0.1);
+/* ══════════════════════════════
+   CELEBRATION
+══════════════════════════════ */
+.cel-overlay {
+  display: none; position: fixed; inset: 0; z-index: 900;
+  background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
+  align-items: center; justify-content: center;
 }
-.custom-word-dots {
-  display: flex; gap: 6px; justify-content: center; padding: 0 16px 16px;
-}
-.custom-dot {
-  width: 12px; height: 12px; border-radius: 50%; background: #e5e7eb;
-  cursor: pointer; transition: background 0.2s;
-}
-.custom-dot.active { background: var(--grass); }
-
-/* ===== CELEBRATION ===== */
-.celebration {
-  display: none; position: fixed; inset: 0; z-index: 500;
-  background: rgba(0,0,0,0.75); align-items: center; justify-content: center;
-}
-.celebration.show { display: flex; }
-.celebration-box {
-  background: white; border-radius: 36px; padding: 48px 40px;
+.cel-overlay.show { display: flex; }
+.cel-box {
+  background: var(--bg-mid); border: 2px solid var(--gold);
+  border-radius: var(--r-lg); padding: 48px 40px;
   text-align: center; max-width: 360px; width: 90%;
-  animation: zoomIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: var(--shadow-glow);
+  animation: zoomIn 0.45s cubic-bezier(0.34,1.56,0.64,1);
 }
-@keyframes zoomIn { from{transform:scale(0.5);opacity:0} to{transform:scale(1);opacity:1} }
-.celebration-emoji { font-size: 80px; display: block; animation: bounce 0.6s ease-in-out infinite; }
-.celebration-title { font-size: 32px; font-weight: 900; color: var(--navy); margin: 16px 0 8px; }
-.celebration-msg { font-size: 18px; color: #555; margin-bottom: 24px; }
-.stars-earned { font-size: 36px; color: var(--sun); font-weight: 900; margin-bottom: 20px; }
+@keyframes zoomIn { from{transform:scale(0.4);opacity:0} to{transform:scale(1);opacity:1} }
+.cel-emoji { font-size: 80px; display: block; animation: mascotBounce 0.8s ease-in-out infinite; }
+.cel-title { font-size: 34px; font-weight: 900; color: var(--gold); margin: 14px 0 8px; }
+.cel-msg { font-size: 16px; color: var(--text-muted); margin-bottom: 16px; }
+.cel-stars { font-size: 32px; color: var(--gold); font-weight: 900; margin-bottom: 20px; }
+.cel-close { background: linear-gradient(135deg, var(--gold), #f59e0b); color: #1a1200; }
 
-/* ===== CONFETTI ===== */
-.confetti-piece {
-  position: fixed; top: -10px; border-radius: 4px;
-  animation: confettiFall linear forwards; pointer-events: none; z-index: 600;
-}
-@keyframes confettiFall {
-  to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
-}
+/* Confetti */
+.conf { position: fixed; pointer-events: none; z-index: 950; border-radius: 4px; animation: confDrop linear forwards; }
+@keyframes confDrop { to{transform:translateY(110vh) rotate(720deg);opacity:0} }
 
-/* ===== RESPONSIVE ===== */
-@media (max-width: 480px) {
-  .arabic-letters-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
-  .numbers-grid { grid-template-columns: repeat(4, 1fr); }
-  .practice-letter-display { font-size: 80px; }
+/* ══════════════════════════════
+   UTILITY
+══════════════════════════════ */
+.hidden { display: none !important; }
+.spacer { height: 1px; flex-shrink: 0; }
+
+/* Sync indicator */
+.sync-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--mint);
+  animation: blink 1.5s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.sync-dot.offline { background: var(--coral); animation: none; }
+
+/* Empty state */
+.empty-state {
+  text-align: center; padding: 48px 20px; color: var(--text-muted);
+}
+.empty-state .emi { font-size: 60px; display: block; margin-bottom: 12px; }
+.empty-state p { font-size: 15px; }
+
+/* Profile badge on card */
+.done-badge {
+  position: absolute; top: 7px; right: 7px;
+  background: var(--mint); color: var(--bg-deep);
+  font-size: 10px; font-weight: 900; padding: 2px 7px; border-radius: 99px;
 }
 </style>
 </head>
 <body>
 
-<!-- STARS -->
-<div class="stars" id="starsContainer"></div>
+<!-- SKY BACKGROUND -->
+<div class="sky-bg" id="skyBg"></div>
 
-<!-- =========== LOGIN SCREEN =========== -->
+<!-- ════════════════════════════════════
+     LOGIN SCREEN
+════════════════════════════════════ -->
 <div id="loginScreen" class="screen active">
-  <div style="font-size:90px;animation:bounce 1.5s ease-in-out infinite;">🦁</div>
-  <div class="login-title">روضة الحروف 🌟</div>
-  <div class="login-subtitle">Kids Learning Hub — اختر ملفك</div>
-  <div class="profiles-grid" id="profilesGrid"></div>
-  <button class="btn-primary" style="max-width:240px;margin-top:8px;" onclick="showModal('addProfileModal')">👨‍💼 دخول الوالدين</button>
+  <div class="login-hero">
+    <span class="login-mascot" id="loginMascot">🦁</span>
+    <div class="login-title">روضة النجوم</div>
+    <div class="login-sub">Kids Learning Hub — اختر ملفك للبداية</div>
+  </div>
+  <div class="profiles-wrap" id="profilesWrap"></div>
+  <button class="btn-parent" onclick="openParentLogin()">
+    <span>🔐</span> دخول الوالدين
+  </button>
 </div>
 
-<!-- ADD PROFILE MODAL -->
-<div class="modal-overlay" id="addProfileModal">
+<!-- ════════════════════════════════════
+     MAIN MENU
+════════════════════════════════════ -->
+<div id="menuScreen" class="screen">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span id="menuAv" style="font-size:28px;"></span>
+      <div>
+        <div class="topbar-title" id="menuName">—</div>
+        <div class="topbar-sub">مرحباً بك! 👋</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="sync-dot" id="syncDot" title="Firebase"></div>
+      <div class="stars-badge" id="menuStars">⭐ 0</div>
+      <button class="btn-back" onclick="logout()">خروج 🚪</button>
+    </div>
+  </div>
+  <div class="menu-hero">
+    <span class="menu-avatar-big" id="menuBigAv">🦁</span>
+    <div>
+      <div class="menu-greeting-text" id="menuGreeting">أهلاً!</div>
+      <div class="menu-greeting-sub">ماذا نتعلم اليوم؟</div>
+    </div>
+  </div>
+  <div class="prog-wrap">
+    <div class="prog-row">
+      <span class="prog-label">تقدمك العام</span>
+      <span class="prog-stars" id="menuStars2">⭐ 0 نجمة</span>
+    </div>
+    <div class="prog-bar-bg">
+      <div class="prog-bar-fill" id="progFill" style="width:0%"></div>
+    </div>
+  </div>
+  <div class="menu-grid">
+    <div class="menu-tile" style="--tc:var(--coral)" onclick="goTo('arabicScreen')">
+      <span class="tile-icon">🔤</span>
+      <div class="tile-label">الحروف العربية</div>
+      <div class="tile-sub">٢٨ حرف + كتابة</div>
+    </div>
+    <div class="menu-tile" style="--tc:var(--mint)" onclick="goTo('englishScreen')">
+      <span class="tile-icon">🔡</span>
+      <div class="tile-label">English ABC</div>
+      <div class="tile-sub">26 Letters + Writing</div>
+    </div>
+    <div class="menu-tile" style="--tc:var(--sky)" onclick="goTo('matchScreen')">
+      <span class="tile-icon">🖼️</span>
+      <div class="tile-label">كلمات وصور</div>
+      <div class="tile-sub">قلّب البطاقة!</div>
+    </div>
+    <div class="menu-tile" style="--tc:var(--gold)" onclick="goTo('mathScreen')">
+      <span class="tile-icon">🔢</span>
+      <div class="tile-label">الأرقام والحساب</div>
+      <div class="tile-sub">جمع · طرح · ضرب · قسمة</div>
+    </div>
+    <div class="menu-tile" style="--tc:var(--lavender)" onclick="goTo('exploreScreen')">
+      <span class="tile-icon">🫀</span>
+      <div class="tile-label">اكتشف العالم</div>
+      <div class="tile-sub">جسم · حيوانات · أشكال</div>
+    </div>
+    <div class="menu-tile" style="--tc:var(--pink)" onclick="goTo('coloringScreen')">
+      <span class="tile-icon">🎨</span>
+      <div class="tile-label">كتاب التلوين</div>
+      <div class="tile-sub">رسم ونقاط وألوان</div>
+      <span class="tile-badge" style="background:var(--pink);color:white;">جديد</span>
+    </div>
+    <div class="menu-tile" style="--tc:var(--peach)" onclick="goTo('customScreen')">
+      <span class="tile-icon">✏️</span>
+      <div class="tile-label">كلماتي</div>
+      <div class="tile-sub">كلمات من أهلي</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     ARABIC LETTERS
+════════════════════════════════════ -->
+<div id="arabicScreen" class="screen">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span style="font-size:22px;">🔤</span>
+      <div class="topbar-title">الحروف العربية</div>
+    </div>
+    <button class="btn-back" onclick="goTo('menuScreen')">← رجوع</button>
+  </div>
+  <div class="filter-pills">
+    <button class="pill active" onclick="filterAr('all',this)">الكل</button>
+    <button class="pill" onclick="filterAr('done',this)">✅ مكتمل</button>
+    <button class="pill" onclick="filterAr('todo',this)">⏳ باقي</button>
+  </div>
+  <div class="letters-grid" id="arGrid"></div>
+</div>
+
+<!-- ════════════════════════════════════
+     ENGLISH LETTERS
+════════════════════════════════════ -->
+<div id="englishScreen" class="screen">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span style="font-size:22px;">🔡</span>
+      <div class="topbar-title">English Alphabet</div>
+    </div>
+    <button class="btn-back" onclick="goTo('menuScreen')">← Back</button>
+  </div>
+  <div class="filter-pills">
+    <button class="pill active" onclick="filterEn('all',this)">All</button>
+    <button class="pill" onclick="filterEn('done',this)">✅ Done</button>
+    <button class="pill" onclick="filterEn('todo',this)">⏳ Todo</button>
+  </div>
+  <div class="eng-grid" id="enGrid"></div>
+</div>
+
+<!-- ════════════════════════════════════
+     PRACTICE SCREEN (Arabic + English)
+════════════════════════════════════ -->
+<div id="practiceScreen" class="screen">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-title" id="practiceTopTitle">تدرّب</div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn-tool btn-next" onclick="nextItem()" style="padding:8px 16px;">التالي ←</button>
+      <button class="btn-back" id="practiceBackBtn">← رجوع</button>
+    </div>
+  </div>
+
+  <div class="practice-top">
+    <div>
+      <div class="practice-letter-big" id="practiceBig" onclick="speakCurrent()">أ</div>
+    </div>
+    <div class="practice-info">
+      <div class="practice-name-ar" id="practiceNameAr">الألف</div>
+      <div class="practice-sound" id="practiceSound">— مثال: أسد</div>
+      <button class="sound-btn" id="soundBtn" onclick="speakCurrent()">
+        🔊 استمع للحرف
+      </button>
+    </div>
+  </div>
+
+  <!-- Letter forms (Arabic: 3 positions, English: upper/lower) -->
+  <div class="forms-row" id="formsRow"></div>
+
+  <!-- Canvas -->
+  <div class="canvas-section">
+    <div class="canvas-prompt" id="canvasPrompt">اكتب الحرف في المساحة أدناه 👇</div>
+    <div class="canvas-wrap" id="canvasWrap1">
+      <canvas class="canvas-lines" id="canvasLines1"></canvas>
+      <div class="canvas-guide" id="canvasGuide1"></div>
+      <canvas id="drawCanvas"></canvas>
+    </div>
+    <div class="canvas-tools">
+      <div id="palette1"></div>
+      <div id="sizes1" style="display:flex;gap:6px;align-items:center;"></div>
+      <button class="btn-tool btn-clear" onclick="clearDraw()">🗑️ مسح</button>
+      <button class="btn-tool btn-check" onclick="checkDraw()">✅ تحقق</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     WORD-IMAGE MATCH
+════════════════════════════════════ -->
+<div id="matchScreen" class="screen">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span style="font-size:22px;">🖼️</span>
+      <div class="topbar-title">كلمات وصور</div>
+    </div>
+    <button class="btn-back" onclick="goTo('menuScreen')">← رجوع</button>
+  </div>
+  <div style="padding:12px 18px;color:var(--text-muted);font-size:14px;text-align:center;">
+    انقر على البطاقة لتكشف الكلمة، ثم انقر مجدداً للتقليب 🔄
+  </div>
+  <div class="match-grid" id="matchGrid"></div>
+</div>
+
+<!-- ════════════════════════════════════
+     MATH SCREEN
+════════════════════════════════════ -->
+<div id="mathScreen" class="screen">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span style="font-size:22px;">🔢</span>
+      <div class="topbar-title">الأرقام والحساب</div>
+    </div>
+    <button class="btn-back" onclick="goTo('menuScreen')">← رجوع</button>
+  </div>
+  <div class="math-sub-tabs">
+    <button class="math-pill active" onclick="mathTab('numbers',this)">🔢 الأرقام</button>
+    <button class="math-pill" onclick="mathTab('add',this)">➕ جمع</button>
+    <button class="math-pill" onclick="mathTab('sub',this)">➖ طرح</button>
+    <button class="math-pill" onclick="mathTab('mul',this)">✖️ ضرب</button>
+    <button class="math-pill" onclick="mathTab('div',this)">➗ قسمة</button>
+    <button class="math-pill" onclick="mathTab('table',this)">📊 جدول</button>
+  </div>
+  <div id="mathBody"></div>
+</div>
+
+<!-- ════════════════════════════════════
+     EXPLORE (Body / Animals / Shapes)
+════════════════════════════════════ -->
+<div id="exploreScreen" class="screen">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span style="font-size:22px;">🌍</span>
+      <div class="topbar-title">اكتشف العالم</div>
+    </div>
+    <button class="btn-back" onclick="goTo('menuScreen')">← رجوع</button>
+  </div>
+  <div class="explore-tabs">
+    <button class="explore-tab active" onclick="exploreTab('body',this)">🫀 جسم الإنسان</button>
+    <button class="explore-tab" onclick="exploreTab('animals',this)">🐾 الحيوانات</button>
+    <button class="explore-tab" onclick="exploreTab('shapes',this)">🔷 الأشكال</button>
+    <button class="explore-tab" onclick="exploreTab('colors',this)">🎨 الألوان</button>
+    <button class="explore-tab" onclick="exploreTab('fruits',this)">🍎 الفواكه</button>
+  </div>
+  <div class="explore-grid" id="exploreGrid"></div>
+</div>
+
+<!-- ════════════════════════════════════
+     COLORING BOOK
+════════════════════════════════════ -->
+<div id="coloringScreen" class="screen">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span style="font-size:22px;">🎨</span>
+      <div class="topbar-title">كتاب التلوين</div>
+    </div>
+    <button class="btn-back" onclick="goTo('menuScreen')">← رجوع</button>
+  </div>
+  <div class="filter-pills">
+    <button class="pill active" onclick="filterColoring('all',this)">الكل</button>
+    <button class="pill" onclick="filterColoring('color',this)">🎨 تلوين</button>
+    <button class="pill" onclick="filterColoring('dots',this)">⚫ نقاط</button>
+  </div>
+  <div class="coloring-gallery" id="coloringGallery"></div>
+</div>
+
+<!-- Coloring canvas -->
+<div id="coloringCanvas" class="screen">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-title" id="coloringTitle">تلوين</div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn-tool btn-clear" onclick="clearSvg()" style="padding:8px 14px;">🗑️</button>
+      <button class="btn-back" onclick="goTo('coloringScreen')">← رجوع</button>
+    </div>
+  </div>
+  <div class="coloring-area">
+    <span class="coloring-subject" id="coloringSubject">🦁</span>
+    <div class="svg-canvas-wrap">
+      <canvas id="svgCanvas"></canvas>
+    </div>
+    <div class="color-palette-big" id="bigPalette"></div>
+    <div class="coloring-actions">
+      <button class="btn-tool btn-check" onclick="saveColoring()">💾 حفظ العمل</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     CUSTOM PRACTICE
+════════════════════════════════════ -->
+<div id="customScreen" class="screen">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span style="font-size:22px;">✏️</span>
+      <div class="topbar-title">كلماتي الخاصة</div>
+    </div>
+    <button class="btn-back" onclick="goTo('menuScreen')">← رجوع</button>
+  </div>
+  <div class="custom-nav">
+    <button class="nav-arrow" onclick="customPrev()">← السابق</button>
+    <span class="nav-counter" id="customCounter">0 / 0</span>
+    <button class="nav-arrow" onclick="customNext()">التالي →</button>
+  </div>
+  <div class="custom-word-big" id="customWordDisplay" onclick="speakCustom()">—</div>
+  <div class="canvas-section">
+    <div class="canvas-prompt">اكتب الكلمة في المساحة 👇</div>
+    <div class="canvas-wrap">
+      <canvas id="drawCanvas2"></canvas>
+    </div>
+    <div class="canvas-tools">
+      <div id="palette2"></div>
+      <button class="btn-tool btn-clear" onclick="clearDraw2()">🗑️ مسح</button>
+      <button class="btn-tool btn-check" onclick="checkCustom()">✅ أحسنت!</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     PARENT SCREEN
+════════════════════════════════════ -->
+<div id="parentScreen" class="screen">
+  <div class="parent-topbar">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-size:28px;">👨‍💼</span>
+      <div class="topbar-title">لوحة الوالدين</div>
+    </div>
+    <button class="btn-back" onclick="goTo('loginScreen')">← رجوع</button>
+  </div>
+  <div class="parent-tabs">
+    <button class="parent-tab active" onclick="parentTab('words',this)">✏️ كلمات</button>
+    <button class="parent-tab" onclick="parentTab('progress',this)">📊 تقدم</button>
+    <button class="parent-tab" onclick="parentTab('profiles',this)">👦 ملفات</button>
+    <button class="parent-tab" onclick="parentTab('settings',this)">⚙️ إعدادات</button>
+  </div>
+  <div id="parentBody" class="parent-section"></div>
+</div>
+
+<!-- ════════════════════════════════════
+     MODALS
+════════════════════════════════════ -->
+<!-- Add Profile -->
+<div class="modal-overlay" id="modalAddProfile">
   <div class="modal-box">
     <h3>🌟 إضافة طفل جديد</h3>
-    <div>اختر رمزاً:</div>
-    <div class="avatar-picker" id="avatarPicker"></div>
-    <input type="text" id="childName" placeholder="اسم الطفل" maxlength="20">
-    <select id="childAge">
-      <option value="">العمر...</option>
+    <div class="field-label">اختر رمزاً</div>
+    <div class="avatar-grid" id="avPicker"></div>
+    <div class="field-label">اسم الطفل</div>
+    <input class="modal-input" id="inChildName" type="text" placeholder="مثال: سارة" maxlength="20">
+    <div class="field-label">العمر</div>
+    <select class="modal-input" id="inChildAge">
+      <option value="">اختر العمر...</option>
       <option value="3">3 سنوات</option>
       <option value="4">4 سنوات</option>
       <option value="5">5 سنوات</option>
@@ -507,1057 +1166,1356 @@ body {
       <option value="7">7 سنوات</option>
       <option value="8">8 سنوات</option>
     </select>
-    <input type="password" id="childPin" placeholder="رمز دخول (4 أرقام)" maxlength="4" pattern="[0-9]*" inputmode="numeric">
-    <button class="btn-primary" onclick="addProfile()">✅ إضافة</button>
-    <button onclick="hideModal('addProfileModal')" style="width:100%;margin-top:10px;padding:10px;border:none;background:none;cursor:pointer;color:#888;font-family:inherit;font-size:15px;">إلغاء</button>
+    <div class="field-label">رمز الدخول (4 أرقام — اختياري)</div>
+    <input class="modal-input" id="inChildPin" type="password" placeholder="••••" maxlength="4" inputmode="numeric">
+    <button class="btn-confirm" onclick="saveProfile()">✅ إضافة الطفل</button>
+    <button class="btn-cancel" onclick="closeModal('modalAddProfile')">إلغاء</button>
   </div>
 </div>
 
-<!-- PIN MODAL -->
-<div class="modal-overlay" id="pinModal">
+<!-- PIN Login -->
+<div class="modal-overlay" id="modalPin">
   <div class="modal-box" style="text-align:center;">
-    <div id="pinAvatar" style="font-size:60px;margin-bottom:8px;"></div>
-    <h3 id="pinName">مرحباً!</h3>
-    <p style="color:#888;margin-bottom:16px;">أدخل رمز الدخول</p>
-    <input type="password" id="pinInput" placeholder="••••" maxlength="4" pattern="[0-9]*" inputmode="numeric" style="text-align:center;font-size:28px;letter-spacing:8px;">
-    <div id="pinError" style="color:#dc2626;font-size:14px;margin-top:8px;display:none;">❌ رمز خطأ!</div>
-    <button class="btn-primary" style="margin-top:12px;" onclick="checkPin()">دخول 🚀</button>
-    <button onclick="hideModal('pinModal')" style="width:100%;margin-top:10px;padding:10px;border:none;background:none;cursor:pointer;color:#888;font-family:inherit;font-size:15px;">إلغاء</button>
+    <div id="pinAv" style="font-size:60px;margin-bottom:8px;"></div>
+    <h3 id="pinWelcome">مرحباً!</h3>
+    <p style="color:var(--text-muted);margin-bottom:16px;font-size:14px;">أدخل رمز الدخول</p>
+    <input class="modal-input" id="inPin" type="password" placeholder="••••" maxlength="4" inputmode="numeric" style="text-align:center;font-size:30px;letter-spacing:10px;">
+    <div class="error-msg" id="pinErr">❌ رمز خطأ، حاول مجدداً</div>
+    <button class="btn-confirm" onclick="verifyPin()" style="margin-top:14px;">دخول 🚀</button>
+    <button class="btn-cancel" onclick="closeModal('modalPin')">إلغاء</button>
   </div>
 </div>
 
-<!-- PARENT PIN MODAL -->
-<div class="modal-overlay" id="parentPinModal">
+<!-- Parent PIN -->
+<div class="modal-overlay" id="modalParentPin">
   <div class="modal-box" style="text-align:center;">
-    <div style="font-size:52px;margin-bottom:8px;">👨‍💼</div>
+    <div style="font-size:52px;margin-bottom:8px;">🔐</div>
     <h3>دخول الوالدين</h3>
-    <p style="color:#888;margin-bottom:16px;">رمز الوالدين الافتراضي: 1234</p>
-    <input type="password" id="parentPinInput" placeholder="••••" maxlength="4" pattern="[0-9]*" inputmode="numeric" style="text-align:center;font-size:28px;letter-spacing:8px;">
-    <div id="parentPinError" style="color:#dc2626;font-size:14px;margin-top:8px;display:none;">❌ رمز خطأ!</div>
-    <button class="btn-primary" style="margin-top:12px;" onclick="checkParentPin()">دخول 🔐</button>
-    <button onclick="hideModal('parentPinModal')" style="width:100%;margin-top:10px;padding:10px;border:none;background:none;cursor:pointer;color:#888;font-family:inherit;font-size:15px;">إلغاء</button>
+    <p style="color:var(--text-muted);margin-bottom:16px;font-size:13px;">الرمز الافتراضي: 1234</p>
+    <input class="modal-input" id="inParentPin" type="password" placeholder="••••" maxlength="4" inputmode="numeric" style="text-align:center;font-size:30px;letter-spacing:10px;">
+    <div class="error-msg" id="parentPinErr">❌ رمز خطأ</div>
+    <button class="btn-confirm" onclick="verifyParentPin()" style="margin-top:14px;">دخول 🔓</button>
+    <button class="btn-cancel" onclick="closeModal('modalParentPin')">إلغاء</button>
   </div>
-</div>
-
-<!-- =========== MAIN MENU =========== -->
-<div id="menuScreen" class="screen">
-  <div class="topbar">
-    <div class="topbar-user">
-      <span class="topbar-avatar" id="menuAvatar"></span>
-      <span id="menuName"></span>
-    </div>
-    <div style="display:flex;gap:8px;align-items:center;">
-      <span class="stars-count" id="menuStars">⭐ 0</span>
-      <button class="logout-btn" onclick="logout()">🚪 خروج</button>
-    </div>
-  </div>
-  <div class="menu-greeting" id="menuGreeting">مرحباً! 👋</div>
-  <div class="progress-strip">
-    <span class="label">تقدمك 🎯</span>
-    <div class="prog-bar"><div class="prog-fill" id="overallProgress" style="width:0%"></div></div>
-    <span class="prog-pct" id="overallPct">0%</span>
-  </div>
-  <div class="menu-grid">
-    <div class="menu-card" style="--mc:#FF6B6B" onclick="showScreen('arabicScreen')">
-      <span class="menu-icon">🔤</span>
-      <div class="menu-label">الحروف العربية</div>
-      <div class="menu-sublabel">تعلم واكتب بالعربي</div>
-    </div>
-    <div class="menu-card" style="--mc:#6BCB77" onclick="showScreen('englishScreen')">
-      <span class="menu-icon">🔡</span>
-      <div class="menu-label">English Letters</div>
-      <div class="menu-sublabel">Learn & Write ABC</div>
-    </div>
-    <div class="menu-card" style="--mc:#A78BFA" onclick="showScreen('matchScreen')">
-      <span class="menu-icon">🖼️</span>
-      <div class="menu-label">كلمات وصور</div>
-      <div class="menu-sublabel">وصّل الاسم بالصورة</div>
-    </div>
-    <div class="menu-card" style="--mc:#FFD93D" onclick="showScreen('mathScreen')">
-      <span class="menu-icon">🔢</span>
-      <div class="menu-label">الأرقام والحساب</div>
-      <div class="menu-sublabel">جمع وطرح وضرب وقسمة</div>
-    </div>
-    <div class="menu-card" style="--mc:#4ECDC4" onclick="showScreen('customScreen')">
-      <span class="menu-icon">✏️</span>
-      <div class="menu-label">كلماتي</div>
-      <div class="menu-sublabel">اكتب كلمات خاصة</div>
-    </div>
-  </div>
-</div>
-
-<!-- =========== ARABIC LETTERS SCREEN =========== -->
-<div id="arabicScreen" class="screen">
-  <div class="topbar">
-    <div class="topbar-user"><span>🔤 الحروف العربية</span></div>
-    <button class="back-btn" onclick="showScreen('menuScreen')">← رجوع</button>
-  </div>
-  <div class="letter-tabs">
-    <button class="letter-tab active" onclick="filterLetters('all',this)">الكل</button>
-    <button class="letter-tab" onclick="filterLetters('completed',this)">✅ مكتمل</button>
-    <button class="letter-tab" onclick="filterLetters('pending',this)">⏳ باقي</button>
-  </div>
-  <div class="arabic-letters-grid" id="arabicLettersGrid"></div>
-</div>
-
-<!-- =========== PRACTICE SCREEN =========== -->
-<div id="practiceScreen" class="screen">
-  <div class="topbar">
-    <div class="topbar-user">
-      <span id="practiceTitle">تدرّب</span>
-    </div>
-    <button class="back-btn" id="practiceBack">← رجوع</button>
-  </div>
-  <div class="practice-header">
-    <div class="practice-letter-display" id="practiceLetter">أ</div>
-    <div class="practice-name" id="practiceName">الألف</div>
-  </div>
-  <div class="forms-section" id="formsSection"></div>
-  <div class="canvas-section">
-    <div class="canvas-prompt" id="canvasPrompt">اكتب الحرف هنا 👇</div>
-    <div class="canvas-wrapper">
-      <div class="letter-guide" id="letterGuide"></div>
-      <canvas id="drawCanvas" height="280"></canvas>
-    </div>
-    <div class="canvas-controls">
-      <div class="color-palette" id="colorPalette"></div>
-      <div class="stroke-size" id="strokeSize"></div>
-      <button class="ctrl-btn clear" onclick="clearCanvas()">🗑️ مسح</button>
-      <button class="ctrl-btn check" onclick="checkWriting()">✅ تحقق</button>
-      <button class="ctrl-btn next" id="nextBtn" onclick="nextLetter()">التالي ➡</button>
-    </div>
-  </div>
-</div>
-
-<!-- =========== ENGLISH SCREEN =========== -->
-<div id="englishScreen" class="screen">
-  <div class="topbar">
-    <div class="topbar-user"><span>🔡 English Letters</span></div>
-    <button class="back-btn" onclick="showScreen('menuScreen')">← Back</button>
-  </div>
-  <div style="text-align:center;padding:16px;font-size:22px;font-weight:900;color:#1A1A3E;">Learn the Alphabet! 🌟</div>
-  <div class="eng-letters-grid" id="engLettersGrid"></div>
-</div>
-
-<!-- =========== MATCH SCREEN =========== -->
-<div id="matchScreen" class="screen">
-  <div class="topbar">
-    <div class="topbar-user"><span>🖼️ كلمات وصور</span></div>
-    <button class="back-btn" onclick="showScreen('menuScreen')">← رجوع</button>
-  </div>
-  <div style="text-align:center;padding:16px;font-size:20px;font-weight:700;color:var(--navy);">انقر على البطاقة لتقليبها! 🔄</div>
-  <div class="match-grid" id="matchGrid"></div>
-</div>
-
-<!-- =========== MATH SCREEN =========== -->
-<div id="mathScreen" class="screen">
-  <div class="topbar">
-    <div class="topbar-user"><span>🔢 الأرقام والحساب</span></div>
-    <button class="back-btn" onclick="showScreen('menuScreen')">← رجوع</button>
-  </div>
-  <div class="math-tabs">
-    <button class="math-tab active" onclick="switchMathTab('numbers',this)">🔢 الأرقام</button>
-    <button class="math-tab" onclick="switchMathTab('add',this)">➕ جمع</button>
-    <button class="math-tab" onclick="switchMathTab('sub',this)">➖ طرح</button>
-    <button class="math-tab" onclick="switchMathTab('mul',this)">✖️ ضرب</button>
-    <button class="math-tab" onclick="switchMathTab('div',this)">➗ قسمة</button>
-  </div>
-  <div id="mathContent"></div>
-</div>
-
-<!-- =========== CUSTOM PRACTICE SCREEN =========== -->
-<div id="customScreen" class="screen">
-  <div class="topbar">
-    <div class="topbar-user"><span>✏️ كلماتي</span></div>
-    <button class="back-btn" onclick="showScreen('menuScreen')">← رجوع</button>
-  </div>
-  <div id="customWordNav" style="display:flex;align-items:center;justify-content:center;gap:16px;padding:16px;">
-    <button class="ctrl-btn" style="background:#e0e7ff;color:#4f46e5;" onclick="prevCustomWord()">← السابق</button>
-    <span id="customWordCounter" style="font-weight:700;color:var(--navy);">1 / 1</span>
-    <button class="ctrl-btn" style="background:#e0e7ff;color:#4f46e5;" onclick="nextCustomWord()">التالي →</button>
-  </div>
-  <div class="custom-word-display" id="customWordDisplay">—</div>
-  <div class="canvas-section">
-    <div class="canvas-prompt">اكتب الكلمة بالأعلى 👆</div>
-    <div class="canvas-wrapper">
-      <canvas id="drawCanvas2" height="280"></canvas>
-    </div>
-    <div class="canvas-controls">
-      <div class="color-palette" id="colorPalette2"></div>
-      <button class="ctrl-btn clear" onclick="clearCanvas2()">🗑️ مسح</button>
-      <button class="ctrl-btn check" onclick="checkCustom()">✅ أحسنت!</button>
-    </div>
-  </div>
-</div>
-
-<!-- =========== PARENT SCREEN =========== -->
-<div id="parentScreen" class="screen">
-  <div class="parent-topbar">
-    <h2>👨‍💼 لوحة الوالدين</h2>
-    <button class="back-btn" style="background:rgba(255,255,255,0.15);color:white;border-color:rgba(255,255,255,0.3);" onclick="showScreen('loginScreen')">← رجوع</button>
-  </div>
-  <div class="parent-tabs">
-    <button class="parent-tab active" onclick="switchParentTab('words',this)">✏️ إضافة كلمات</button>
-    <button class="parent-tab" onclick="switchParentTab('progress',this)">📊 تقدم الأطفال</button>
-    <button class="parent-tab" onclick="switchParentTab('profiles',this)">👦 الملفات</button>
-  </div>
-  <div class="parent-content" id="parentContent"></div>
 </div>
 
 <!-- CELEBRATION -->
-<div class="celebration" id="celebration">
-  <div class="celebration-box">
-    <span class="celebration-emoji" id="celebEmoji">🌟</span>
-    <div class="celebration-title" id="celebTitle">ممتاز!</div>
-    <div class="celebration-msg" id="celebMsg">أحسنت يا بطل!</div>
-    <div class="stars-earned" id="celebStars">+⭐⭐⭐</div>
-    <button class="btn-primary" onclick="closeCelebration()">استمر 🚀</button>
+<div class="cel-overlay" id="celOverlay">
+  <div class="cel-box">
+    <span class="cel-emoji" id="celEmoji">🌟</span>
+    <div class="cel-title" id="celTitle">ممتاز!</div>
+    <div class="cel-msg" id="celMsg">أحسنت يا بطل!</div>
+    <div class="cel-stars" id="celStars">+⭐⭐⭐</div>
+    <button class="btn-confirm cel-close" onclick="closeCel()">استمر 🚀</button>
   </div>
 </div>
 
+<!-- ════════════════════════════════════
+     SCRIPTS
+════════════════════════════════════ -->
 <script>
-// =========== DATA ===========
-const ARABIC_LETTERS = [
-  {letter:'أ',name:'الألف',sound:'a',start:'أَ',mid:'ـأـ',end:'ـأ',example:{start:'أسد',mid:'سأل',end:'قرأ'}},
-  {letter:'ب',name:'الباء',sound:'b',start:'بـ',mid:'ـبـ',end:'ـب',example:{start:'بيت',mid:'كتب',end:'كتب'}},
-  {letter:'ت',name:'التاء',sound:'t',start:'تـ',mid:'ـتـ',end:'ـت',example:{start:'تفاح',mid:'كتاب',end:'بيت'}},
-  {letter:'ث',name:'الثاء',sound:'th',start:'ثـ',mid:'ـثـ',end:'ـث',example:{start:'ثعلب',mid:'مثل',end:'لبث'}},
-  {letter:'ج',name:'الجيم',sound:'j',start:'جـ',mid:'ـجـ',end:'ـج',example:{start:'جمل',mid:'نجم',end:'تاج'}},
-  {letter:'ح',name:'الحاء',sound:'ḥ',start:'حـ',mid:'ـحـ',end:'ـح',example:{start:'حوت',mid:'بحر',end:'فتح'}},
-  {letter:'خ',name:'الخاء',sound:'kh',start:'خـ',mid:'ـخـ',end:'ـخ',example:{start:'خروف',mid:'أخضر',end:'طبخ'}},
-  {letter:'د',name:'الدال',sound:'d',start:'دـ',mid:'ـد',end:'ـد',example:{start:'دب',mid:'سدر',end:'ولد'}},
-  {letter:'ذ',name:'الذال',sound:'dh',start:'ذـ',mid:'ـذ',end:'ـذ',example:{start:'ذئب',mid:'تذكر',end:'نبذ'}},
-  {letter:'ر',name:'الراء',sound:'r',start:'رـ',mid:'ـر',end:'ـر',example:{start:'رمان',mid:'مرح',end:'بحر'}},
-  {letter:'ز',name:'الزاي',sound:'z',start:'زـ',mid:'ـز',end:'ـز',example:{start:'زرافة',mid:'مزح',end:'خبز'}},
-  {letter:'س',name:'السين',sound:'s',start:'سـ',mid:'ـسـ',end:'ـس',example:{start:'سمكة',mid:'أسد',end:'رأس'}},
-  {letter:'ش',name:'الشين',sound:'sh',start:'شـ',mid:'ـشـ',end:'ـش',example:{start:'شمس',mid:'عشب',end:'قرش'}},
-  {letter:'ص',name:'الصاد',sound:'ṣ',start:'صـ',mid:'ـصـ',end:'ـص',example:{start:'صقر',mid:'قصر',end:'قفص'}},
-  {letter:'ض',name:'الضاد',sound:'ḍ',start:'ضـ',mid:'ـضـ',end:'ـض',example:{start:'ضفدع',mid:'حضن',end:'بيض'}},
-  {letter:'ط',name:'الطاء',sound:'ṭ',start:'طـ',mid:'ـطـ',end:'ـط',example:{start:'طائر',mid:'قطر',end:'خيط'}},
-  {letter:'ظ',name:'الظاء',sound:'ẓ',start:'ظـ',mid:'ـظـ',end:'ـظ',example:{start:'ظبي',mid:'حظر',end:'حفظ'}},
-  {letter:'ع',name:'العين',sound:'ʿ',start:'عـ',mid:'ـعـ',end:'ـع',example:{start:'عصفور',mid:'شعر',end:'مرج'}},
-  {letter:'غ',name:'الغين',sound:'gh',start:'غـ',mid:'ـغـ',end:'ـغ',example:{start:'غزال',mid:'مغر',end:'دماغ'}},
-  {letter:'ف',name:'الفاء',sound:'f',start:'فـ',mid:'ـفـ',end:'ـف',example:{start:'فيل',mid:'دفر',end:'صيف'}},
-  {letter:'ق',name:'القاف',sound:'q',start:'قـ',mid:'ـقـ',end:'ـق',example:{start:'قط',mid:'نقر',end:'طريق'}},
-  {letter:'ك',name:'الكاف',sound:'k',start:'كـ',mid:'ـكـ',end:'ـك',example:{start:'كلب',mid:'بكر',end:'ملك'}},
-  {letter:'ل',name:'اللام',sound:'l',start:'لـ',mid:'ـلـ',end:'ـل',example:{start:'ليمون',mid:'علم',end:'جبل'}},
-  {letter:'م',name:'الميم',sound:'m',start:'مـ',mid:'ـمـ',end:'ـم',example:{start:'موزة',mid:'أمل',end:'قلم'}},
-  {letter:'ن',name:'النون',sound:'n',start:'نـ',mid:'ـنـ',end:'ـن',example:{start:'نمر',mid:'سنة',end:'حصن'}},
-  {letter:'ه',name:'الهاء',sound:'h',start:'هـ',mid:'ـهـ',end:'ـه',example:{start:'هرة',mid:'نهر',end:'وجه'}},
-  {letter:'و',name:'الواو',sound:'w',start:'وـ',mid:'ـو',end:'ـو',example:{start:'وردة',mid:'قوس',end:'نحو'}},
-  {letter:'ي',name:'الياء',sound:'y',start:'يـ',mid:'ـيـ',end:'ـي',example:{start:'يد',mid:'ليل',end:'كرسي'}},
+// ══════════════════════════════════════════
+// FIREBASE INIT
+// ══════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyDO0S2QZXmoQ96Dq3o_Gri9mSrkyUW5UCM",
+  authDomain: "opshub-erp.firebaseapp.com",
+  databaseURL: "https://opshub-erp-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "opshub-erp",
+  storageBucket: "opshub-erp.firebasestorage.app",
+  messagingSenderId: "379300236732",
+  appId: "1:379300236732:web:0ca625d707b736536b2fb9",
+  measurementId: "G-FMKTEY0L5R"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// ══════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════
+const AR_LETTERS = [
+  {l:'أ',n:'الألف',tr:'Alif',s:'a',word:'أسد',start:'أَ',mid:'ـأ',end:'ـأ',sw:'أسد',mw:'سأل',ew:'قرأ'},
+  {l:'ب',n:'الباء',tr:'Ba',s:'b',word:'بيت',start:'بـ',mid:'ـبـ',end:'ـب',sw:'بيت',mw:'كتب',ew:'حَسَب'},
+  {l:'ت',n:'التاء',tr:'Ta',s:'t',word:'تفاح',start:'تـ',mid:'ـتـ',end:'ـت',sw:'تفاح',mw:'كتاب',ew:'بيت'},
+  {l:'ث',n:'الثاء',tr:'Tha',s:'th',word:'ثعلب',start:'ثـ',mid:'ـثـ',end:'ـث',sw:'ثعلب',mw:'مثل',ew:'حديث'},
+  {l:'ج',n:'الجيم',tr:'Jim',s:'j',word:'جمل',start:'جـ',mid:'ـجـ',end:'ـج',sw:'جمل',mw:'نجم',ew:'تاج'},
+  {l:'ح',n:'الحاء',tr:'Ha',s:'ḥ',word:'حوت',start:'حـ',mid:'ـحـ',end:'ـح',sw:'حوت',mw:'بحر',ew:'فتح'},
+  {l:'خ',n:'الخاء',tr:'Kha',s:'kh',word:'خروف',start:'خـ',mid:'ـخـ',end:'ـخ',sw:'خروف',mw:'أخضر',ew:'طبخ'},
+  {l:'د',n:'الدال',tr:'Dal',s:'d',word:'دب',start:'د',mid:'ـد',end:'ـد',sw:'دب',mw:'سدر',ew:'ولد'},
+  {l:'ذ',n:'الذال',tr:'Dhal',s:'dh',word:'ذئب',start:'ذ',mid:'ـذ',end:'ـذ',sw:'ذئب',mw:'يذهب',ew:'نبذ'},
+  {l:'ر',n:'الراء',tr:'Ra',s:'r',word:'رمان',start:'ر',mid:'ـر',end:'ـر',sw:'رمان',mw:'مرح',ew:'بحر'},
+  {l:'ز',n:'الزاي',tr:'Zay',s:'z',word:'زرافة',start:'ز',mid:'ـز',end:'ـز',sw:'زرافة',mw:'مزح',ew:'خبز'},
+  {l:'س',n:'السين',tr:'Sin',s:'s',word:'سمكة',start:'سـ',mid:'ـسـ',end:'ـس',sw:'سمكة',mw:'أسد',ew:'رأس'},
+  {l:'ش',n:'الشين',tr:'Shin',s:'sh',word:'شمس',start:'شـ',mid:'ـشـ',end:'ـش',sw:'شمس',mw:'عشب',ew:'جيش'},
+  {l:'ص',n:'الصاد',tr:'Sad',s:'ṣ',word:'صقر',start:'صـ',mid:'ـصـ',end:'ـص',sw:'صقر',mw:'قصر',ew:'قفص'},
+  {l:'ض',n:'الضاد',tr:'Dad',s:'ḍ',word:'ضفدع',start:'ضـ',mid:'ـضـ',end:'ـض',sw:'ضفدع',mw:'حضن',ew:'بيض'},
+  {l:'ط',n:'الطاء',tr:'Ta',s:'ṭ',word:'طائر',start:'طـ',mid:'ـطـ',end:'ـط',sw:'طائر',mw:'قطر',ew:'خيط'},
+  {l:'ظ',n:'الظاء',tr:'Dha',s:'ẓ',word:'ظبي',start:'ظـ',mid:'ـظـ',end:'ـظ',sw:'ظبي',mw:'يظهر',ew:'حفظ'},
+  {l:'ع',n:'العين',tr:'Ain',s:'ʿ',word:'عصفور',start:'عـ',mid:'ـعـ',end:'ـع',sw:'عصفور',mw:'شعر',ew:'مرجع'},
+  {l:'غ',n:'الغين',tr:'Ghain',s:'gh',word:'غزال',start:'غـ',mid:'ـغـ',end:'ـغ',sw:'غزال',mw:'مغر',ew:'دماغ'},
+  {l:'ف',n:'الفاء',tr:'Fa',s:'f',word:'فيل',start:'فـ',mid:'ـفـ',end:'ـف',sw:'فيل',mw:'كافر',ew:'صيف'},
+  {l:'ق',n:'القاف',tr:'Qaf',s:'q',word:'قط',start:'قـ',mid:'ـقـ',end:'ـق',sw:'قط',mw:'يقرأ',ew:'طريق'},
+  {l:'ك',n:'الكاف',tr:'Kaf',s:'k',word:'كلب',start:'كـ',mid:'ـكـ',end:'ـك',sw:'كلب',mw:'بكر',ew:'ملك'},
+  {l:'ل',n:'اللام',tr:'Lam',s:'l',word:'ليمون',start:'لـ',mid:'ـلـ',end:'ـل',sw:'ليمون',mw:'علم',ew:'جبل'},
+  {l:'م',n:'الميم',tr:'Mim',s:'m',word:'موزة',start:'مـ',mid:'ـمـ',end:'ـم',sw:'موزة',mw:'أمل',ew:'قلم'},
+  {l:'ن',n:'النون',tr:'Nun',s:'n',word:'نمر',start:'نـ',mid:'ـنـ',end:'ـن',sw:'نمر',mw:'سنة',ew:'حصن'},
+  {l:'ه',n:'الهاء',tr:'Ha',s:'h',word:'هرة',start:'هـ',mid:'ـهـ',end:'ـه',sw:'هرة',mw:'نهر',ew:'وجه'},
+  {l:'و',n:'الواو',tr:'Waw',s:'w',word:'وردة',start:'و',mid:'ـو',end:'ـو',sw:'وردة',mw:'قوس',ew:'نحو'},
+  {l:'ي',n:'الياء',tr:'Ya',s:'y',word:'يد',start:'يـ',mid:'ـيـ',end:'ـي',sw:'يد',mw:'ليل',ew:'كرسي'},
 ];
 
-const ENGLISH_LETTERS = [
-  {upper:'A',lower:'a',word:'Apple 🍎'},
-  {upper:'B',lower:'b',word:'Ball ⚽'},
-  {upper:'C',lower:'c',word:'Cat 🐱'},
-  {upper:'D',lower:'d',word:'Dog 🐶'},
-  {upper:'E',lower:'e',word:'Elephant 🐘'},
-  {upper:'F',lower:'f',word:'Fish 🐟'},
-  {upper:'G',lower:'g',word:'Giraffe 🦒'},
-  {upper:'H',lower:'h',word:'House 🏠'},
-  {upper:'I',lower:'i',word:'Ice cream 🍦'},
-  {upper:'J',lower:'j',word:'Juice 🧃'},
-  {upper:'K',lower:'k',word:'Kite 🪁'},
-  {upper:'L',lower:'l',word:'Lion 🦁'},
-  {upper:'M',lower:'m',word:'Moon 🌙'},
-  {upper:'N',lower:'n',word:'Nest 🪺'},
-  {upper:'O',lower:'o',word:'Orange 🍊'},
-  {upper:'P',lower:'p',word:'Pizza 🍕'},
-  {upper:'Q',lower:'q',word:'Queen 👑'},
-  {upper:'R',lower:'r',word:'Robot 🤖'},
-  {upper:'S',lower:'s',word:'Sun ☀️'},
-  {upper:'T',lower:'t',word:'Tiger 🐯'},
-  {upper:'U',lower:'u',word:'Umbrella ☂️'},
-  {upper:'V',lower:'v',word:'Violin 🎻'},
-  {upper:'W',lower:'w',word:'Whale 🐋'},
-  {upper:'X',lower:'x',word:'Xylophone 🎵'},
-  {upper:'Y',lower:'y',word:'Yacht ⛵'},
-  {upper:'Z',lower:'z',word:'Zebra 🦓'},
+const EN_LETTERS = [
+  {u:'A',l:'a',w:'Apple 🍎'},{u:'B',l:'b',w:'Ball ⚽'},{u:'C',l:'c',w:'Cat 🐱'},
+  {u:'D',l:'d',w:'Dog 🐶'},{u:'E',l:'e',w:'Elephant 🐘'},{u:'F',l:'f',w:'Fish 🐟'},
+  {u:'G',l:'g',w:'Giraffe 🦒'},{u:'H',l:'h',w:'House 🏠'},{u:'I',l:'i',w:'Ice 🧊'},
+  {u:'J',l:'j',w:'Juice 🧃'},{u:'K',l:'k',w:'Kite 🪁'},{u:'L',l:'l',w:'Lion 🦁'},
+  {u:'M',l:'m',w:'Moon 🌙'},{u:'N',l:'n',w:'Nest 🪺'},{u:'O',l:'o',w:'Orange 🍊'},
+  {u:'P',l:'p',w:'Pizza 🍕'},{u:'Q',l:'q',w:'Queen 👑'},{u:'R',l:'r',w:'Robot 🤖'},
+  {u:'S',l:'s',w:'Sun ☀️'},{u:'T',l:'t',w:'Tiger 🐯'},{u:'U',l:'u',w:'Umbrella ☂️'},
+  {u:'V',l:'v',w:'Violin 🎻'},{u:'W',l:'w',w:'Whale 🐋'},{u:'X',l:'x',w:'Xray 🔍'},
+  {u:'Y',l:'y',w:'Yacht ⛵'},{u:'Z',l:'z',w:'Zebra 🦓'},
 ];
 
-const WORD_IMAGES = [
-  {arabic:'أسد',english:'Lion',emoji:'🦁'},
-  {arabic:'قط',english:'Cat',emoji:'🐱'},
-  {arabic:'كلب',english:'Dog',emoji:'🐶'},
-  {arabic:'سمكة',english:'Fish',emoji:'🐟'},
-  {arabic:'حوت',english:'Whale',emoji:'🐋'},
-  {arabic:'فيل',english:'Elephant',emoji:'🐘'},
-  {arabic:'زرافة',english:'Giraffe',emoji:'🦒'},
-  {arabic:'نمر',english:'Tiger',emoji:'🐯'},
-  {arabic:'أرنب',english:'Rabbit',emoji:'🐰'},
-  {arabic:'دجاجة',english:'Chicken',emoji:'🐔'},
-  {arabic:'تفاحة',english:'Apple',emoji:'🍎'},
-  {arabic:'موزة',english:'Banana',emoji:'🍌'},
-  {arabic:'شمس',english:'Sun',emoji:'☀️'},
-  {arabic:'قمر',english:'Moon',emoji:'🌙'},
-  {arabic:'بيت',english:'House',emoji:'🏠'},
-  {arabic:'سيارة',english:'Car',emoji:'🚗'},
-  {arabic:'كتاب',english:'Book',emoji:'📚'},
-  {arabic:'قلم',english:'Pen',emoji:'✏️'},
-  {arabic:'كرة',english:'Ball',emoji:'⚽'},
-  {arabic:'زهرة',english:'Flower',emoji:'🌸'},
+const WORD_IMGS = [
+  {ar:'أسد',en:'Lion',em:'🦁'},{ar:'قط',en:'Cat',em:'🐱'},{ar:'كلب',en:'Dog',em:'🐶'},
+  {ar:'سمكة',en:'Fish',em:'🐟'},{ar:'حوت',en:'Whale',em:'🐋'},{ar:'فيل',en:'Elephant',em:'🐘'},
+  {ar:'زرافة',en:'Giraffe',em:'🦒'},{ar:'نمر',en:'Tiger',em:'🐯'},{ar:'أرنب',en:'Rabbit',em:'🐰'},
+  {ar:'دجاجة',en:'Chicken',em:'🐔'},{ar:'تفاحة',en:'Apple',em:'🍎'},{ar:'موزة',en:'Banana',em:'🍌'},
+  {ar:'شمس',en:'Sun',em:'☀️'},{ar:'قمر',en:'Moon',em:'🌙'},{ar:'بيت',en:'House',em:'🏠'},
+  {ar:'سيارة',en:'Car',em:'🚗'},{ar:'كتاب',en:'Book',em:'📚'},{ar:'قلم',en:'Pen',em:'✏️'},
+  {ar:'كرة',en:'Ball',em:'⚽'},{ar:'زهرة',en:'Flower',em:'🌸'},{ar:'طائرة',en:'Airplane',em:'✈️'},
+  {ar:'قطار',en:'Train',em:'🚂'},{ar:'دراجة',en:'Bicycle',em:'🚲'},{ar:'برتقالة',en:'Orange',em:'🍊'},
 ];
 
-const ARABIC_NUMS = [
-  {num:0,dots:'',ar:'صفر'},{num:1,dots:'●',ar:'واحد'},{num:2,dots:'●●',ar:'اثنان'},
-  {num:3,dots:'●●●',ar:'ثلاثة'},{num:4,dots:'●●●●',ar:'أربعة'},
-  {num:5,dots:'●●●●●',ar:'خمسة'},{num:6,dots:'●●●●●●',ar:'ستة'},
-  {num:7,dots:'●●●●●●●',ar:'سبعة'},{num:8,dots:'●●●●●●●●',ar:'ثمانية'},
-  {num:9,dots:'●●●●●●●●●',ar:'تسعة'},{num:10,dots:'🔟',ar:'عشرة'},
+const EXPLORE_DATA = {
+  body: [
+    {em:'👁️',ar:'العين',en:'Eye'},{em:'👂',ar:'الأذن',en:'Ear'},
+    {em:'👃',ar:'الأنف',en:'Nose'},{em:'👄',ar:'الفم',en:'Mouth'},
+    {em:'🫦',ar:'الشفتان',en:'Lips'},{em:'🦷',ar:'الأسنان',en:'Teeth'},
+    {em:'💇',ar:'الرأس',en:'Head'},{em:'🫀',ar:'القلب',en:'Heart'},
+    {em:'🫁',ar:'الرئة',en:'Lungs'},{em:'💪',ar:'العضلة',en:'Muscle'},
+    {em:'🖐️',ar:'اليد',en:'Hand'},{em:'🦶',ar:'القدم',en:'Foot'},
+    {em:'🦵',ar:'الساق',en:'Leg'},{em:'🦾',ar:'الذراع',en:'Arm'},
+    {em:'🦴',ar:'العظمة',en:'Bone'},{em:'🧠',ar:'المخ',en:'Brain'},
+    {em:'🤚',ar:'الأصابع',en:'Fingers'},{em:'👅',ar:'اللسان',en:'Tongue'},
+  ],
+  animals: [
+    {em:'🦁',ar:'أسد',en:'Lion'},{em:'🐯',ar:'نمر',en:'Tiger'},
+    {em:'🐘',ar:'فيل',en:'Elephant'},{em:'🦒',ar:'زرافة',en:'Giraffe'},
+    {em:'🐊',ar:'تمساح',en:'Crocodile'},{em:'🦓',ar:'حمار وحشي',en:'Zebra'},
+    {em:'🦅',ar:'نسر',en:'Eagle'},{em:'🐢',ar:'سلحفاة',en:'Turtle'},
+    {em:'🦋',ar:'فراشة',en:'Butterfly'},{em:'🐙',ar:'أخطبوط',en:'Octopus'},
+    {em:'🐬',ar:'دولفين',en:'Dolphin'},{em:'🦈',ar:'قرش',en:'Shark'},
+    {em:'🐆',ar:'فهد',en:'Cheetah'},{em:'🦊',ar:'ثعلب',en:'Fox'},
+    {em:'🐺',ar:'ذئب',en:'Wolf'},{em:'🦜',ar:'ببغاء',en:'Parrot'},
+    {em:'🐸',ar:'ضفدع',en:'Frog'},{em:'🐼',ar:'باندا',en:'Panda'},
+    {em:'🦩',ar:'فلامنغو',en:'Flamingo'},{em:'🦚',ar:'طاووس',en:'Peacock'},
+  ],
+  shapes: [
+    {em:'🔴',ar:'دائرة',en:'Circle'},{em:'🟥',ar:'مربع',en:'Square'},
+    {em:'🔺',ar:'مثلث',en:'Triangle'},{em:'🟦',ar:'مستطيل',en:'Rectangle'},
+    {em:'⭐',ar:'نجمة',en:'Star'},{em:'💎',ar:'ماسة',en:'Diamond'},
+    {em:'🔷',ar:'معين',en:'Rhombus'},{em:'🔶',ar:'شبه منحرف',en:'Trapezoid'},
+    {em:'⬡',ar:'سداسي',en:'Hexagon'},{em:'🌙',ar:'هلال',en:'Crescent'},
+    {em:'➕',ar:'زائد',en:'Plus'},{em:'❤️',ar:'قلب',en:'Heart'},
+    {em:'🥚',ar:'بيضاوي',en:'Oval'},{em:'🎯',ar:'هدف',en:'Target'},
+  ],
+  colors: [
+    {em:'🔴',ar:'أحمر',en:'Red'},{em:'🟠',ar:'برتقالي',en:'Orange'},
+    {em:'🟡',ar:'أصفر',en:'Yellow'},{em:'🟢',ar:'أخضر',en:'Green'},
+    {em:'🔵',ar:'أزرق',en:'Blue'},{em:'🟣',ar:'بنفسجي',en:'Purple'},
+    {em:'⚫',ar:'أسود',en:'Black'},{em:'⚪',ar:'أبيض',en:'White'},
+    {em:'🟤',ar:'بني',en:'Brown'},{em:'🩷',ar:'وردي',en:'Pink'},
+    {em:'🩵',ar:'سماوي',en:'Sky Blue'},{em:'🩶',ar:'رمادي',en:'Grey'},
+  ],
+  fruits: [
+    {em:'🍎',ar:'تفاحة',en:'Apple'},{em:'🍊',ar:'برتقالة',en:'Orange'},
+    {em:'🍋',ar:'ليمونة',en:'Lemon'},{em:'🍇',ar:'عنب',en:'Grapes'},
+    {em:'🍓',ar:'فراولة',en:'Strawberry'},{em:'🍌',ar:'موزة',en:'Banana'},
+    {em:'🍑',ar:'خوخ',en:'Peach'},{em:'🍒',ar:'كرز',en:'Cherry'},
+    {em:'🥭',ar:'مانجو',en:'Mango'},{em:'🍍',ar:'أناناس',en:'Pineapple'},
+    {em:'🥥',ar:'جوز هند',en:'Coconut'},{em:'🍈',ar:'شمام',en:'Melon'},
+    {em:'🍐',ar:'كمثرى',en:'Pear'},{em:'🫐',ar:'توت أزرق',en:'Blueberry'},
+    {em:'🍉',ar:'بطيخ',en:'Watermelon'},{em:'🥝',ar:'كيوي',en:'Kiwi'},
+  ],
+};
+
+const NUMS = [
+  {n:0,d:'',ar:'صِفْر'},{n:1,d:'●',ar:'وَاحِد'},{n:2,d:'●●',ar:'اِثْنَان'},
+  {n:3,d:'●●●',ar:'ثَلَاثَة'},{n:4,d:'●●●●',ar:'أَرْبَعَة'},
+  {n:5,d:'●●●●●',ar:'خَمْسَة'},{n:6,d:'●●●●●●',ar:'سِتَّة'},
+  {n:7,d:'●●●●●●●',ar:'سَبْعَة'},{n:8,d:'●●●●●●●●',ar:'ثَمَانِيَة'},
+  {n:9,d:'●●●●●●●●●',ar:'تِسْعَة'},{n:10,d:'🔟',ar:'عَشَرَة'},
+  {n:11,d:'',ar:'أَحَدَ عَشَر'},{n:12,d:'',ar:'اِثْنَا عَشَر'},
+  {n:13,d:'',ar:'ثَلَاثَةَ عَشَر'},{n:14,d:'',ar:'أَرْبَعَةَ عَشَر'},
+  {n:15,d:'',ar:'خَمْسَةَ عَشَر'},{n:20,d:'',ar:'عِشْرُون'},
+  {n:50,d:'',ar:'خَمْسُون'},{n:100,d:'',ar:'مِئَة'},
 ];
 
-const AVATARS = ['🦁','🐯','🐸','🐼','🦊','🐻','🐨','🦄','🐧','🐬','🦋','⭐'];
+const COLORING_ITEMS = [
+  {em:'🦁',name:'أسد',type:'color'},{em:'🐘',name:'فيل',type:'color'},{em:'🦋',name:'فراشة',type:'color'},
+  {em:'🏠',name:'بيت',type:'color'},{em:'🚂',name:'قطار',type:'color'},{em:'⭐',name:'نجمة',type:'color'},
+  {em:'🌸',name:'زهرة',type:'color'},{em:'🐠',name:'سمكة',type:'color'},{em:'🦒',name:'زرافة',type:'color'},
+  {em:'🌈',name:'قوس قزح',type:'color'},{em:'🚀',name:'صاروخ',type:'color'},{em:'🎈',name:'بالون',type:'color'},
+  {em:'🍕',name:'بيتزا',type:'color'},{em:'🎂',name:'كيكة',type:'color'},{em:'🌻',name:'عباد الشمس',type:'color'},
+  {em:'🦄',name:'وحيد القرن',type:'color'},{em:'🐙',name:'أخطبوط',type:'color'},{em:'🦀',name:'سرطان',type:'color'},
+  {em:'🐬',name:'دولفين',type:'dots'},{em:'🌙',name:'قمر',type:'dots'},{em:'🐢',name:'سلحفاة',type:'dots'},
+  {em:'🦅',name:'نسر',type:'dots'},{em:'🍎',name:'تفاحة',type:'dots'},{em:'🚗',name:'سيارة',type:'dots'},
+  {em:'🐸',name:'ضفدع',type:'dots'},{em:'✈️',name:'طائرة',type:'dots'},{em:'🎸',name:'غيتار',type:'dots'},
+  {em:'🌲',name:'شجرة',type:'dots'},{em:'🐋',name:'حوت',type:'dots'},{em:'🦊',name:'ثعلب',type:'dots'},
+];
 
-// =========== STATE ===========
-let profiles = JSON.parse(localStorage.getItem('rp_profiles') || '[]');
-let currentUser = null;
-let selectedAvatar = AVATARS[0];
-let currentLetterIdx = 0;
-let currentLang = 'arabic';
+const AVATARS = ['🦁','🐯','🐼','🦊','🐸','🦄','🐧','🐬','⭐','🌙','🌈','🎈'];
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let profiles = [];
+let curUser = null;   // index in profiles
+let selAvatar = AVATARS[0];
+let pendingLogin = null;
+let parentPIN = '1234';
+
+// Practice
+let practiceLang = 'ar';
+let practiceIdx = 0;
+// Canvas 1
+let cv1, cx1, drawing1 = false, curColor = '#1A1A3E', curSize = 8;
+// Canvas 2
+let cv2, cx2, drawing2 = false;
+// Math
 let mathMode = 'numbers';
-let currentCustomIdx = 0;
-let canvas, ctx, canvas2, ctx2;
-let isDrawing = false;
-let currentColor = '#1A1A3E';
-let strokeWidth = 8;
-let pendingLoginProfile = null;
-let parentPin = localStorage.getItem('rp_parent_pin') || '1234';
+let mathQ = null;
+let mathScore = {c:0, w:0};
+// Explore
+let exploreMode = 'body';
+// Coloring
+let cvCol, cxCol, coloringColor = '#e11d48', curColoringItem = null;
+// Custom words
+let customIdx = 0;
 
-// =========== INIT ===========
-function init() {
-  createStars();
-  setupAvatarPicker();
-  renderProfiles();
-  setupCanvas();
-  renderArabicLetters();
-  renderEngLetters();
-  renderMatchGrid();
-  renderMathNumbers();
+// ══════════════════════════════════════════
+// FIREBASE SYNC
+// ══════════════════════════════════════════
+function fbRef(path) { return db.ref('kids_app/' + path); }
+
+function syncSave() {
+  if (curUser === null) return;
+  const p = profiles[curUser];
+  fbRef('profiles/' + p.id).set(p).catch(()=>{});
 }
 
-function createStars() {
-  const container = document.getElementById('starsContainer');
-  for (let i = 0; i < 18; i++) {
-    const s = document.createElement('div');
-    s.className = 'star';
-    const size = Math.random() * 14 + 6;
-    s.style.cssText = `width:${size}px;height:${size}px;top:${Math.random()*100}%;left:${Math.random()*100}%;background:${['#FFD93D','#fff','#FF8FAB','#A78BFA'][Math.floor(Math.random()*4)]};animation-delay:${Math.random()*2}s;animation-duration:${1.5+Math.random()*2}s`;
-    container.appendChild(s);
-  }
-}
-
-function setupAvatarPicker() {
-  const picker = document.getElementById('avatarPicker');
-  AVATARS.forEach((av, i) => {
-    const el = document.createElement('div');
-    el.className = 'avatar-opt' + (i === 0 ? ' selected' : '');
-    el.textContent = av;
-    el.onclick = () => {
-      document.querySelectorAll('.avatar-opt').forEach(x => x.classList.remove('selected'));
-      el.classList.add('selected');
-      selectedAvatar = av;
-    };
-    picker.appendChild(el);
+function fbLoad() {
+  document.getElementById('syncDot').classList.remove('offline');
+  fbRef('profiles').once('value', snap => {
+    if (snap.exists()) {
+      const data = snap.val();
+      profiles = Object.values(data);
+    } else {
+      profiles = JSON.parse(localStorage.getItem('kl_profiles') || '[]');
+    }
+    renderProfiles();
+  }).catch(() => {
+    profiles = JSON.parse(localStorage.getItem('kl_profiles') || '[]');
+    renderProfiles();
+    document.getElementById('syncDot').classList.add('offline');
   });
 }
 
-// =========== PROFILES ===========
+function lsSave() {
+  localStorage.setItem('kl_profiles', JSON.stringify(profiles));
+}
+
+// ══════════════════════════════════════════
+// BACKGROUND STARS
+// ══════════════════════════════════════════
+function buildStars() {
+  const c = document.getElementById('skyBg');
+  for (let i=0;i<28;i++) {
+    const s = document.createElement('div');
+    s.className = 'floating-star';
+    const sz = Math.random()*12+4;
+    const colors = ['#f5c842','#f9a8d4','#7dd3fc','#c4b5fd','#6ee7b7','#ffffff'];
+    s.style.cssText = `width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;background:${colors[Math.floor(Math.random()*colors.length)]};animation-duration:${4+Math.random()*6}s;animation-delay:${Math.random()*5}s;opacity:0;`;
+    c.appendChild(s);
+  }
+  // Animate mascot letters
+  const mas = ['🦁','🐯','⭐','🌙','🎈','🦄'];
+  let mi = 0;
+  setInterval(() => {
+    document.getElementById('loginMascot').textContent = mas[mi++ % mas.length];
+  }, 2500);
+}
+
+// ══════════════════════════════════════════
+// PROFILES
+// ══════════════════════════════════════════
 function renderProfiles() {
-  const grid = document.getElementById('profilesGrid');
-  grid.innerHTML = '';
-  profiles.forEach((p, i) => {
+  const wrap = document.getElementById('profilesWrap');
+  wrap.innerHTML = '';
+  profiles.forEach((p,i) => {
     const card = document.createElement('div');
     card.className = 'profile-card';
-    card.innerHTML = `<div class="profile-avatar">${p.avatar}</div><div class="profile-name">${p.name}</div><div class="profile-age">${p.age ? p.age + ' سنوات' : ''}</div>`;
-    card.onclick = () => loginProfile(i);
-    grid.appendChild(card);
+    card.innerHTML = `<span class="p-avatar">${p.avatar}</span><div class="p-name">${p.name}</div><div class="p-stars">⭐ ${p.stars||0}</div>`;
+    card.onclick = () => loginAs(i);
+    wrap.appendChild(card);
   });
   const add = document.createElement('div');
-  add.className = 'add-profile-btn';
-  add.innerHTML = '+';
+  add.className = 'btn-add-profile';
+  add.innerHTML = '＋';
   add.title = 'إضافة طفل';
-  add.onclick = () => showModal('addProfileModal');
-  grid.appendChild(add);
+  add.onclick = () => openModal('modalAddProfile');
+  wrap.appendChild(add);
 }
 
-function addProfile() {
-  const name = document.getElementById('childName').value.trim();
-  const age = document.getElementById('childAge').value;
-  const pin = document.getElementById('childPin').value.trim();
-  if (!name) return alert('أدخل اسم الطفل');
-  if (pin && pin.length !== 4) return alert('الرمز يجب أن يكون 4 أرقام');
-  const profile = { name, age, avatar: selectedAvatar, pin: pin || '', progress: {}, stars: 0, customWords: [] };
-  profiles.push(profile);
-  saveProfiles();
-  renderProfiles();
-  hideModal('addProfileModal');
-  document.getElementById('childName').value = '';
-  document.getElementById('childPin').value = '';
+function openParentLogin() {
+  document.getElementById('inParentPin').value='';
+  document.getElementById('parentPinErr').style.display='none';
+  openModal('modalParentPin');
 }
 
-function loginProfile(idx) {
+function loginAs(idx) {
+  pendingLogin = idx;
   const p = profiles[idx];
-  pendingLoginProfile = idx;
   if (p.pin) {
-    document.getElementById('pinAvatar').textContent = p.avatar;
-    document.getElementById('pinName').textContent = `مرحباً ${p.name}!`;
-    document.getElementById('pinInput').value = '';
-    document.getElementById('pinError').style.display = 'none';
-    showModal('pinModal');
+    document.getElementById('pinAv').textContent = p.avatar;
+    document.getElementById('pinWelcome').textContent = `مرحباً ${p.name}! 🌟`;
+    document.getElementById('inPin').value = '';
+    document.getElementById('pinErr').style.display = 'none';
+    openModal('modalPin');
   } else {
-    enterProfile(idx);
+    enterUser(idx);
   }
 }
 
-function checkPin() {
-  const input = document.getElementById('pinInput').value;
-  if (input === profiles[pendingLoginProfile].pin) {
-    hideModal('pinModal');
-    enterProfile(pendingLoginProfile);
+function verifyPin() {
+  const v = document.getElementById('inPin').value;
+  if (v === profiles[pendingLogin].pin) {
+    closeModal('modalPin');
+    enterUser(pendingLogin);
   } else {
-    document.getElementById('pinError').style.display = 'block';
-    document.getElementById('pinInput').value = '';
+    document.getElementById('pinErr').style.display = 'block';
+    document.getElementById('inPin').value = '';
   }
 }
 
-function checkParentPin() {
-  const input = document.getElementById('parentPinInput').value;
-  if (input === parentPin) {
-    hideModal('parentPinModal');
-    showScreen('parentScreen');
-    renderParentContent('words');
+function verifyParentPin() {
+  const v = document.getElementById('inParentPin').value;
+  if (v === parentPIN) {
+    closeModal('modalParentPin');
+    goTo('parentScreen');
+    parentTab('words', document.querySelector('.parent-tab'));
   } else {
-    document.getElementById('parentPinError').style.display = 'block';
-    document.getElementById('parentPinInput').value = '';
+    document.getElementById('parentPinErr').style.display = 'block';
+    document.getElementById('inParentPin').value = '';
   }
 }
 
-function enterProfile(idx) {
-  currentUser = idx;
+function enterUser(idx) {
+  curUser = idx;
   const p = profiles[idx];
-  document.getElementById('menuAvatar').textContent = p.avatar;
+  document.getElementById('menuAv').textContent = p.avatar;
+  document.getElementById('menuBigAv').textContent = p.avatar;
   document.getElementById('menuName').textContent = p.name;
-  document.getElementById('menuGreeting').textContent = `أهلاً ${p.name}! 👋`;
-  document.getElementById('menuStars').textContent = `⭐ ${p.stars || 0}`;
-  updateOverallProgress();
-  showScreen('menuScreen');
+  document.getElementById('menuGreeting').textContent = `أهلاً ${p.name}! 🌟`;
+  updateProgress();
+  goTo('menuScreen');
 }
 
 function logout() {
-  currentUser = null;
-  showScreen('loginScreen');
+  curUser = null;
+  goTo('loginScreen');
 }
 
-function saveProfiles() {
-  localStorage.setItem('rp_profiles', JSON.stringify(profiles));
+// Add profile
+function setupAvatarPicker() {
+  const g = document.getElementById('avPicker');
+  AVATARS.forEach((av,i) => {
+    const btn = document.createElement('div');
+    btn.className = 'av-btn' + (i===0?' sel':'');
+    btn.textContent = av;
+    btn.onclick = () => {
+      document.querySelectorAll('.av-btn').forEach(b=>b.classList.remove('sel'));
+      btn.classList.add('sel');
+      selAvatar = av;
+    };
+    g.appendChild(btn);
+  });
 }
 
-// =========== SCREENS ===========
-function showScreen(id) {
+function saveProfile() {
+  const name = document.getElementById('inChildName').value.trim();
+  const age = document.getElementById('inChildAge').value;
+  const pin = document.getElementById('inChildPin').value.trim();
+  if (!name) return alert('أدخل اسم الطفل');
+  if (pin && pin.length !== 4) return alert('الرمز 4 أرقام');
+  const p = {
+    id: 'kid_' + Date.now(),
+    name, age, avatar: selAvatar, pin: pin||'',
+    stars: 0, progress: {}, customWords: []
+  };
+  profiles.push(p);
+  lsSave();
+  fbRef('profiles/' + p.id).set(p).catch(()=>{});
+  renderProfiles();
+  closeModal('modalAddProfile');
+  document.getElementById('inChildName').value = '';
+  document.getElementById('inChildPin').value = '';
+}
+
+// ══════════════════════════════════════════
+// SCREEN NAVIGATION
+// ══════════════════════════════════════════
+function goTo(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  if (id === 'mathScreen') renderMathNumbers();
+  // Side effects
+  if (id==='arabicScreen') renderArGrid('all');
+  if (id==='englishScreen') renderEnGrid('all');
+  if (id==='matchScreen') renderMatchGrid();
+  if (id==='mathScreen') { mathTab_('numbers'); }
+  if (id==='exploreScreen') exploreTab_('body');
+  if (id==='coloringScreen') renderColoringGallery('all');
+  if (id==='customScreen') renderCustom();
 }
 
-function showModal(id) {
-  document.getElementById(id).classList.add('open');
-}
-function hideModal(id) {
-  document.getElementById(id).classList.remove('open');
-}
-
-// =========== ARABIC LETTERS ===========
-function renderArabicLetters(filter = 'all') {
-  const grid = document.getElementById('arabicLettersGrid');
+// ══════════════════════════════════════════
+// ARABIC LETTERS
+// ══════════════════════════════════════════
+function renderArGrid(filter) {
+  const grid = document.getElementById('arGrid');
   grid.innerHTML = '';
-  const p = currentUser !== null ? profiles[currentUser] : null;
-  ARABIC_LETTERS.forEach((l, i) => {
-    const done = p && p.progress && p.progress['ar_' + i];
-    if (filter === 'completed' && !done) return;
-    if (filter === 'pending' && done) return;
+  const p = curUser!==null ? profiles[curUser] : null;
+  AR_LETTERS.forEach((l,i) => {
+    const done = p && p.progress['ar'+i];
+    if (filter==='done' && !done) return;
+    if (filter==='todo' && done) return;
     const card = document.createElement('div');
-    card.className = 'arabic-letter-card' + (done ? ' completed' : '');
-    card.innerHTML = `<div class="ar-letter-main">${l.letter}</div><div class="ar-letter-name">${l.name}</div><div class="ar-letter-sound">[${l.sound}]</div>`;
-    card.onclick = () => openArabicPractice(i);
+    card.className = 'letter-card' + (done?' done':'');
+    card.innerHTML = `<div class="lc-main">${l.l}</div><div class="lc-name">${l.n}</div><div class="lc-tr">${l.tr}</div>${done?'<span class="done-badge">✓</span>':''}`;
+    card.onclick = () => openPractice('ar', i);
     grid.appendChild(card);
   });
 }
-
-function filterLetters(type, btn) {
-  document.querySelectorAll('.letter-tab').forEach(t => t.classList.remove('active'));
+function filterAr(f, btn) {
+  document.querySelectorAll('#arabicScreen .pill').forEach(p=>p.classList.remove('active'));
   btn.classList.add('active');
-  renderArabicLetters(type);
+  renderArGrid(f);
 }
 
-function openArabicPractice(idx) {
-  currentLetterIdx = idx;
-  currentLang = 'arabic';
-  const l = ARABIC_LETTERS[idx];
-  document.getElementById('practiceTitle').textContent = 'تدرّب — ' + l.name;
-  document.getElementById('practiceLetter').textContent = l.letter;
-  document.getElementById('practiceName').textContent = l.name;
-  document.getElementById('letterGuide').textContent = l.letter;
-  document.getElementById('canvasPrompt').textContent = `اكتب حرف "${l.letter}" هنا 👇`;
-  document.getElementById('practiceBack').onclick = () => showScreen('arabicScreen');
-
-  const forms = document.getElementById('formsSection');
-  forms.innerHTML = `
-    <div class="form-card">
-      <div class="form-label">في أول الكلمة</div>
-      <div class="form-char">${l.start}</div>
-      <div class="form-example">مثل: ${l.example.start}</div>
-    </div>
-    <div class="form-card">
-      <div class="form-label">في وسط الكلمة</div>
-      <div class="form-char">${l.mid}</div>
-      <div class="form-example">مثل: ${l.example.mid}</div>
-    </div>
-    <div class="form-card">
-      <div class="form-label">في آخر الكلمة</div>
-      <div class="form-char">${l.end}</div>
-      <div class="form-example">مثل: ${l.example.end}</div>
-    </div>
-  `;
-  clearCanvas();
-  showScreen('practiceScreen');
-}
-
-// =========== ENGLISH LETTERS ===========
-function renderEngLetters() {
-  const grid = document.getElementById('engLettersGrid');
+// ══════════════════════════════════════════
+// ENGLISH LETTERS
+// ══════════════════════════════════════════
+function renderEnGrid(filter) {
+  const grid = document.getElementById('enGrid');
   grid.innerHTML = '';
-  const p = currentUser !== null ? profiles[currentUser] : null;
-  ENGLISH_LETTERS.forEach((l, i) => {
-    const done = p && p.progress && p.progress['en_' + i];
+  const p = curUser!==null ? profiles[curUser] : null;
+  EN_LETTERS.forEach((l,i) => {
+    const done = p && p.progress['en'+i];
+    if (filter==='done' && !done) return;
+    if (filter==='todo' && done) return;
     const card = document.createElement('div');
-    card.className = 'eng-letter-card' + (done ? ' completed' : '');
-    card.innerHTML = `<div class="eng-upper">${l.upper}</div><div class="eng-lower">${l.lower}</div><div class="eng-word">${l.word}</div>`;
-    card.onclick = () => openEngPractice(i);
+    card.className = 'eng-card' + (done?' done':'');
+    card.innerHTML = `<div class="eng-upper">${l.u}</div><div class="eng-lower">${l.l}</div><div class="eng-word">${l.w}</div>${done?'<span class="done-badge">✓</span>':''}`;
+    card.onclick = () => openPractice('en', i);
     grid.appendChild(card);
   });
 }
-
-function openEngPractice(idx) {
-  currentLetterIdx = idx;
-  currentLang = 'english';
-  const l = ENGLISH_LETTERS[idx];
-  document.getElementById('practiceTitle').textContent = 'Practice — ' + l.upper;
-  document.getElementById('practiceLetter').textContent = l.upper;
-  document.getElementById('practiceName').textContent = l.word;
-  document.getElementById('letterGuide').textContent = l.upper;
-  document.getElementById('canvasPrompt').textContent = `Write the letter "${l.upper}" below 👇`;
-  document.getElementById('practiceBack').onclick = () => showScreen('englishScreen');
-
-  const forms = document.getElementById('formsSection');
-  forms.innerHTML = `
-    <div class="form-card" style="border-color:var(--grass);">
-      <div class="form-label">Uppercase</div>
-      <div class="form-char" style="font-family:'Fredoka One',sans-serif;font-size:56px;color:var(--grass);">${l.upper}</div>
-    </div>
-    <div class="form-card" style="border-color:var(--sky);">
-      <div class="form-label">Lowercase</div>
-      <div class="form-char" style="font-family:'Fredoka One',sans-serif;font-size:56px;color:var(--sky);">${l.lower}</div>
-    </div>
-    <div class="form-card" style="border-color:var(--orange);">
-      <div class="form-label">Word</div>
-      <div class="form-char" style="font-size:32px;">${l.word.split(' ')[1] || ''}</div>
-      <div class="form-example">${l.word.split(' ')[0]}</div>
-    </div>
-  `;
-  clearCanvas();
-  showScreen('practiceScreen');
+function filterEn(f, btn) {
+  document.querySelectorAll('#englishScreen .pill').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  renderEnGrid(f);
 }
 
-// =========== CANVAS DRAWING ===========
-function setupCanvas() {
-  canvas = document.getElementById('drawCanvas');
-  ctx = canvas.getContext('2d');
-  canvas2 = document.getElementById('drawCanvas2');
-  ctx2 = canvas2.getContext('2d');
+// ══════════════════════════════════════════
+// PRACTICE SCREEN — FIXED CANVAS
+// ══════════════════════════════════════════
+function openPractice(lang, idx) {
+  practiceLang = lang;
+  practiceIdx = idx;
+  renderPractice();
+  goTo('practiceScreen');
+  setTimeout(() => {
+    initCanvas1();
+    speakCurrent();
+  }, 150);
+}
 
-  // Canvas 1
-  setupCanvasEvents(canvas, ctx);
-  // Canvas 2
-  setupCanvasEvents(canvas2, ctx2);
+function renderPractice() {
+  const isAr = practiceLang === 'ar';
+  const item = isAr ? AR_LETTERS[practiceIdx] : EN_LETTERS[practiceIdx];
+  document.getElementById('practiceBackBtn').onclick = () => goTo(isAr ? 'arabicScreen' : 'englishScreen');
 
-  // Color palettes
-  const colors = ['#1A1A3E','#FF6B6B','#6BCB77','#6EC6F5','#FFD93D','#A78BFA','#FF8FAB','#FF7043'];
-  [['colorPalette', canvas, ctx], ['colorPalette2', canvas2, ctx2]].forEach(([pid, cv, cx]) => {
-    const pal = document.getElementById(pid);
-    if (!pal) return;
-    colors.forEach((c, i) => {
-      const dot = document.createElement('div');
-      dot.className = 'color-dot' + (i === 0 ? ' active' : '');
-      dot.style.background = c;
-      dot.onclick = () => {
-        currentColor = c;
-        pal.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
-        dot.classList.add('active');
-      };
-      pal.appendChild(dot);
-    });
+  if (isAr) {
+    document.getElementById('practiceTopTitle').textContent = `تدرّب — ${item.n}`;
+    document.getElementById('practiceBig').textContent = item.l;
+    document.getElementById('practiceNameAr').textContent = item.n;
+    document.getElementById('practiceSound').textContent = `مثال: ${item.word}`;
+    document.getElementById('canvasPrompt').textContent = `اكتب حرف "${item.l}" في المساحة أدناه ✍️`;
+    document.getElementById('canvasGuide1').textContent = item.l;
+    document.getElementById('canvasGuide1').style.fontSize = '180px';
+
+    // Forms row — CLICKABLE
+    document.getElementById('formsRow').innerHTML = `
+      <div class="form-chip" onclick="setFormTarget('start','${item.start}','${item.sw}')">
+        <div class="form-pos">في أول الكلمة</div>
+        <div class="form-letter">${item.start}</div>
+        <div class="form-example">${item.sw}</div>
+      </div>
+      <div class="form-chip" onclick="setFormTarget('mid','${item.mid}','${item.mw}')">
+        <div class="form-pos">في وسط الكلمة</div>
+        <div class="form-letter">${item.mid}</div>
+        <div class="form-example">${item.mw}</div>
+      </div>
+      <div class="form-chip" onclick="setFormTarget('end','${item.end}','${item.ew}')">
+        <div class="form-pos">في آخر الكلمة</div>
+        <div class="form-letter">${item.end}</div>
+        <div class="form-example">${item.ew}</div>
+      </div>
+    `;
+  } else {
+    document.getElementById('practiceTopTitle').textContent = `Practice — ${item.u}`;
+    document.getElementById('practiceBig').textContent = item.u;
+    document.getElementById('practiceNameAr').textContent = item.u + item.l;
+    document.getElementById('practiceSound').textContent = item.w;
+    document.getElementById('canvasPrompt').textContent = `Write the letter "${item.u}" below ✍️`;
+    document.getElementById('canvasGuide1').textContent = item.u;
+    document.getElementById('canvasGuide1').style.fontSize = '200px';
+
+    document.getElementById('formsRow').innerHTML = `
+      <div class="form-chip" onclick="setFormTarget('upper','${item.u}','${item.w}')">
+        <div class="form-pos">Uppercase</div>
+        <div class="form-letter" style="font-family:var(--font-en);color:var(--mint);">${item.u}</div>
+        <div class="form-example">${item.w.split(' ')[0]}</div>
+      </div>
+      <div class="form-chip" onclick="setFormTarget('lower','${item.l}','${item.w}')">
+        <div class="form-pos">Lowercase</div>
+        <div class="form-letter" style="font-family:var(--font-en);color:var(--sky);">${item.l}</div>
+        <div class="form-example">${item.w.split(' ')[0]}</div>
+      </div>
+    `;
+  }
+}
+
+function setFormTarget(pos, char, example) {
+  // Update guide + prompt when form chip is clicked
+  document.getElementById('canvasGuide1').textContent = char;
+  document.getElementById('canvasGuide1').style.fontSize = char.length > 1 ? '100px' : '180px';
+  document.getElementById('canvasPrompt').textContent = `اكتب "${char}" — مثال: ${example} ✍️`;
+  // Highlight chip
+  document.querySelectorAll('.form-chip').forEach(c => c.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  clearDraw();
+  speakText(char, practiceLang === 'ar' ? 'ar-SA' : 'en-US');
+}
+
+// ── CANVAS 1 — FULLY FIXED ──
+function initCanvas1() {
+  const wrap = document.getElementById('canvasWrap1');
+  cv1 = document.getElementById('drawCanvas');
+
+  // Match canvas pixel dimensions to wrapper display size
+  const rect = wrap.getBoundingClientRect();
+  const W = Math.floor(rect.width);
+  const H = Math.floor(rect.height);
+  cv1.width  = W;
+  cv1.height = H;
+
+  // Draw guide lines
+  const lc = document.getElementById('canvasLines1');
+  lc.width = W; lc.height = H;
+  const lx = lc.getContext('2d');
+  lx.clearRect(0,0,W,H);
+  // Horizontal dashed lines
+  [0.33, 0.5, 0.67].forEach(frac => {
+    const y = Math.floor(H * frac);
+    lx.beginPath();
+    lx.setLineDash([6,6]);
+    lx.strokeStyle = 'rgba(160,190,220,0.3)';
+    lx.lineWidth = 1;
+    lx.moveTo(0,y); lx.lineTo(W,y);
+    lx.stroke();
   });
 
-  // Stroke sizes
-  const sizes = [4, 8, 14, 20];
-  const sizeContainer = document.getElementById('strokeSize');
-  sizes.forEach((s, i) => {
+  cx1 = cv1.getContext('2d');
+  cx1.clearRect(0,0,W,H);
+
+  // Remove old listeners, attach new
+  cv1.onpointerdown = null;
+  cv1.onpointermove = null;
+  cv1.onpointerup   = null;
+  cv1.onpointerleave= null;
+
+  cv1.onpointerdown = (e) => {
+    e.preventDefault();
+    cv1.setPointerCapture(e.pointerId);
+    drawing1 = true;
+    const pos = getPos(cv1, e);
+    cx1.beginPath();
+    cx1.moveTo(pos.x, pos.y);
+  };
+  cv1.onpointermove = (e) => {
+    if (!drawing1) return;
+    e.preventDefault();
+    const pos = getPos(cv1, e);
+    cx1.lineWidth   = curSize;
+    cx1.lineCap     = 'round';
+    cx1.lineJoin    = 'round';
+    cx1.strokeStyle = curColor;
+    cx1.lineTo(pos.x, pos.y);
+    cx1.stroke();
+    cx1.beginPath();
+    cx1.moveTo(pos.x, pos.y);
+  };
+  cv1.onpointerup   = () => { drawing1 = false; cx1.beginPath(); };
+  cv1.onpointerleave= () => { drawing1 = false; cx1.beginPath(); };
+}
+
+// ── CANVAS 2 (custom words) ──
+function initCanvas2() {
+  cv2 = document.getElementById('drawCanvas2');
+  const wrap = cv2.parentElement;
+  const rect = wrap.getBoundingClientRect();
+  const W = Math.floor(rect.width);
+  const H = Math.floor(rect.height);
+  cv2.width  = W;
+  cv2.height = H;
+  cx2 = cv2.getContext('2d');
+  cx2.clearRect(0,0,W,H);
+
+  cv2.onpointerdown = null;
+  cv2.onpointermove = null;
+  cv2.onpointerup   = null;
+  cv2.onpointerleave= null;
+
+  cv2.onpointerdown = (e) => {
+    e.preventDefault();
+    cv2.setPointerCapture(e.pointerId);
+    drawing2 = true;
+    const p = getPos(cv2, e);
+    cx2.beginPath(); cx2.moveTo(p.x, p.y);
+  };
+  cv2.onpointermove = (e) => {
+    if (!drawing2) return;
+    e.preventDefault();
+    const p = getPos(cv2, e);
+    cx2.lineWidth = curSize; cx2.lineCap = 'round'; cx2.lineJoin = 'round';
+    cx2.strokeStyle = curColor;
+    cx2.lineTo(p.x, p.y); cx2.stroke();
+    cx2.beginPath(); cx2.moveTo(p.x, p.y);
+  };
+  cv2.onpointerup   = () => { drawing2 = false; };
+  cv2.onpointerleave= () => { drawing2 = false; };
+}
+
+// ── COLORING CANVAS ──
+function initColorCanvas() {
+  cvCol = document.getElementById('svgCanvas');
+  const wrap = cvCol.parentElement;
+  const rect = wrap.getBoundingClientRect();
+  const W = Math.floor(rect.width)||440;
+  const H = Math.floor(rect.height)||340;
+  cvCol.width = W; cvCol.height = H;
+  cxCol = cvCol.getContext('2d');
+  cxCol.clearRect(0,0,W,H);
+  // White background
+  cxCol.fillStyle = '#ffffff';
+  cxCol.fillRect(0,0,W,H);
+  // Draw the emoji large
+  if (curColoringItem) {
+    cxCol.font = `${Math.min(W,H)*0.55}px serif`;
+    cxCol.textAlign = 'center';
+    cxCol.textBaseline = 'middle';
+    if (curColoringItem.type === 'dots') {
+      // Dashed outline style — draw emoji lightly
+      cxCol.globalAlpha = 0.15;
+      cxCol.fillText(curColoringItem.em, W/2, H/2);
+      cxCol.globalAlpha = 1;
+      // Draw dot path around it
+      drawDotOutline(W, H, curColoringItem.em);
+    } else {
+      cxCol.globalAlpha = 0.1;
+      cxCol.fillText(curColoringItem.em, W/2, H/2);
+      cxCol.globalAlpha = 1;
+    }
+  }
+
+  cvCol.onpointerdown = null;
+  cvCol.onpointermove = null;
+  cvCol.onpointerup   = null;
+
+  let colDrawing = false;
+  cvCol.onpointerdown = (e) => {
+    e.preventDefault();
+    cvCol.setPointerCapture(e.pointerId);
+    colDrawing = true;
+    const p = getPos(cvCol, e);
+    cxCol.beginPath(); cxCol.moveTo(p.x,p.y);
+  };
+  cvCol.onpointermove = (e) => {
+    if (!colDrawing) return;
+    e.preventDefault();
+    const p = getPos(cvCol, e);
+    cxCol.lineWidth = 16; cxCol.lineCap = 'round'; cxCol.lineJoin = 'round';
+    cxCol.strokeStyle = coloringColor;
+    cxCol.lineTo(p.x,p.y); cxCol.stroke();
+    cxCol.beginPath(); cxCol.moveTo(p.x,p.y);
+  };
+  cvCol.onpointerup   = () => colDrawing = false;
+  cvCol.onpointerleave= () => colDrawing = false;
+}
+
+function drawDotOutline(W, H, em) {
+  // Draw dots in a circle pattern
+  const cx = W/2, cy = H/2;
+  const r = Math.min(W,H)*0.35;
+  const numDots = 24;
+  cxCol.fillStyle = '#9ca3af';
+  for (let i=0;i<numDots;i++) {
+    const angle = (i/numDots)*Math.PI*2;
+    const x = cx + Math.cos(angle)*r;
+    const y = cy + Math.sin(angle)*r;
+    cxCol.beginPath();
+    cxCol.arc(x, y, 3.5, 0, Math.PI*2);
+    cxCol.fill();
+    // number
+    cxCol.fillStyle = '#374151';
+    cxCol.font = '11px sans-serif';
+    cxCol.textAlign = 'center';
+    cxCol.textBaseline = 'middle';
+    cxCol.fillText(i+1, x, y-10);
+    cxCol.fillStyle = '#9ca3af';
+  }
+}
+
+function getPos(canvas, e) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width  / rect.width;
+  const scaleY = canvas.height / rect.height;
+  return {
+    x: (e.clientX - rect.left) * scaleX,
+    y: (e.clientY - rect.top)  * scaleY
+  };
+}
+
+// Palette setup
+function buildPalette(containerId, isSmall) {
+  const colors = ['#1a1200','#e11d48','#2563eb','#16a34a','#d97706','#7c3aed','#db2777','#0891b2','#ffffff','#374151'];
+  const cont = document.getElementById(containerId);
+  if (!cont) return;
+  cont.style.display = 'flex'; cont.style.gap = '8px'; cont.style.alignItems = 'center';
+  colors.forEach((c,i) => {
+    const s = document.createElement('div');
+    s.className = 'color-swatch' + (i===0?' active':'');
+    s.style.background = c;
+    s.style.width = isSmall ? '28px' : '28px';
+    s.style.height = isSmall ? '28px' : '28px';
+    s.onclick = () => {
+      curColor = c;
+      cont.querySelectorAll('.color-swatch').forEach(x=>x.classList.remove('active'));
+      s.classList.add('active');
+    };
+    cont.appendChild(s);
+  });
+}
+
+function buildSizes(containerId) {
+  const sizes = [4, 8, 14, 22];
+  const cont = document.getElementById(containerId);
+  if (!cont) return;
+  sizes.forEach((sz,i) => {
     const btn = document.createElement('div');
-    btn.className = 'size-btn' + (i === 1 ? ' active' : '');
-    btn.style.cssText = `width:${s+16}px;height:${s+16}px;`;
-    btn.innerHTML = `<div style="width:${s}px;height:${s}px;border-radius:50%;background:${currentColor};"></div>`;
+    btn.className = 'size-dot' + (i===1?' active':'');
+    btn.style.width = (sz+14)+'px';
+    btn.style.height = (sz+14)+'px';
+    btn.innerHTML = `<div style="width:${sz}px;height:${sz}px;border-radius:50%;background:rgba(255,255,255,0.7);pointer-events:none;"></div>`;
     btn.onclick = () => {
-      strokeWidth = s;
-      document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+      curSize = sz;
+      cont.querySelectorAll('.size-dot').forEach(x=>x.classList.remove('active'));
       btn.classList.add('active');
     };
-    sizeContainer.appendChild(btn);
-  });
-
-  resizeCanvases();
-  window.addEventListener('resize', resizeCanvases);
-}
-
-function resizeCanvases() {
-  [canvas, canvas2].forEach(cv => {
-    if (!cv) return;
-    const rect = cv.parentElement.getBoundingClientRect();
-    const w = rect.width || 340;
-    cv.width = w;
-    cv.style.width = w + 'px';
+    cont.appendChild(btn);
   });
 }
 
-function setupCanvasEvents(cv, cx) {
-  const getPos = (e) => {
-    const rect = cv.getBoundingClientRect();
-    const src = e.touches ? e.touches[0] : e;
-    return { x: src.clientX - rect.left, y: src.clientY - rect.top };
-  };
-  const startDraw = (e) => {
-    e.preventDefault();
-    isDrawing = true;
-    const pos = getPos(e);
-    cx.beginPath();
-    cx.moveTo(pos.x, pos.y);
-  };
-  const draw = (e) => {
-    if (!isDrawing) return;
-    e.preventDefault();
-    const pos = getPos(e);
-    cx.lineWidth = strokeWidth;
-    cx.lineCap = 'round';
-    cx.lineJoin = 'round';
-    cx.strokeStyle = currentColor;
-    cx.lineTo(pos.x, pos.y);
-    cx.stroke();
-  };
-  const stopDraw = () => { isDrawing = false; };
-
-  cv.addEventListener('mousedown', startDraw);
-  cv.addEventListener('mousemove', draw);
-  cv.addEventListener('mouseup', stopDraw);
-  cv.addEventListener('mouseleave', stopDraw);
-  cv.addEventListener('touchstart', startDraw, {passive: false});
-  cv.addEventListener('touchmove', draw, {passive: false});
-  cv.addEventListener('touchend', stopDraw);
+function buildBigPalette() {
+  const colors = [
+    '#e11d48','#f97316','#eab308','#22c55e','#3b82f6','#8b5cf6',
+    '#ec4899','#14b8a6','#000000','#ffffff','#6b7280','#92400e',
+    '#dc2626','#7c3aed','#0891b2','#65a30d',
+  ];
+  const cont = document.getElementById('bigPalette');
+  cont.innerHTML = '';
+  colors.forEach((c,i) => {
+    const s = document.createElement('div');
+    s.className = 'big-swatch' + (i===0?' active':'');
+    s.style.background = c;
+    s.onclick = () => {
+      coloringColor = c;
+      cont.querySelectorAll('.big-swatch').forEach(x=>x.classList.remove('active'));
+      s.classList.add('active');
+    };
+    cont.appendChild(s);
+  });
 }
 
-function clearCanvas() {
-  if (!ctx) return;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+function clearDraw() {
+  if (!cx1||!cv1) return;
+  cx1.clearRect(0,0,cv1.width,cv1.height);
+}
+function clearDraw2() {
+  if (!cx2||!cv2) return;
+  cx2.clearRect(0,0,cv2.width,cv2.height);
+}
+function clearSvg() {
+  if (!cxCol||!cvCol) return;
+  cxCol.clearRect(0,0,cvCol.width,cvCol.height);
+  cxCol.fillStyle = '#ffffff';
+  cxCol.fillRect(0,0,cvCol.width,cvCol.height);
 }
 
-function clearCanvas2() {
-  if (!ctx2) return;
-  ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
-}
-
-function checkWriting() {
-  // Check if canvas has content
-  const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const hasContent = imgData.data.some((v, i) => i % 4 === 3 && v > 10);
-  if (!hasContent) {
-    alert('✏️ ارسم الحرف أولاً!');
-    return;
-  }
-  // Mark as completed
-  if (currentUser !== null) {
-    const key = (currentLang === 'arabic' ? 'ar_' : 'en_') + currentLetterIdx;
-    if (!profiles[currentUser].progress) profiles[currentUser].progress = {};
-    if (!profiles[currentUser].progress[key]) {
-      profiles[currentUser].progress[key] = true;
-      profiles[currentUser].stars = (profiles[currentUser].stars || 0) + 3;
-      saveProfiles();
-      document.getElementById('menuStars').textContent = `⭐ ${profiles[currentUser].stars}`;
+function checkDraw() {
+  if (!cx1||!cv1) return;
+  const img = cx1.getImageData(0,0,cv1.width,cv1.height);
+  const hasContent = img.data.some((v,i)=>i%4===3&&v>10);
+  if (!hasContent) { alert('✏️ ارسم الحرف أولاً!'); return; }
+  if (curUser!==null) {
+    const key = (practiceLang==='ar'?'ar':'en') + practiceIdx;
+    if (!profiles[curUser].progress[key]) {
+      profiles[curUser].progress[key] = true;
+      profiles[curUser].stars = (profiles[curUser].stars||0) + 3;
+      syncSave(); lsSave();
+      updateProgress();
     }
-    saveProfiles();
-    renderArabicLetters();
-    renderEngLetters();
-    updateOverallProgress();
+    renderArGrid('all');
+    renderEnGrid('all');
   }
-  celebrate('أحسنت! 🌟', 'لقد كتبت الحرف بشكل رائع!', '+⭐⭐⭐');
-}
-
-function nextLetter() {
-  if (currentLang === 'arabic') {
-    const next = (currentLetterIdx + 1) % ARABIC_LETTERS.length;
-    openArabicPractice(next);
-  } else {
-    const next = (currentLetterIdx + 1) % ENGLISH_LETTERS.length;
-    openEngPractice(next);
-  }
-}
-
-// =========== WORD-IMAGE MATCH ===========
-function renderMatchGrid() {
-  const grid = document.getElementById('matchGrid');
-  grid.innerHTML = '';
-  WORD_IMAGES.forEach((item) => {
-    const card = document.createElement('div');
-    card.className = 'match-card';
-    let flipped = false;
-    card.innerHTML = `
-      <div class="card-inner" id="ci_${item.arabic}">
-        <div class="card-front" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:160px;">
-          <span class="match-emoji">${item.emoji}</span>
-          <div style="font-size:13px;font-weight:700;color:#888;margin-top:8px;">انقر للكشف!</div>
-        </div>
-        <div class="card-back">
-          <span style="font-size:52px;">${item.emoji}</span>
-          <div class="match-arabic">${item.arabic}</div>
-          <div class="match-english">${item.english}</div>
-        </div>
-      </div>`;
-    card.onclick = () => {
-      flipped = !flipped;
-      const inner = card.querySelector('.card-inner');
-      if (flipped) {
-        inner.style.transform = 'rotateY(180deg)';
-        setTimeout(() => {
-          inner.style.transform = '';
-        }, 2500);
-        flipped = false;
-      }
-    };
-    // Simple flip on click
-    card.style.perspective = '1000px';
-    card.querySelector('.card-inner').style.transition = 'transform 0.5s';
-    card.querySelector('.card-inner').style.transformStyle = 'preserve-3d';
-    card.querySelector('.card-front').style.backfaceVisibility = 'hidden';
-    card.querySelector('.card-back').style.backfaceVisibility = 'hidden';
-    card.querySelector('.card-back').style.position = 'absolute';
-    card.querySelector('.card-back').style.inset = '0';
-    card.querySelector('.card-back').style.transform = 'rotateY(180deg)';
-    card.onclick = () => {
-      const inner = card.querySelector('.card-inner');
-      const isFlipped = inner.style.transform === 'rotateY(180deg)';
-      inner.style.transform = isFlipped ? '' : 'rotateY(180deg)';
-    };
-    grid.appendChild(card);
-  });
-}
-
-// =========== MATH ===========
-function switchMathTab(mode, btn) {
-  mathMode = mode;
-  document.querySelectorAll('.math-tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
-  if (mode === 'numbers') renderMathNumbers();
-  else renderMathQuiz(mode);
-}
-
-function renderMathNumbers() {
-  const container = document.getElementById('mathContent');
-  container.innerHTML = '<div class="numbers-grid" id="numbersGrid"></div>';
-  const grid = document.getElementById('numbersGrid');
-  ARABIC_NUMS.forEach(n => {
-    const card = document.createElement('div');
-    card.className = 'number-card';
-    card.innerHTML = `<div class="number-big">${n.num}</div><div class="number-dots">${n.dots}</div><div class="number-arabic">${n.ar}</div>`;
-    card.onclick = () => {
-      if (window.speechSynthesis) {
-        const u = new SpeechSynthesisUtterance(n.ar);
-        u.lang = 'ar-SA';
-        speechSynthesis.speak(u);
-      }
-      card.style.transform = 'scale(1.2)';
-      setTimeout(() => card.style.transform = '', 300);
-    };
-    grid.appendChild(card);
-  });
-}
-
-let mathCurrentQ = null;
-function renderMathQuiz(op) {
-  const container = document.getElementById('mathContent');
-  container.innerHTML = '<div class="math-quiz" id="mathQuizArea"></div>';
-  generateMathQ(op);
-}
-
-function generateMathQ(op) {
-  const area = document.getElementById('mathQuizArea');
-  if (!area) return;
-  let a, b, answer, symbol;
-  if (op === 'add') {
-    a = Math.floor(Math.random() * 10); b = Math.floor(Math.random() * 10);
-    answer = a + b; symbol = '+';
-  } else if (op === 'sub') {
-    a = Math.floor(Math.random() * 10) + 5; b = Math.floor(Math.random() * (a+1));
-    answer = a - b; symbol = '-';
-  } else if (op === 'mul') {
-    a = Math.floor(Math.random() * 6) + 1; b = Math.floor(Math.random() * 6) + 1;
-    answer = a * b; symbol = '×';
-  } else {
-    b = Math.floor(Math.random() * 5) + 1; answer = Math.floor(Math.random() * 6) + 1;
-    a = b * answer; symbol = '÷';
-  }
-  mathCurrentQ = { a, b, answer, op };
-
-  // Generate wrong answers
-  const options = new Set([answer]);
-  while (options.size < 4) {
-    const wrong = answer + Math.floor(Math.random() * 7) - 3;
-    if (wrong >= 0 && wrong !== answer) options.add(wrong);
-  }
-  const optArr = [...options].sort(() => Math.random() - 0.5);
-
-  area.innerHTML = `
-    <div class="math-problem">
-      ${a} <span class="math-operation">${symbol}</span> ${b} = <span style="color:var(--purple)">?</span>
-    </div>
-    <div class="math-options" id="mathOpts"></div>
-    <div id="mathFeedback" style="font-size:22px;font-weight:800;color:var(--navy);display:none;text-align:center;"></div>
-  `;
-  const opts = document.getElementById('mathOpts');
-  optArr.forEach(opt => {
-    const btn = document.createElement('button');
-    btn.className = 'math-opt';
-    btn.textContent = opt;
-    btn.onclick = () => checkMathAnswer(opt, btn);
-    opts.appendChild(btn);
-  });
-}
-
-function checkMathAnswer(val, btn) {
-  const opts = document.querySelectorAll('.math-opt');
-  opts.forEach(b => b.onclick = null);
-  if (val === mathCurrentQ.answer) {
-    btn.classList.add('correct');
-    if (currentUser !== null) {
-      profiles[currentUser].stars = (profiles[currentUser].stars || 0) + 1;
-      document.getElementById('menuStars').textContent = `⭐ ${profiles[currentUser].stars}`;
-      saveProfiles();
-    }
-    setTimeout(() => {
-      celebrate('ممتاز! 🎉', `${mathCurrentQ.a} ${mathCurrentQ.op === 'add' ? '+' : mathCurrentQ.op === 'sub' ? '-' : mathCurrentQ.op === 'mul' ? '×' : '÷'} ${mathCurrentQ.b} = ${mathCurrentQ.answer} ✅`, '+⭐');
-      setTimeout(() => generateMathQ(mathMode), 200);
-    }, 800);
-  } else {
-    btn.classList.add('wrong');
-    opts.forEach(b => { if (parseInt(b.textContent) === mathCurrentQ.answer) b.classList.add('correct'); });
-    setTimeout(() => generateMathQ(mathMode), 1800);
-  }
-}
-
-// =========== CUSTOM WORDS ===========
-function renderCustomWords() {
-  const p = currentUser !== null ? profiles[currentUser] : null;
-  const words = p ? (p.customWords || []) : [];
-  const display = document.getElementById('customWordDisplay');
-  const counter = document.getElementById('customWordCounter');
-  if (words.length === 0) {
-    display.textContent = 'لا توجد كلمات بعد 📝';
-    counter.textContent = '0 / 0';
-    return;
-  }
-  if (currentCustomIdx >= words.length) currentCustomIdx = 0;
-  display.textContent = words[currentCustomIdx];
-  counter.textContent = `${currentCustomIdx + 1} / ${words.length}`;
-}
-
-function prevCustomWord() {
-  const p = currentUser !== null ? profiles[currentUser] : null;
-  const words = p ? (p.customWords || []) : [];
-  if (!words.length) return;
-  currentCustomIdx = (currentCustomIdx - 1 + words.length) % words.length;
-  renderCustomWords();
-}
-
-function nextCustomWord() {
-  const p = currentUser !== null ? profiles[currentUser] : null;
-  const words = p ? (p.customWords || []) : [];
-  if (!words.length) return;
-  currentCustomIdx = (currentCustomIdx + 1) % words.length;
-  renderCustomWords();
+  celebrate('🌟','أحسنت يا بطل! الحرف جميل 🎉','+⭐⭐⭐');
 }
 
 function checkCustom() {
-  const imgData = ctx2.getImageData(0, 0, canvas2.width, canvas2.height);
-  const hasContent = imgData.data.some((v, i) => i % 4 === 3 && v > 10);
+  if (!cx2||!cv2) return;
+  const img = cx2.getImageData(0,0,cv2.width,cv2.height);
+  const hasContent = img.data.some((v,i)=>i%4===3&&v>10);
   if (!hasContent) { alert('✏️ اكتب الكلمة أولاً!'); return; }
-  if (currentUser !== null) {
-    profiles[currentUser].stars = (profiles[currentUser].stars || 0) + 2;
-    document.getElementById('menuStars').textContent = `⭐ ${profiles[currentUser].stars}`;
-    saveProfiles();
+  if (curUser!==null) {
+    profiles[curUser].stars = (profiles[curUser].stars||0) + 2;
+    syncSave(); lsSave();
+    updateProgress();
   }
-  clearCanvas2();
-  celebrate('رائع! 🌟', 'لقد كتبت الكلمة!', '+⭐⭐');
+  clearDraw2();
+  celebrate('👏','لقد كتبت الكلمة بشكل رائع!','+⭐⭐');
 }
 
-// Show custom screen
-const origShowScreen = showScreen;
-window.showScreen = function(id) {
-  origShowScreen(id);
-  if (id === 'customScreen') { currentCustomIdx = 0; renderCustomWords(); }
-};
-
-// =========== PARENT PANEL ===========
-function renderParentContent(tab) {
-  const content = document.getElementById('parentContent');
-  if (tab === 'words') {
-    content.innerHTML = `
-      <div class="word-form">
-        <h3>✏️ إضافة كلمات للتدرب عليها</h3>
-        <select id="targetChild" style="width:100%;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.12);color:white;font-family:inherit;font-size:15px;margin-bottom:12px;">
-          <option value="">اختر الطفل...</option>
-          ${profiles.map((p,i) => `<option value="${i}">${p.avatar} ${p.name}</option>`).join('')}
-        </select>
-        <textarea id="wordInput" placeholder="اكتب الكلمة أو الجملة هنا..." style="direction:rtl;"></textarea>
-        <button class="btn-primary" onclick="addCustomWord()">➕ إضافة كلمة</button>
-      </div>
-      <div class="custom-words-list" id="customWordsList"></div>
-    `;
-    renderCustomWordsList();
-  } else if (tab === 'progress') {
-    content.innerHTML = `<div class="progress-cards">${profiles.map(p => `
-      <div class="prog-card">
-        <div style="font-size:36px;margin-bottom:8px;">${p.avatar}</div>
-        <div style="font-weight:800;font-size:18px;margin-bottom:12px;">${p.name}</div>
-        <h4>نجوم</h4><div class="big-num">${p.stars || 0}</div>
-        <div class="sub" style="margin-top:8px;">حروف عربية: ${Object.keys(p.progress||{}).filter(k=>k.startsWith('ar_')).length} / ${ARABIC_LETTERS.length}</div>
-        <div class="sub">حروف إنجليزية: ${Object.keys(p.progress||{}).filter(k=>k.startsWith('en_')).length} / ${ENGLISH_LETTERS.length}</div>
-        <div class="sub">كلمات مخصصة: ${(p.customWords||[]).length}</div>
-      </div>`).join('')}</div>`;
-  } else if (tab === 'profiles') {
-    content.innerHTML = `
-      <div style="color:white;margin-bottom:16px;font-size:16px;font-weight:700;">إدارة ملفات الأطفال:</div>
-      ${profiles.map((p,i) => `
-        <div style="background:rgba(255,255,255,0.1);border-radius:16px;padding:16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;color:white;">
-          <div style="display:flex;align-items:center;gap:12px;">
-            <span style="font-size:36px;">${p.avatar}</span>
-            <div><div style="font-weight:800;font-size:18px;">${p.name}</div><div style="opacity:0.6;font-size:13px;">${p.age || '—'} سنوات · ⭐ ${p.stars||0}</div></div>
-          </div>
-          <button onclick="deleteProfile(${i})" style="background:rgba(255,107,107,0.25);color:#fca5a5;border:none;border-radius:10px;padding:8px 14px;cursor:pointer;font-family:inherit;font-size:14px;">🗑️ حذف</button>
-        </div>`).join('')}
-      <div style="margin-top:16px;">
-        <button class="btn-primary" onclick="showModal('addProfileModal')">➕ إضافة طفل جديد</button>
-      </div>
-    `;
+function nextItem() {
+  if (practiceLang === 'ar') {
+    practiceIdx = (practiceIdx+1) % AR_LETTERS.length;
+  } else {
+    practiceIdx = (practiceIdx+1) % EN_LETTERS.length;
   }
+  renderPractice();
+  clearDraw();
+  setTimeout(() => { initCanvas1(); speakCurrent(); }, 100);
 }
 
-function switchParentTab(tab, btn) {
-  document.querySelectorAll('.parent-tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
-  renderParentContent(tab);
-}
-
-function addCustomWord() {
-  const childIdx = document.getElementById('targetChild').value;
-  const word = document.getElementById('wordInput').value.trim();
-  if (!childIdx) return alert('اختر طفلاً أولاً');
-  if (!word) return alert('اكتب كلمة أو جملة');
-  if (!profiles[childIdx].customWords) profiles[childIdx].customWords = [];
-  profiles[childIdx].customWords.push(word);
-  saveProfiles();
-  document.getElementById('wordInput').value = '';
-  renderCustomWordsList();
-}
-
-function renderCustomWordsList() {
-  const list = document.getElementById('customWordsList');
-  if (!list) return;
-  list.innerHTML = '';
-  profiles.forEach((p, pi) => {
-    if (!p.customWords || !p.customWords.length) return;
-    p.customWords.forEach((w, wi) => {
-      const item = document.createElement('div');
-      item.className = 'custom-word-item';
-      item.innerHTML = `<div style="display:flex;align-items:center;gap:10px;"><span style="font-size:24px;">${p.avatar}</span><div><div class="custom-word-text">${w}</div><div style="font-size:12px;opacity:0.6;">${p.name}</div></div></div><button class="delete-word-btn" onclick="deleteCustomWord(${pi},${wi})">✕</button>`;
-      list.appendChild(item);
-    });
+// ══════════════════════════════════════════
+// WORD-IMAGE
+// ══════════════════════════════════════════
+function renderMatchGrid() {
+  const g = document.getElementById('matchGrid');
+  g.innerHTML = '';
+  WORD_IMGS.forEach(item => {
+    const fc = document.createElement('div');
+    fc.className = 'flip-card';
+    fc.innerHTML = `
+      <div class="flip-inner">
+        <div class="flip-front">
+          <span class="flip-emoji">${item.em}</span>
+          <span class="flip-hint">انقر للكشف 👆</span>
+        </div>
+        <div class="flip-back">
+          <span class="flip-emoji">${item.em}</span>
+          <div class="flip-arabic">${item.ar}</div>
+          <div class="flip-english">${item.en}</div>
+        </div>
+      </div>`;
+    let flipped = false;
+    fc.onclick = () => {
+      flipped = !flipped;
+      fc.classList.toggle('flipped', flipped);
+      if (flipped) speakBoth(item.ar, item.en);
+    };
+    g.appendChild(fc);
   });
 }
 
-function deleteCustomWord(pi, wi) {
-  profiles[pi].customWords.splice(wi, 1);
-  saveProfiles();
-  renderCustomWordsList();
+// ══════════════════════════════════════════
+// MATH
+// ══════════════════════════════════════════
+function mathTab(mode, btn) {
+  mathMode = mode;
+  document.querySelectorAll('.math-pill').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  mathTab_(mode);
+}
+function mathTab_(mode) {
+  mathMode = mode;
+  if (mode==='numbers') renderNumbers();
+  else if (mode==='table') renderTimesTable();
+  else { mathScore={c:0,w:0}; renderMathQuiz(); }
+}
+
+function renderNumbers() {
+  const b = document.getElementById('mathBody');
+  b.innerHTML = '<div class="numbers-showcase" id="numGrid"></div>';
+  const g = document.getElementById('numGrid');
+  NUMS.forEach(n => {
+    const tile = document.createElement('div');
+    tile.className = 'num-tile';
+    tile.innerHTML = `<div class="num-big">${n.n}</div><div class="num-dots">${n.d}</div><div class="num-ar">${n.ar}</div>`;
+    tile.onclick = () => {
+      speakText(n.ar, 'ar-SA');
+      tile.style.transform = 'scale(1.2)';
+      setTimeout(()=>tile.style.transform='', 300);
+    };
+    g.appendChild(tile);
+  });
+}
+
+function renderTimesTable() {
+  const b = document.getElementById('mathBody');
+  let html = '<div class="times-table"><table>';
+  html += '<tr><td>×</td>';
+  for (let j=1;j<=10;j++) html += `<td>${j}</td>`;
+  html += '</tr>';
+  for (let i=1;i<=10;i++) {
+    html += `<tr><td>${i}</td>`;
+    for (let j=1;j<=10;j++) {
+      html += `<td onclick="speakText('${i} في ${j} يساوي ${i*j}','ar-SA')" style="background:rgba(${Math.floor(255*i/10)},${Math.floor(255*j/10)},200,0.15)">${i*j}</td>`;
+    }
+    html += '</tr>';
+  }
+  html += '</table></div>';
+  document.getElementById('mathBody').innerHTML = html;
+}
+
+function renderMathQuiz() {
+  const b = document.getElementById('mathBody');
+  b.innerHTML = `
+    <div class="math-quiz-area">
+      <div class="quiz-score-row">
+        <div class="score-chip correct">✅ ${mathScore.c} صح</div>
+        <div class="score-chip wrong">❌ ${mathScore.w} خطأ</div>
+      </div>
+      <div class="math-card"><div class="math-eq" id="mathEq">—</div></div>
+      <div class="math-choices" id="mathChoices"></div>
+    </div>`;
+  generateQ();
+}
+
+function generateQ() {
+  const op = mathMode;
+  let a, b, ans, sym, opTxt;
+  if (op==='add') { a=rnd(10); b=rnd(10); ans=a+b; sym='+'; opTxt='جمع'; }
+  else if (op==='sub') { a=rnd(10)+5; b=rnd(a+1); ans=a-b; sym='−'; opTxt='طرح'; }
+  else if (op==='mul') { a=rnd(9)+1; b=rnd(9)+1; ans=a*b; sym='×'; opTxt='ضرب'; }
+  else { b=rnd(8)+1; ans=rnd(8)+1; a=b*ans; sym='÷'; opTxt='قسمة'; }
+  mathQ = {a,b,ans,op,sym};
+
+  document.getElementById('mathEq').innerHTML =
+    `<span>${a}</span><span class="math-op">${sym}</span><span>${b}</span><span class="math-op">=</span><span class="math-q">?</span>`;
+
+  const opts = new Set([ans]);
+  while (opts.size<4) {
+    const w = Math.max(0, ans + rnd(7) - 3);
+    if (w!==ans) opts.add(w);
+  }
+  const arr = [...opts].sort(()=>Math.random()-0.5);
+  const ch = document.getElementById('mathChoices');
+  ch.innerHTML = '';
+  arr.forEach(opt => {
+    const btn = document.createElement('div');
+    btn.className = 'choice-btn';
+    btn.textContent = opt;
+    btn.onclick = () => answerQ(opt, btn);
+    ch.appendChild(btn);
+  });
+}
+
+function answerQ(val, btn) {
+  const btns = document.querySelectorAll('.choice-btn');
+  btns.forEach(b => b.onclick = null);
+  if (val === mathQ.ans) {
+    btn.classList.add('right');
+    mathScore.c++;
+    if (curUser!==null) {
+      profiles[curUser].stars = (profiles[curUser].stars||0)+1;
+      syncSave(); lsSave(); updateProgress();
+    }
+    speakText('أحسنت', 'ar-SA');
+    setTimeout(()=>renderMathQuiz(), 1200);
+  } else {
+    btn.classList.add('wrong');
+    mathScore.w++;
+    btns.forEach(b=>{ if(parseInt(b.textContent)===mathQ.ans) b.classList.add('right'); });
+    setTimeout(()=>renderMathQuiz(), 1800);
+  }
+}
+
+function rnd(n) { return Math.floor(Math.random()*n); }
+
+// ══════════════════════════════════════════
+// EXPLORE
+// ══════════════════════════════════════════
+function exploreTab(mode, btn) {
+  document.querySelectorAll('.explore-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  exploreTab_(mode);
+}
+function exploreTab_(mode) {
+  exploreMode = mode;
+  const grid = document.getElementById('exploreGrid');
+  grid.innerHTML = '';
+  const data = EXPLORE_DATA[mode] || [];
+  data.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'explore-card';
+    card.innerHTML = `
+      <span class="ec-emoji">${item.em}</span>
+      <div class="ec-ar">${item.ar}</div>
+      <div class="ec-en">${item.en}</div>
+      <div class="ec-play">🔊 استمع</div>`;
+    card.onclick = () => {
+      speakBoth(item.ar, item.en);
+      card.style.transform = 'scale(1.08)';
+      setTimeout(()=>card.style.transform='', 400);
+    };
+    grid.appendChild(card);
+  });
+}
+
+// ══════════════════════════════════════════
+// COLORING BOOK
+// ══════════════════════════════════════════
+function renderColoringGallery(filter) {
+  const g = document.getElementById('coloringGallery');
+  g.innerHTML = '';
+  COLORING_ITEMS.forEach(item => {
+    if (filter!=='all' && item.type!==filter) return;
+    const card = document.createElement('div');
+    card.className = 'coloring-thumb';
+    card.innerHTML = `<span>${item.em}</span><span class="ct-name">${item.name}</span><span class="ct-type ${item.type}">${item.type==='color'?'🎨 تلوين':'⚫ نقاط'}</span>`;
+    card.onclick = () => openColoring(item);
+    g.appendChild(card);
+  });
+}
+function filterColoring(f, btn) {
+  document.querySelectorAll('#coloringScreen .pill').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  renderColoringGallery(f);
+}
+
+function openColoring(item) {
+  curColoringItem = item;
+  document.getElementById('coloringTitle').textContent = `تلوين: ${item.name}`;
+  document.getElementById('coloringSubject').textContent = item.em;
+  goTo('coloringCanvas');
+  buildBigPalette();
+  setTimeout(initColorCanvas, 150);
+}
+
+function saveColoring() {
+  if (!cvCol) return;
+  celebrate('🎨','رائع! لوحتك الفنية جميلة جداً!','+⭐');
+  if (curUser!==null) {
+    profiles[curUser].stars = (profiles[curUser].stars||0)+2;
+    syncSave(); lsSave(); updateProgress();
+  }
+}
+
+// ══════════════════════════════════════════
+// CUSTOM WORDS
+// ══════════════════════════════════════════
+function renderCustom() {
+  const p = curUser!==null ? profiles[curUser] : null;
+  const words = p ? (p.customWords||[]) : [];
+  const counter = document.getElementById('customCounter');
+  const disp = document.getElementById('customWordDisplay');
+  if (!words.length) {
+    disp.textContent = 'لا توجد كلمات بعد 📝';
+    counter.textContent = '0 / 0';
+    return;
+  }
+  if (customIdx >= words.length) customIdx = 0;
+  disp.textContent = words[customIdx];
+  counter.textContent = `${customIdx+1} / ${words.length}`;
+  setTimeout(initCanvas2, 150);
+}
+
+function customPrev() {
+  const words = curUser!==null ? (profiles[curUser].customWords||[]) : [];
+  if (!words.length) return;
+  customIdx = (customIdx-1+words.length)%words.length;
+  renderCustom();
+}
+function customNext() {
+  const words = curUser!==null ? (profiles[curUser].customWords||[]) : [];
+  if (!words.length) return;
+  customIdx = (customIdx+1)%words.length;
+  renderCustom();
+}
+function speakCustom() {
+  const words = curUser!==null ? (profiles[curUser].customWords||[]) : [];
+  if (words.length) speakText(words[customIdx], 'ar-SA');
+}
+
+// ══════════════════════════════════════════
+// PARENT PANEL
+// ══════════════════════════════════════════
+function parentTab(tab, btn) {
+  document.querySelectorAll('.parent-tab').forEach(t=>t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderParent(tab);
+}
+
+function renderParent(tab) {
+  const body = document.getElementById('parentBody');
+  if (tab === 'words') {
+    body.innerHTML = `
+      <div class="parent-card">
+        <h4>✏️ إضافة كلمة أو جملة للتدرب</h4>
+        <div class="field-label">اختر الطفل</div>
+        <select class="modal-input" id="ptChild" style="margin-bottom:10px;">
+          <option value="">اختر الطفل...</option>
+          ${profiles.map((p,i)=>`<option value="${i}">${p.avatar} ${p.name}</option>`).join('')}
+        </select>
+        <div class="field-label">الكلمة أو الجملة</div>
+        <textarea class="modal-input" id="ptWord" rows="2" placeholder="مثال: أسد يجري في الغابة" style="resize:none;direction:rtl;font-size:22px;font-family:var(--font-ar);"></textarea>
+        <button class="btn-confirm" onclick="addWord()" style="margin-top:10px;">➕ إضافة</button>
+      </div>
+      <h4 style="color:var(--text-muted);font-size:14px;margin-bottom:10px;">الكلمات المضافة:</h4>
+      <div id="wordsList"></div>`;
+    renderWordsList();
+  } else if (tab === 'progress') {
+    body.innerHTML = `
+      ${profiles.map(p => `
+        <div class="parent-card">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+            <span style="font-size:38px;">${p.avatar}</span>
+            <div>
+              <div style="font-size:20px;font-weight:800;color:var(--white);">${p.name}</div>
+              <div style="font-size:13px;color:var(--text-muted);">${p.age||'—'} سنوات</div>
+            </div>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-card"><div class="stat-big">${p.stars||0}</div><div class="stat-label">⭐ نجوم</div></div>
+            <div class="stat-card"><div class="stat-big">${Object.keys(p.progress||{}).filter(k=>k.startsWith('ar')).length}</div><div class="stat-label">🔤 حروف عربية</div></div>
+            <div class="stat-card"><div class="stat-big">${Object.keys(p.progress||{}).filter(k=>k.startsWith('en')).length}</div><div class="stat-label">🔡 حروف إنجليزية</div></div>
+            <div class="stat-card"><div class="stat-big">${(p.customWords||[]).length}</div><div class="stat-label">✏️ كلمات</div></div>
+          </div>
+        </div>`).join('')}`;
+  } else if (tab === 'profiles') {
+    body.innerHTML = `
+      ${profiles.map((p,i) => `
+        <div class="parent-card" style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span style="font-size:38px;">${p.avatar}</span>
+            <div>
+              <div style="font-size:18px;font-weight:800;color:var(--white);">${p.name}</div>
+              <div style="font-size:12px;color:var(--text-muted);">⭐ ${p.stars||0} · ${p.age||'—'} سنوات</div>
+            </div>
+          </div>
+          <button class="btn-del" onclick="deleteProfile(${i})">🗑️ حذف</button>
+        </div>`).join('')}
+      <button class="btn-confirm" onclick="openModal('modalAddProfile')" style="margin-top:12px;">➕ طفل جديد</button>`;
+  } else if (tab === 'settings') {
+    body.innerHTML = `
+      <div class="parent-card">
+        <h4>⚙️ الإعدادات</h4>
+        <div class="field-label">تغيير رمز الوالدين (الحالي: ${parentPIN})</div>
+        <input class="modal-input" id="newParentPin" type="password" placeholder="رمز جديد (4 أرقام)" maxlength="4" inputmode="numeric">
+        <button class="btn-confirm" onclick="changeParentPin()" style="margin-top:10px;">💾 حفظ</button>
+      </div>`;
+  }
+}
+
+function addWord() {
+  const ci = document.getElementById('ptChild').value;
+  const word = document.getElementById('ptWord').value.trim();
+  if (!ci) return alert('اختر طفلاً');
+  if (!word) return alert('أدخل كلمة');
+  if (!profiles[ci].customWords) profiles[ci].customWords = [];
+  profiles[ci].customWords.push(word);
+  lsSave();
+  fbRef('profiles/' + profiles[ci].id).update({customWords: profiles[ci].customWords}).catch(()=>{});
+  document.getElementById('ptWord').value = '';
+  renderWordsList();
+}
+
+function renderWordsList() {
+  const list = document.getElementById('wordsList');
+  if (!list) return;
+  list.innerHTML = '';
+  profiles.forEach((p,pi) => {
+    (p.customWords||[]).forEach((w,wi) => {
+      const div = document.createElement('div');
+      div.className = 'word-item';
+      div.innerHTML = `<div><div class="word-item-text">${w}</div><div class="word-owner">${p.avatar} ${p.name}</div></div><button class="btn-del" onclick="delWord(${pi},${wi})">✕</button>`;
+      list.appendChild(div);
+    });
+  });
+  if (!list.children.length) list.innerHTML = '<div class="empty-state"><span class="emi">📝</span><p>لا توجد كلمات بعد</p></div>';
+}
+
+function delWord(pi, wi) {
+  profiles[pi].customWords.splice(wi,1);
+  lsSave();
+  fbRef('profiles/'+profiles[pi].id).update({customWords:profiles[pi].customWords}).catch(()=>{});
+  renderWordsList();
 }
 
 function deleteProfile(idx) {
   if (!confirm(`حذف ملف ${profiles[idx].name}؟`)) return;
-  profiles.splice(idx, 1);
-  saveProfiles();
-  renderParentContent('profiles');
+  const id = profiles[idx].id;
+  profiles.splice(idx,1);
+  lsSave();
+  fbRef('profiles/'+id).remove().catch(()=>{});
+  renderParent('profiles');
   renderProfiles();
 }
 
-// =========== PROGRESS ===========
-function updateOverallProgress() {
-  if (currentUser === null) return;
-  const p = profiles[currentUser];
-  const total = ARABIC_LETTERS.length + ENGLISH_LETTERS.length;
-  const done = Object.keys(p.progress || {}).length;
-  const pct = Math.round((done / total) * 100);
-  document.getElementById('overallProgress').style.width = pct + '%';
-  document.getElementById('overallPct').textContent = pct + '%';
+function changeParentPin() {
+  const np = document.getElementById('newParentPin').value.trim();
+  if (np.length!==4) return alert('الرمز 4 أرقام');
+  parentPIN = np;
+  localStorage.setItem('kl_parentPin', np);
+  alert('✅ تم تغيير الرمز');
 }
 
-// =========== CELEBRATION ===========
-function celebrate(title, msg, stars) {
-  document.getElementById('celebTitle').textContent = title;
-  document.getElementById('celebMsg').textContent = msg;
-  document.getElementById('celebStars').textContent = stars;
-  document.getElementById('celebration').classList.add('show');
-  spawnConfetti();
-  try {
-    const u = new SpeechSynthesisUtterance('أحسنت يا بطل');
-    u.lang = 'ar-SA'; u.rate = 0.9;
-    speechSynthesis.speak(u);
-  } catch(e) {}
+// ══════════════════════════════════════════
+// PROGRESS
+// ══════════════════════════════════════════
+function updateProgress() {
+  if (curUser===null) return;
+  const p = profiles[curUser];
+  const total = AR_LETTERS.length + EN_LETTERS.length;
+  const done = Object.keys(p.progress||{}).length;
+  const pct = Math.round(done/total*100);
+  document.getElementById('progFill').style.width = pct+'%';
+  document.getElementById('menuStars').textContent = `⭐ ${p.stars||0}`;
+  document.getElementById('menuStars2').textContent = `⭐ ${p.stars||0} نجمة`;
 }
 
-function closeCelebration() {
-  document.getElementById('celebration').classList.remove('show');
+// ══════════════════════════════════════════
+// SPEECH
+// ══════════════════════════════════════════
+function speakText(text, lang='ar-SA') {
+  if (!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = lang; u.rate = 0.85; u.pitch = 1.1;
+  speechSynthesis.speak(u);
 }
 
-function spawnConfetti() {
-  const colors = ['#FFD93D','#FF6B6B','#6BCB77','#6EC6F5','#A78BFA','#FF8FAB'];
-  for (let i = 0; i < 60; i++) {
-    setTimeout(() => {
-      const el = document.createElement('div');
-      el.className = 'confetti-piece';
-      const size = Math.random() * 10 + 6;
-      el.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;background:${colors[Math.floor(Math.random()*colors.length)]};animation-duration:${1.5+Math.random()*2}s;animation-delay:${Math.random()*0.5}s;border-radius:${Math.random()>0.5?'50%':'3px'};`;
-      document.body.appendChild(el);
-      setTimeout(() => el.remove(), 3500);
-    }, i * 40);
+function speakCurrent() {
+  const btn = document.getElementById('soundBtn');
+  if (btn) { btn.classList.add('playing'); setTimeout(()=>btn.classList.remove('playing'),1200); }
+  if (practiceLang==='ar') {
+    const l = AR_LETTERS[practiceIdx];
+    speakText(l.n, 'ar-SA');
+    setTimeout(()=>speakText(l.word,'ar-SA'), 1000);
+  } else {
+    const l = EN_LETTERS[practiceIdx];
+    speakText(l.u, 'en-US');
+    setTimeout(()=>speakText(l.w.split(' ')[0],'en-US'), 800);
   }
 }
 
-// =========== PARENT LOGIN ===========
-document.querySelector('.btn-primary').onclick = function() {
-  document.getElementById('parentPinInput').value = '';
-  document.getElementById('parentPinError').style.display = 'none';
-  showModal('parentPinModal');
+function speakBoth(ar, en) {
+  speakText(ar, 'ar-SA');
+  setTimeout(()=>speakText(en,'en-US'), 1200);
+}
+
+// ══════════════════════════════════════════
+// CELEBRATION
+// ══════════════════════════════════════════
+function celebrate(emoji, title, msg, stars='+⭐') {
+  // Swap param order to match calls
+  document.getElementById('celEmoji').textContent = emoji||'🌟';
+  document.getElementById('celTitle').textContent = title||'ممتاز!';
+  document.getElementById('celMsg').textContent = msg||'أحسنت!';
+  document.getElementById('celStars').textContent = stars;
+  document.getElementById('celOverlay').classList.add('show');
+  spawnConfetti();
+}
+
+// Override calls that pass differently
+const _cel = celebrate;
+window.celebrate = (a,b,c,d) => {
+  if (typeof d==='undefined') {
+    // Called as celebrate(emoji, title, msg, starsStr)
+    _cel(a,b,c,'');
+  } else _cel(a,b,c,d);
 };
 
-// =========== BOOT ===========
-init();
+function closeCel() {
+  document.getElementById('celOverlay').classList.remove('show');
+}
+
+function spawnConfetti() {
+  const colors = ['#f5c842','#ff7b7b','#6ee7b7','#7dd3fc','#c4b5fd','#f9a8d4','#fdba74'];
+  for (let i=0;i<70;i++) {
+    setTimeout(()=>{
+      const el = document.createElement('div');
+      el.className = 'conf';
+      const sz = Math.random()*10+5;
+      el.style.cssText = `width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:-10px;background:${colors[Math.floor(Math.random()*colors.length)]};animation-duration:${1.8+Math.random()*2}s;animation-delay:0s;border-radius:${Math.random()>.5?'50%':'3px'};`;
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(), 4000);
+    }, i*35);
+  }
+}
+
+// ══════════════════════════════════════════
+// MODALS
+// ══════════════════════════════════════════
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ══════════════════════════════════════════
+// RESIZE HANDLER — REINIT CANVASES
+// ══════════════════════════════════════════
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    const active = document.querySelector('.screen.active');
+    if (!active) return;
+    const id = active.id;
+    if (id==='practiceScreen') initCanvas1();
+    if (id==='customScreen') initCanvas2();
+    if (id==='coloringCanvas') initColorCanvas();
+  }, 250);
+});
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  buildStars();
+  setupAvatarPicker();
+  buildPalette('palette1', true);
+  buildSizes('sizes1');
+  buildPalette('palette2', true);
+  parentPIN = localStorage.getItem('kl_parentPin') || '1234';
+  fbLoad();
+  // Math default
+  renderNumbers();
+  // Explore default
+  exploreTab_('body');
+  // Initial coloring gallery
+  renderColoringGallery('all');
+});
 </script>
 </body>
 </html>
