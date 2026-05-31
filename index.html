@@ -9727,7 +9727,256 @@ function saveBulkHealth(){
   bSaveColl('health',BS.health);closeModalForce();
   showToast(count+' health cards created','success');navTo('health-cards');
 }
-function openBranchHealthModal(id){var h2=id?BS.health.find(function(x){return x.id===id;}):null;var staffOpts='<option value="">Select\u2026</option>'+BS.staff.map(function(s2){return '<option value="'+bxe(s2.name)+'"'+(h2&&h2.name===s2.name?' selected':'')+'>'+bxe(s2.name)+'</option>';}).join('');var html='<div class="modal-head"><h2>'+(h2?'Edit Health Card':'Add Health Card')+'</h2><button class="modal-close" onclick="closeModalForce()">&#x2715;</button></div><div class="bfg"><label class="form-label">Employee *</label><select class="form-input form-select" id="bhc-name">'+staffOpts+'</select></div><div class="form-row"><div class="bfg"><label class="form-label">SAP #</label><input class="form-input" id="bhc-sap" value="'+bxe(h2?h2.sap:'')+'"></div><div class="bfg"><label class="form-label">Card # *</label><input class="form-input" id="bhc-card" value="'+bxe(h2?h2.cardNo:'')+'"></div></div><div class="form-row"><div class="bfg"><label class="form-label">Medical Expiry *</label><input class="form-input" type="date" id="bhc-med" value="'+bxe(h2?h2.medExp:'')+'"></div><div class="bfg"><label class="form-label">Training Expiry</label><input class="form-input" type="date" id="bhc-train" value="'+bxe(h2?h2.trainExp:'')+'"></div></div><button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="saveBranchHealth(\''+bxe(id||'')+'\')">Save</button>';openModal(html);}
+// ══════════════════════════════════════════════════
+// HEALTH CARD — SMART IMPORT (PDF + Image + OCR)
+// ══════════════════════════════════════════════════
+
+// ── Hijri → Gregorian helper (returns YYYY-MM-DD string) ──
+function bhcHijriToGreg(hy, hm, hd) {
+  var g = hijriToGregorian(hy, hm, hd); // existing fn returns {y,m,d}
+  return g.y + '-' + String(g.m).padStart(2,'0') + '-' + String(g.d).padStart(2,'0');
+}
+
+// ── Show/hide loading overlay inside the import banner ──
+function bhcSetLoading(on, msg) {
+  var el = document.getElementById('bhc-import-status');
+  if (!el) return;
+  if (on) {
+    el.innerHTML =
+      '<div style="display:flex;align-items:center;gap:8px;padding:8px 0 2px">' +
+        '<div style="width:16px;height:16px;border:2.5px solid #4a90d9;border-top-color:transparent;border-radius:50%;animation:bhcSpin 0.7s linear infinite;flex-shrink:0"></div>' +
+        '<span style="font-size:11px;color:#1a5fa8;font-weight:600">' + (msg||'Reading file…') + '</span>' +
+      '</div>';
+    el.style.display = 'block';
+  } else {
+    el.style.display = 'none';
+    el.innerHTML = '';
+  }
+}
+
+// ── Inject keyframe once ──
+(function(){
+  if (document.getElementById('bhc-spin-style')) return;
+  var s = document.createElement('style');
+  s.id = 'bhc-spin-style';
+  s.textContent = '@keyframes bhcSpin{to{transform:rotate(360deg)}}';
+  document.head.appendChild(s);
+})();
+
+// ── Entry point — routes PDF vs image ──
+function bhcHandleFile(inputEl) {
+  var file = inputEl.files[0];
+  if (!file) return;
+  var isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+  var isImg = /^image\/(jpeg|jpg|png|webp|gif)$/i.test(file.type);
+  if (isPdf) { bhcImportPDF(file); return; }
+  if (isImg) { bhcImportImage(file); return; }
+  showToast('Please choose a PDF or image file (JPG, PNG)', 'error');
+}
+
+// ── PDF import via PDF.js ──
+function bhcImportPDF(file) {
+  bhcSetLoading(true, 'Reading PDF…');
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var typedArray = new Uint8Array(e.target.result);
+    function extractWithPdfJs() {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      pdfjsLib.getDocument({data: typedArray}).promise.then(function(pdf) {
+        var pages = [];
+        for (var p = 1; p <= pdf.numPages; p++) {
+          pages.push(pdf.getPage(p).then(function(page) {
+            return page.getTextContent().then(function(tc) {
+              return tc.items.map(function(i){return i.str;}).join(' ');
+            });
+          }));
+        }
+        Promise.all(pages).then(function(texts) {
+          bhcSetLoading(false);
+          bhcFillFromText(texts.join(' '), 'PDF');
+        });
+      }).catch(function(err) {
+        bhcSetLoading(false);
+        showToast('Could not read PDF: ' + err.message, 'error');
+      });
+    }
+    if (window.pdfjsLib) {
+      extractWithPdfJs();
+    } else {
+      var s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      s.onload = extractWithPdfJs;
+      s.onerror = function(){ bhcSetLoading(false); showToast('Could not load PDF reader','error'); };
+      document.head.appendChild(s);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ── Image import via Claude Vision API (OCR) ──
+function bhcImportImage(file) {
+  bhcSetLoading(true, 'Scanning card with AI…');
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var base64 = e.target.result.split(',')[1];
+    var mediaType = file.type || 'image/jpeg';
+    fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 512,
+        messages: [{
+          role: 'user',
+          content: [
+            {
+              type: 'image',
+              source: { type: 'base64', media_type: mediaType, data: base64 }
+            },
+            {
+              type: 'text',
+              text: 'This is a Saudi health certificate (شهادة صحية). Extract ONLY these fields and return as JSON with no markdown:\n{"cardNo":"...","medExpiry":"...","trainExpiry":"..."}\n- cardNo: the رقم الشهادة الصحية (health certificate number, 10-13 digits)\n- medExpiry: تاريخ نهاية الشهادة الصحية (medical expiry) in Hijri as YYYY/MM/DD\n- trainExpiry: تاريخ انتهاء البرنامج التثقيفي (training expiry) in Hijri as YYYY/MM/DD\nIf a field is not visible, use empty string.'
+            }
+          ]
+        }]
+      })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+      bhcSetLoading(false);
+      var textBlock = (data.content||[]).find(function(b){ return b.type==='text'; });
+      if (!textBlock) { showToast('No response from AI scanner','error'); return; }
+      var raw = textBlock.text.replace(/```json|```/g,'').trim();
+      try {
+        var parsed = JSON.parse(raw);
+        bhcApplyExtracted(parsed.cardNo||'', parsed.medExpiry||'', parsed.trainExpiry||'', 'Image');
+      } catch(err) {
+        // Fallback: treat as plain text and use regex
+        bhcFillFromText(textBlock.text, 'Image (OCR)');
+      }
+    })
+    .catch(function(err) {
+      bhcSetLoading(false);
+      showToast('AI scan failed — try PDF instead', 'error');
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── Apply extracted Hijri dates + card number to form ──
+function bhcApplyExtracted(cardNo, medHijri, trainHijri, source) {
+  var filled = 0;
+  var elCard = document.getElementById('bhc-card');
+  var elMed  = document.getElementById('bhc-med');
+  var elTrain= document.getElementById('bhc-train');
+  var elStatus = document.getElementById('bhc-import-status');
+
+  if (cardNo && elCard) {
+    elCard.value = cardNo.replace(/\D/g,'');
+    elCard.style.background = '#e8f9f0';
+    filled++;
+  }
+  var medGreg = '', trainGreg = '';
+  if (medHijri) {
+    var mp = medHijri.split(/[\/\-]/);
+    if (mp.length===3) { medGreg = bhcHijriToGreg(parseInt(mp[0]),parseInt(mp[1]),parseInt(mp[2])); }
+  }
+  if (trainHijri) {
+    var tp = trainHijri.split(/[\/\-]/);
+    if (tp.length===3) { trainGreg = bhcHijriToGreg(parseInt(tp[0]),parseInt(tp[1]),parseInt(tp[2])); }
+  }
+  if (medGreg && elMed)   { elMed.value = medGreg;   elMed.style.background = '#e8f9f0'; filled++; }
+  if (trainGreg && elTrain){ elTrain.value = trainGreg; elTrain.style.background = '#e8f9f0'; filled++; }
+
+  // Show inline result summary
+  if (elStatus) {
+    var lines = [];
+    if (cardNo)    lines.push('<span style="color:#059669">✓ Card #: '+bxe(cardNo)+'</span>');
+    if (medHijri)  lines.push('<span style="color:#059669">✓ Med expiry: '+medHijri+' → '+medGreg+'</span>');
+    if (trainHijri)lines.push('<span style="color:#059669">✓ Train expiry: '+trainHijri+' → '+trainGreg+'</span>');
+    if (!lines.length) lines.push('<span style="color:#b45309">⚠️ Nothing extracted — fill manually</span>');
+    elStatus.innerHTML =
+      '<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:8px 10px;margin-top:6px;font-size:11px;line-height:1.8">'+
+        '<div style="font-weight:700;color:#065f46;margin-bottom:3px">📋 Extracted from '+bxe(source)+'</div>'+
+        lines.join('<br>')+
+      '</div>';
+    elStatus.style.display = 'block';
+  }
+  if (filled) showToast('✅ '+filled+' field'+(filled>1?'s':'')+' auto-filled from '+source, 'success');
+  else showToast('⚠️ No fields extracted — fill manually', 'warning');
+}
+
+// ── Regex fallback for plain text (PDF path) ──
+function bhcFillFromText(text, source) {
+  var cardMatch = text.match(/\b(4\d{11}|\d{10,13})\b/);
+  var cardNo = cardMatch ? cardMatch[1] : '';
+  var hijriRe = /\b(1[34]\d{2})[\/\-](\d{1,2})[\/\-](\d{1,2})\b/g;
+  var dates = [], m;
+  while ((m = hijriRe.exec(text)) !== null) {
+    dates.push({y:parseInt(m[1]),mo:parseInt(m[2]),d:parseInt(m[3]),raw:m[0]});
+  }
+  dates.sort(function(a,b){ return (b.y*10000+b.mo*100+b.d)-(a.y*10000+a.mo*100+a.d); });
+  var medHijri   = dates.length>=1 ? dates[0].raw : '';
+  var trainHijri = dates.length>=2 ? dates[1].raw : '';
+  bhcApplyExtracted(cardNo, medHijri, trainHijri, source||'PDF');
+}
+
+// ── Modal ──
+function openBranchHealthModal(id){
+  var h2=id?BS.health.find(function(x){return x.id===id;}):null;
+  var staffOpts='<option value="">Select\u2026</option>'+BS.staff.map(function(s2){
+    return '<option value="'+bxe(s2.name)+'"'+(h2&&h2.name===s2.name?' selected':'')+'>'+bxe(s2.name)+'</option>';
+  }).join('');
+  var html=
+    '<div class="modal-head">'+
+      '<h2>'+(h2?'✏️ Edit Health Card':'➕ Add Health Card')+'</h2>'+
+      '<button class="modal-close" onclick="closeModalForce()">&#x2715;</button>'+
+    '</div>'+
+
+    // ── Smart Import Banner ──
+    '<div style="background:linear-gradient(135deg,#f0f7ff,#e8f4ff);border:1.5px dashed #4a90d9;border-radius:12px;padding:12px 14px;margin-bottom:14px">'+
+      '<div style="display:flex;align-items:center;gap:10px">'+
+        '<div style="width:36px;height:36px;background:#1a5fa8;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📲</div>'+
+        '<div style="flex:1">'+
+          '<div style="font-size:12px;font-weight:700;color:#1a5fa8">Smart Import — Auto-fill from card</div>'+
+          '<div style="font-size:10px;color:#4a7fb5;margin-top:1px">Reads Card #, Medical & Training expiry. Hijri dates → Gregorian automatically.</div>'+
+        '</div>'+
+        '<div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">'+
+          '<label style="background:#1a5fa8;color:#fff;border-radius:7px;padding:5px 10px;font-size:10px;font-weight:700;cursor:pointer;text-align:center;white-space:nowrap">'+
+            '📄 PDF'+
+            '<input type="file" accept=".pdf,application/pdf" style="display:none" onchange="bhcHandleFile(this)">'+
+          '</label>'+
+          '<label style="background:#059669;color:#fff;border-radius:7px;padding:5px 10px;font-size:10px;font-weight:700;cursor:pointer;text-align:center;white-space:nowrap">'+
+            '📷 Photo'+
+            '<input type="file" accept="image/*" capture="environment" style="display:none" onchange="bhcHandleFile(this)">'+
+          '</label>'+
+        '</div>'+
+      '</div>'+
+      '<div id="bhc-import-status" style="display:none"></div>'+
+    '</div>'+
+
+    // ── Form fields ──
+    '<div class="bfg"><label class="form-label">Employee *</label><select class="form-input form-select" id="bhc-name">'+staffOpts+'</select></div>'+
+    '<div class="form-row">'+
+      '<div class="bfg"><label class="form-label">SAP #</label><input class="form-input" id="bhc-sap" value="'+bxe(h2?h2.sap:'')+'"></div>'+
+      '<div class="bfg">'+
+        '<label class="form-label">Card # * <span style="font-size:9px;color:#059669;font-weight:600">← auto</span></label>'+
+        '<input class="form-input" id="bhc-card" placeholder="Scan card to auto-fill" value="'+bxe(h2?h2.cardNo:'')+'">'+
+      '</div>'+
+    '</div>'+
+    '<div class="form-row">'+
+      '<div class="bfg">'+
+        '<label class="form-label">Medical Expiry * <span style="font-size:9px;color:#059669;font-weight:600">Hijri→Greg ←</span></label>'+
+        '<input class="form-input" type="date" id="bhc-med" value="'+bxe(h2?h2.medExp:'')+'">'+
+      '</div>'+
+      '<div class="bfg">'+
+        '<label class="form-label">Training Expiry <span style="font-size:9px;color:#059669;font-weight:600">Hijri→Greg ←</span></label>'+
+        '<input class="form-input" type="date" id="bhc-train" value="'+bxe(h2?h2.trainExp:'')+'">'+
+      '</div>'+
+    '</div>'+
+    '<button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="saveBranchHealth(\''+bxe(id||'')+'\')">💾 Save Health Card</button>';
+  openModal(html);
+}
 function saveBranchHealth(id){
   var name=bgv('bhc-name'),card=bgv('bhc-card'),med=bgv('bhc-med');
   if(!name||!card||!med){showToast('Name, card # and expiry required','error');return;}
