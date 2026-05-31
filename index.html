@@ -6808,7 +6808,7 @@ function openManageBranchModal(branchId) {
     '<div><div style="font-size:10px;color:var(--branch-mgr);font-weight:600;margin-bottom:4px">🏪 Branch Manager PIN</div>' +
     '<input class="form-input" id="mb-pin" type="text" value="' + xe(String(b.pin||'')) + '" placeholder="e.g. 3333" maxlength="8" style="font-family:var(--mono);letter-spacing:3px;font-size:16px"></div>' +
 
-</div><p style="font-size:10px;color:var(--text-tertiary);margin-top:10px">💡 Each person enters their own PIN to auto-login to this branch. HR/Finance Manager PINs allow auto-login to this branch.</p>' +
+    '</div><p style="font-size:10px;color:var(--text-tertiary);margin-top:10px">💡 Branch Manager PIN is used to log in to this branch.</p>' +
     '</div>' +
 
     '<div style="display:flex;gap:8px;margin-top:8px">' +
@@ -6836,7 +6836,6 @@ function saveManageBranch(branchId) {
     location:    get('mb-loc')    || b.location||'',
     manager:     get('mb-mgr')    || b.manager||'',
     pin:         get('mb-pin')    || String(b.pin||''),
-    directorPin: get('mb-dirpin'),
 
     icon:        get('mb-icon')   || b.icon||'🍽️',
     color:       get('mb-color')  || b.color||'#f0a500'
@@ -14052,13 +14051,6 @@ function buildMobileNav() {
       { id:'brand-mgmt', icon:'🏢', label:'Brands' },
       { id:'alerts-center', icon:'⚠️', label:'Alerts' },
       { id:'access-ctrl', icon:'🔐', label:'Access' }
-    ],
-        ],
-    regional: [
-      { id:'region-dash', icon:'📊', label:'Dashboard' },
-      { id:'region-branches', icon:'🏪', label:'Branches' },
-      { id:'headcount', icon:'👥', label:'Staff' },
-      { id:'alerts-center', icon:'⚠️', label:'Alerts' }
     ],
     branch_mgr: [
       { id:'branch-dash',   icon:'📊', label:'Dashboard' },
