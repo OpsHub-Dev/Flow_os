@@ -3520,7 +3520,7 @@ function navTo(pageId) {
   }
 
   // If Firebase data not yet loaded, show a spinner and retry
-  var needsBranches = ['access-ctrl'];
+  var needsBranches = ['exec-dash','brand-perf','alerts-center','brand-mgmt','access-ctrl','audit-log'];
   var area = document.getElementById('page-area');
 
   if (needsBranches.indexOf(pageId) >= 0 && !Object.keys(NX_BRANCHES).length) {
@@ -3655,15 +3655,15 @@ function getRoleIcon(role) {
 
 var NAV_CONFIG = {
   super_admin: [
-    { section:'SYSTEM', items:[
-      { id:'access-ctrl', icon:'🔐', label:'Access Control' }
+    { section:'EXECUTIVE', items:[
+      { id:'exec-dash',    icon:'📊', label:'Executive Dashboard' },
+      { id:'brand-perf',   icon:'🏆', label:'Brand Performance' },
+      { id:'alerts-center',icon:'⚠️', label:'Alerts Center' }
     ]},
-    { section:'BRANCH OPS', items:[
-      { id:'branch-dash',  icon:'📊', label:'Branch Dashboard' },
-      { id:'inv-items',    icon:'📦', label:'Inventory' },
-      { id:'staff',        icon:'👥', label:'Staff' },
-      { id:'sales',        icon:'💰', label:'Sales' },
-      { id:'timesheet',    icon:'⏱️', label:'Timesheet' }
+    { section:'SYSTEM', items:[
+      { id:'brand-mgmt',   icon:'🏢', label:'Brand Management' },
+      { id:'access-ctrl',  icon:'🔐', label:'Access Control' },
+      { id:'audit-log',    icon:'📋', label:'Audit Log' }
     ]}
   ],
   branch_mgr: [
@@ -4827,11 +4827,11 @@ function launchApp() {
     return;
   }
   var defaultPages = {
-    'super_admin':'access-ctrl','branch_mgr':'branch-dash','staff':'branch-dash',
+    'super_admin':'exec-dash','branch_mgr':'branch-dash','staff':'branch-dash',
     'hr_manager':'hrf-hr-dash','finance_dir':'hrf-fin-dash'
   };
   // Always go to the role's default page on login — no stale page restoration
-  navTo(defaultPages[role] || 'access-ctrl');
+  navTo(defaultPages[role] || 'exec-dash');
   NX.lastSync = Date.now();
 }
 
@@ -4849,6 +4849,11 @@ function renderPage(pageId) {
   NX.charts = {};
 
   var fns = {
+    'exec-dash':     pExecDash,
+    'brand-perf':    pBrandPerf,
+    'alerts-center': pAlerts,
+    'brand-mgmt':    pBrandMgmt,
+    'audit-log':     pAuditLog,
     'access-ctrl': pAccessCtrl,
     'branch-dash': pBranchDash,
     'inv-items': pInvItems,
@@ -5763,6 +5768,327 @@ function deleteBranch(branchId) {
   closeModalForce();
   showToast('Branch removed', 'success');
   navTo('brand-mgmt');
+}
+
+
+// ── PAGE: EXECUTIVE DASHBOARD ──────────────────────────────────────────────
+function pExecDash() {
+  var branches = getAccessibleBranches();
+  var h = '<div class="page-header"><h1>Executive Dashboard</h1>';
+  h += '<p>ALFA.CO · ' + branches.length + ' branch(es) connected</p></div>';
+
+  // KPI row — counts from NX_BRANCHES
+  var totalBranches = branches.length;
+  var activeBranches = branches.filter(function(b){ return b.pin; }).length;
+  var totalStaff = 0, totalSales = 0;
+  branches.forEach(function(b){
+    var s = NX_BRANCH_SALES[b.id];
+    if (s && s.length) {
+      s.forEach(function(e){ totalSales += parseFloat(e.total||e.amount||0); });
+    }
+  });
+
+  h += '<div class="kpi-grid" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr));margin-bottom:20px">';
+  var kpis = [
+    { label:'Total Branches', val:totalBranches, icon:'🏪', color:'var(--primary)' },
+    { label:'Active Branches', val:activeBranches, icon:'✅', color:'var(--success)' },
+    { label:'Total Sales (SAR)', val:totalSales>0?totalSales.toLocaleString('en',{minimumFractionDigits:0,maximumFractionDigits:0}):'—', icon:'💰', color:'var(--warning)' },
+    { label:'Registered Users', val:Object.keys(NX_USERS).length, icon:'👥', color:'var(--info)' }
+  ];
+  kpis.forEach(function(k){
+    h += '<div class="kpi-card"><div class="kpi-icon" style="background:'+k.color+'18">'+k.icon+'</div>';
+    h += '<div class="kpi-label">'+k.label+'</div>';
+    h += '<div class="kpi-value" style="font-size:24px">'+k.val+'</div></div>';
+  });
+  h += '</div>';
+
+  // Branches overview table
+  h += '<div class="card section"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">';
+  h += '<div style="font-size:13px;font-weight:700">All Branches</div>';
+  h += '<button class="btn btn-sm" onclick="navTo(\'access-ctrl\')">Manage →</button></div>';
+  if (!branches.length) {
+    h += '<div style="text-align:center;padding:30px;color:var(--text-tertiary)">No branches loaded. Check Firebase connection.</div>';
+  } else {
+    h += '<div class="table-wrap"><table class="data-table"><thead><tr>';
+    h += '<th>Branch</th><th>Brand</th><th>Location</th><th>Manager</th><th>Status</th>';
+    h += '</tr></thead><tbody>';
+    branches.forEach(function(b){
+      var color = b.color || '#f0a500';
+      h += '<tr onclick="navTo(\'branch-dash\')" style="cursor:pointer">';
+      h += '<td><span style="font-size:16px">'+(b.icon||'🍽️')+'</span> <strong>'+xe(b.name||b.id)+'</strong></td>';
+      h += '<td>'+xe(b.brand||'—')+'</td>';
+      h += '<td>'+xe(b.location||'—')+'</td>';
+      h += '<td>'+xe(b.manager||'—')+'</td>';
+      h += '<td><span class="badge '+(b.pin?'badge-green':'badge-amber')+'">'+(b.pin?'Active':'No PIN')+'</span></td>';
+      h += '</tr>';
+    });
+    h += '</tbody></table></div>';
+  }
+  h += '</div>';
+
+  // Load sales data async if not loaded
+  if (db && branches.length) {
+    var salesLoaded = 0;
+    branches.forEach(function(b){
+      if (!NX_BRANCH_SALES[b.id]) {
+        db.ref('branches/'+b.id+'/sales').limitToLast(30).once('value', function(snap){
+          NX_BRANCH_SALES[b.id] = Object.values(snap.val()||{});
+          salesLoaded++;
+          if (salesLoaded === branches.length && NX.page === 'exec-dash') {
+            renderPage('exec-dash');
+          }
+        });
+      }
+    });
+  }
+  return h;
+}
+
+// ── PAGE: BRAND PERFORMANCE ────────────────────────────────────────────────
+function pBrandPerf() {
+  var branches = getAccessibleBranches();
+  var h = '<div class="page-header"><h1>Brand Performance</h1>';
+  h += '<p>Sales and operational metrics across all branches</p></div>';
+
+  if (!branches.length) {
+    h += '<div class="empty-state"><div class="es-icon">📊</div><h3>No Branches</h3><p>No branch data available yet.</p></div>';
+    return h;
+  }
+
+  // Build per-branch metrics
+  h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:20px">';
+  branches.forEach(function(b){
+    var sales = NX_BRANCH_SALES[b.id] || [];
+    var totalSales = sales.reduce(function(sum,e){ return sum + parseFloat(e.total||e.amount||0); }, 0);
+    var txCount = sales.length;
+    var color = b.color || '#f0a500';
+    h += '<div class="card" style="border-top:3px solid '+color+';cursor:pointer" onclick="navTo(\'branch-dash\')">';
+    h += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">';
+    h += '<div style="width:40px;height:40px;border-radius:10px;background:'+color+'20;display:flex;align-items:center;justify-content:center;font-size:18px">'+(b.icon||'🍽️')+'</div>';
+    h += '<div><div style="font-size:14px;font-weight:700">'+xe(b.name||b.id)+'</div>';
+    h += '<div style="font-size:11px;color:var(--text-tertiary)">'+xe(b.brand||b.location||'')+'</div></div></div>';
+    h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+    h += '<div style="background:var(--surface-3);border-radius:8px;padding:10px"><div style="font-size:9px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.1em">Sales</div>';
+    h += '<div style="font-size:18px;font-weight:700;font-family:var(--mono)">SAR '+(totalSales>0?totalSales.toLocaleString('en',{minimumFractionDigits:0,maximumFractionDigits:0}):'—')+'</div></div>';
+    h += '<div style="background:var(--surface-3);border-radius:8px;padding:10px"><div style="font-size:9px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.1em">Transactions</div>';
+    h += '<div style="font-size:18px;font-weight:700;font-family:var(--mono)">'+txCount+'</div></div>';
+    h += '</div></div>';
+  });
+  h += '</div>';
+
+  // Load sales if needed
+  if (db) {
+    var toLoad = branches.filter(function(b){ return !NX_BRANCH_SALES[b.id]; });
+    if (toLoad.length) {
+      var done = 0;
+      toLoad.forEach(function(b){
+        db.ref('branches/'+b.id+'/sales').limitToLast(30).once('value', function(snap){
+          NX_BRANCH_SALES[b.id] = Object.values(snap.val()||{});
+          done++;
+          if (done === toLoad.length && NX.page === 'brand-perf') renderPage('brand-perf');
+        });
+      });
+      h += '<div style="text-align:center;padding:20px;color:var(--text-tertiary);font-size:12px">⏳ Loading sales data…</div>';
+    }
+  }
+  return h;
+}
+
+// ── PAGE: ALERTS CENTER ────────────────────────────────────────────────────
+function pAlerts() {
+  var branches = getAccessibleBranches();
+  var h = '<div class="page-header"><h1>Alerts Center</h1>';
+  h += '<p>System-wide alerts from all branches</p></div>';
+
+  // Low stock alerts
+  h += '<div class="card section"><div style="font-size:11px;font-weight:700;color:var(--danger);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px">🚨 Low Stock Alerts</div>';
+  h += '<div id="alerts-lowstock"><div style="text-align:center;padding:14px;color:var(--text-tertiary);font-size:12px">Loading…</div></div></div>';
+
+  // Health card expiry alerts
+  h += '<div class="card section"><div style="font-size:11px;font-weight:700;color:var(--warning);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px">💳 Health Card Expiry</div>';
+  h += '<div id="alerts-health"><div style="text-align:center;padding:14px;color:var(--text-tertiary);font-size:12px">Loading…</div></div></div>';
+
+  // Pending transfer requests
+  h += '<div class="card section"><div style="font-size:11px;font-weight:700;color:var(--info);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px">🔀 Pending Transfers</div>';
+  h += '<div id="alerts-transfers"><div style="text-align:center;padding:14px;color:var(--text-tertiary);font-size:12px">Loading…</div></div></div>';
+
+  if (db && branches.length) {
+    // Load low stock
+    var stockAlerts = [], stockDone = 0;
+    branches.forEach(function(b){
+      db.ref('branches/'+b.id+'/items').once('value', function(snap){
+        var items = Object.values(snap.val()||{});
+        items.forEach(function(it){
+          if (it && it.min > 0 && it.qty <= it.min) {
+            stockAlerts.push({ branch: b.name||b.id, name: it.name||it.code, qty: it.qty, min: it.min });
+          }
+        });
+        stockDone++;
+        if (stockDone === branches.length) {
+          var el = document.getElementById('alerts-lowstock');
+          if (!el) return;
+          if (!stockAlerts.length) {
+            el.innerHTML = '<div style="color:var(--success);font-size:12px;padding:8px 0">✅ No low stock alerts</div>';
+          } else {
+            el.innerHTML = '<div class="table-wrap"><table class="data-table"><thead><tr><th>Branch</th><th>Item</th><th>Qty</th><th>Min</th></tr></thead><tbody>' +
+              stockAlerts.map(function(a){
+                return '<tr><td>'+xe(a.branch)+'</td><td>'+xe(a.name)+'</td><td style="color:var(--danger);font-weight:700">'+a.qty+'</td><td>'+a.min+'</td></tr>';
+              }).join('') + '</tbody></table></div>';
+          }
+        }
+      });
+    });
+
+    // Load health cards
+    var healthAlerts = [], healthDone = 0;
+    var today = new Date(), soon = new Date(today.getTime() + 30*24*3600*1000);
+    branches.forEach(function(b){
+      db.ref('branches/'+b.id+'/health').once('value', function(snap){
+        var cards = Object.values(snap.val()||{});
+        cards.forEach(function(c){
+          if (c && c.medExp) {
+            var exp = new Date(c.medExp);
+            if (exp <= soon) healthAlerts.push({ branch: b.name||b.id, name: c.name||c.staffName||'—', exp: c.medExp, expired: exp < today });
+          }
+        });
+        healthDone++;
+        if (healthDone === branches.length) {
+          var el = document.getElementById('alerts-health');
+          if (!el) return;
+          if (!healthAlerts.length) {
+            el.innerHTML = '<div style="color:var(--success);font-size:12px;padding:8px 0">✅ No expiring health cards in 30 days</div>';
+          } else {
+            el.innerHTML = healthAlerts.map(function(a){
+              var color = a.expired ? 'var(--danger)' : 'var(--warning)';
+              return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">' +
+                '<span style="font-size:14px">💳</span>' +
+                '<div style="flex:1"><div style="font-size:13px;font-weight:600">'+xe(a.name)+'</div>' +
+                '<div style="font-size:11px;color:var(--text-tertiary)">'+xe(a.branch)+' · Expires: '+xe(a.exp)+'</div></div>' +
+                '<span class="badge" style="color:'+color+';background:'+color+'18">'+(a.expired?'EXPIRED':'EXPIRING SOON')+'</span></div>';
+            }).join('');
+          }
+        }
+      });
+    });
+
+    // Load transfers
+    db.ref('admin/transfer_requests').once('value', function(snap){
+      var reqs = Object.values(snap.val()||{}).filter(function(r){ return r && r.status==='pending'; });
+      var el = document.getElementById('alerts-transfers');
+      if (!el) return;
+      if (!reqs.length) {
+        el.innerHTML = '<div style="color:var(--success);font-size:12px;padding:8px 0">✅ No pending transfer requests</div>';
+      } else {
+        el.innerHTML = reqs.map(function(r){
+          return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">' +
+            '<span style="font-size:14px">🔀</span>' +
+            '<div style="flex:1"><div style="font-size:13px;font-weight:600">'+xe(r.staffName||'Staff')+'</div>' +
+            '<div style="font-size:11px;color:var(--text-tertiary)">'+xe(r.fromBranchName||r.fromBranch||'')+'  →  '+xe(r.toBranchName||r.toBranch||'')+'</div></div>' +
+            '<button class="btn btn-sm" onclick="navTo(\'access-ctrl\')">Review</button></div>';
+        }).join('');
+      }
+    });
+  }
+  return h;
+}
+
+// ── PAGE: BRAND MANAGEMENT ─────────────────────────────────────────────────
+function pBrandMgmt() {
+  var branches = getAccessibleBranches();
+  var h = '<div class="page-header"><h1>Brand Management</h1>';
+  h += '<p>All registered branches and their configuration</p></div>';
+
+  h += '<div class="header-actions"><div></div>';
+  h += '<button class="btn btn-primary" onclick="openAddBranchModal()">+ Add Branch</button></div>';
+
+  if (!branches.length) {
+    h += '<div class="empty-state"><div class="es-icon">🏢</div><h3>No Branches Yet</h3>';
+    h += '<p>Click "+ Add Branch" to register your first branch.</p></div>';
+    return h;
+  }
+
+  // Group by brand
+  var brands = {};
+  branches.forEach(function(b){
+    var brand = b.brand || 'Unbranded';
+    if (!brands[brand]) brands[brand] = [];
+    brands[brand].push(b);
+  });
+
+  Object.keys(brands).sort().forEach(function(brand){
+    var brs = brands[brand];
+    h += '<div class="card section">';
+    h += '<div style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px">🏷️ '+xe(brand)+' · '+brs.length+' branch(es)</div>';
+    h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px">';
+    brs.forEach(function(b){
+      var color = b.color || '#f0a500';
+      h += '<div style="background:var(--surface-3);border-radius:12px;padding:14px;border-left:4px solid '+color+'">';
+      h += '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">';
+      h += '<div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">';
+      h += '<div style="width:42px;height:42px;border-radius:10px;background:'+color+'20;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">'+(b.icon||'🍽️')+'</div>';
+      h += '<div style="min-width:0"><div style="font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+xe(b.name||b.id)+'</div>';
+      h += '<div style="font-size:11px;color:var(--text-tertiary);margin-top:2px">'+xe(b.location||'')+(b.manager?' · '+xe(b.manager):'')+'</div>';
+      h += '<div style="font-size:10px;color:var(--text-tertiary);margin-top:2px;font-family:var(--mono)">PIN: '+xe(String(b.pin||'—'))+'</div></div></div>';
+      h += '<div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">';
+      h += '<button class="btn btn-sm" onclick="openManageBranchModal(\''+xe(b.id)+'\')">⚙️ Edit</button>';
+      h += '</div></div></div>';
+    });
+    h += '</div></div>';
+  });
+  return h;
+}
+
+// ── PAGE: AUDIT LOG ────────────────────────────────────────────────────────
+function pAuditLog() {
+  var h = '<div class="page-header"><h1>Audit Log</h1>';
+  h += '<p>System activity and session history</p></div>';
+
+  h += '<div class="card section"><div style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px">🔑 Recent Logins</div>';
+  h += '<div id="audit-log-list"><div style="text-align:center;padding:20px;color:var(--text-tertiary);font-size:12px">Loading…</div></div></div>';
+
+  h += '<div class="card section"><div style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px">🏪 Branch Activity</div>';
+  h += '<div class="table-wrap"><table class="data-table"><thead><tr>';
+  h += '<th>Branch</th><th>Manager</th><th>Status</th><th>Action</th>';
+  h += '</tr></thead><tbody>';
+
+  var branches = getAccessibleBranches();
+  if (!branches.length) {
+    h += '<tr><td colspan="4" style="text-align:center;color:var(--text-tertiary);padding:20px">No branches registered</td></tr>';
+  } else {
+    branches.forEach(function(b){
+      h += '<tr>';
+      h += '<td><span style="font-size:14px">'+(b.icon||'🍽️')+'</span> <strong>'+xe(b.name||b.id)+'</strong></td>';
+      h += '<td>'+xe(b.manager||'—')+'</td>';
+      h += '<td><span class="badge '+(b.pin?'badge-green':'badge-amber')+'">'+(b.pin?'Active':'No PIN')+'</span></td>';
+      h += '<td><button class="btn btn-sm" onclick="openManageBranchModal(\''+xe(b.id)+'\')">Edit</button></td>';
+      h += '</tr>';
+    });
+  }
+  h += '</tbody></table></div></div>';
+
+  // Load user sessions from Firebase
+  if (db) {
+    db.ref('staff/sessions').limitToLast(20).once('value', function(snap){
+      var sessions = Object.values(snap.val()||{}).filter(function(s){ return s && s.lastLogin; });
+      sessions.sort(function(a,b){ return (b.lastLogin||0)-(a.lastLogin||0); });
+      var el = document.getElementById('audit-log-list');
+      if (!el) return;
+      if (!sessions.length) {
+        el.innerHTML = '<div style="color:var(--text-tertiary);font-size:12px;padding:8px 0">No login records found</div>';
+        return;
+      }
+      el.innerHTML = '<div class="table-wrap"><table class="data-table"><thead><tr><th>User</th><th>Role</th><th>Branch</th><th>Last Login</th></tr></thead><tbody>' +
+        sessions.map(function(s){
+          var d = s.lastLogin ? new Date(s.lastLogin).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
+          return '<tr><td><strong>'+xe(s.name||s.sap||'—')+'</strong></td>' +
+            '<td><span class="badge badge-blue">'+xe((s.role||'staff').toUpperCase())+'</span></td>' +
+            '<td>'+xe(s.branch||s.branchId||'—')+'</td>' +
+            '<td style="font-family:var(--mono);font-size:11px">'+d+'</td></tr>';
+        }).join('') +
+        '</tbody></table></div>';
+    });
+  }
+  return h;
 }
 
 function pAccessCtrl() {
