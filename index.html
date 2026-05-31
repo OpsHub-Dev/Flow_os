@@ -3420,6 +3420,7 @@ function loadSession() {
 
 function clearSession() {
   localStorage.removeItem(SESSION_KEY);
+  try { localStorage.removeItem('nx_last_page'); } catch(e) {}
   NX.session = null;
 }
 
@@ -3433,6 +3434,7 @@ function doLogout() {
   bItems = []; bLogs = []; bOrders = [];
   clNxRole = null;
   clNxState = {};
+  NX.page = null;
   NX.rev = null;
   NX.notifications = [];
   NX.unreadCount = 0;
@@ -4487,7 +4489,14 @@ function _lumToast(msg, isErr) {
 var loginState = { step:0, role:null, pin:'', entityId:null, brandId:null, regionId:null, branchId:null };
 
 function renderLogin(step) {
-  loginState.step = step;
+  // Full reset of login state when returning to role selection
+  if (step === 0) {
+    loginState = { step:0, role:null, pin:'', entityId:null, brandId:null,
+                   regionId:null, branchId:null, branchName:null, brandName:null,
+                   regionName:null, userId:null, userName:null, branchIds:null };
+  } else {
+    loginState.step = step;
+  }
   var card = document.getElementById('login-card');
   if (!card) return;
   if (step === 0) renderLoginStep0(card);
@@ -4821,20 +4830,8 @@ function launchApp() {
     'super_admin':'access-ctrl','branch_mgr':'branch-dash','staff':'branch-dash',
     'hr_manager':'hrf-hr-dash','finance_dir':'hrf-fin-dash'
   };
-  // Restore last visited page if it belongs to this role
-  var lastPage = null;
-  try { lastPage = localStorage.getItem('nx_last_page'); } catch(e) {}
-  var restored = false;
-  if (lastPage) {
-    var roleNav = NAV_CONFIG[role] || [];
-    var allNavIds = [];
-    roleNav.forEach(function(sec){ (sec.items||[]).forEach(function(it){ allNavIds.push(it.id); }); });
-    if (allNavIds.indexOf(lastPage) >= 0) {
-      navTo(lastPage);
-      restored = true;
-    }
-  }
-  if (!restored) navTo(defaultPages[role] || 'access-ctrl');
+  // Always go to the role's default page on login — no stale page restoration
+  navTo(defaultPages[role] || 'access-ctrl');
   NX.lastSync = Date.now();
 }
 
