@@ -3583,9 +3583,7 @@ function navTo(pageId) {
   }
 
   // If Firebase data not yet loaded, show a spinner and retry
-  var needsBranches = ['exec-dash','brand-perf','brand-dash','brand-branches',
-    'region-dash','region-branches','rev-analytics','headcount','food-cost',
-    'alerts-center','brand-mgmt','access-ctrl','audit-log'];
+  var needsBranches = ['access-ctrl'];
   var area = document.getElementById('page-area');
 
   if (needsBranches.indexOf(pageId) >= 0 && !Object.keys(NX_BRANCHES).length) {
@@ -3627,13 +3625,7 @@ function updateTopBar(pageId) {
   if (s.branchName && s.branchName !== s.brandName) parts.push(xe(s.branchName));
 
   var labels = {
-    'exec-dash':'Executive Dashboard','brand-perf':'Brand Performance',
-    'rev-analytics':'Revenue Analytics','headcount':'Headcount',
-    'food-cost':'Food Cost','alerts-center':'Alerts Center',
-    'brand-mgmt':'Brand Management','access-ctrl':'Access Control',
-    'audit-log':'Audit Log','brand-dash':'Brand Dashboard',
-    'brand-branches':'My Branches','region-dash':'Region Dashboard',
-    'region-branches':'Region Branches','branch-dash':'Branch Dashboard',
+    'branch-dash':'Branch Dashboard',
     'inv-items':'Inventory','inv-moves':'Receiving',
     'inv-orders':'Purchase Orders','low-stock':'Low Stock',
     'inv-report':'Monthly Report','wastage':'Wastage Log',
@@ -4058,17 +4050,6 @@ var DEMO_METRICS = {
   brands: {}
 };
 
-// Refresh DEMO_METRICS from live NX_BRANCH_SALES data
-function refreshDemoMetrics() {
-  var branches = getAccessibleBranches();
-  DEMO_METRICS.totalToday = 0;
-  DEMO_METRICS.totalMTD   = 0;
-  DEMO_METRICS.branchesOnline = branches.length;
-  branches.forEach(function(b) {
-    DEMO_METRICS.totalToday += branchSalesToday(b.id);
-    DEMO_METRICS.totalMTD   += branchSalesMTD(b.id);
-  });
-}
 
 
 var DEMO_NOTIFICATIONS = []; // Populated by NXMon from real Firebase data
@@ -4889,7 +4870,7 @@ function launchApp() {
     return;
   }
   var defaultPages = {
-    'super_admin':'exec-dash','branch_mgr':'branch-dash','staff':'branch-dash',
+    'super_admin':'access-ctrl','branch_mgr':'branch-dash','staff':'branch-dash',
     'hr_manager':'hrf-hr-dash','finance_dir':'hrf-fin-dash'
   };
   // Restore last visited page if it belongs to this role
@@ -4905,7 +4886,7 @@ function launchApp() {
       restored = true;
     }
   }
-  if (!restored) navTo(defaultPages[role] || 'exec-dash');
+  if (!restored) navTo(defaultPages[role] || 'access-ctrl');
   NX.lastSync = Date.now();
 }
 
@@ -4923,20 +4904,7 @@ function renderPage(pageId) {
   NX.charts = {};
 
   var fns = {
-    'exec-dash': pExecDash,
-    'brand-perf': pBrandPerf,
-    'rev-analytics': pRevAnalytics,
-    'headcount': pHeadcount,
-    'food-cost': pFoodCost,
-    'alerts-center': pAlerts,
-    'brand-mgmt': pBrandMgmt,
     'access-ctrl': pAccessCtrl,
-    'audit-log': pAuditLog,
-    'shared-ingredients': pSharedIngredients,
-    'brand-dash': pBrandDash,
-    'brand-branches': pBrandBranches,
-    'region-dash': pRegionDash,
-    'region-branches': pRegionBranches,
     'branch-dash': pBranchDash,
     'inv-items': pInvItems,
     'inv-moves': pInvMoves,
@@ -5006,86 +4974,6 @@ function renderPage(pageId) {
   }
 }
 
-// ── PAGE: EXECUTIVE DASHBOARD ──
-function pExecDash() {
-  // Use live data from Firebase
-  refreshDemoMetrics();
-  var branches = getAccessibleBranches();
-  if (!branches.length) {
-    var _es = "<div style='display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;padding:40px'>";
-    _es += "<div style='font-size:54px;margin-bottom:18px'>&#x1F3D7;&#xFE0F;</div>";
-    _es += "<div style='font-size:21px;font-weight:800;color:var(--text-primary);margin-bottom:8px'>No Branches Found</div>";
-    _es += "<div style='font-size:13px;color:var(--text-secondary);max-width:420px;line-height:1.7;margin-bottom:28px'>Firebase is connected but no branches loaded. Check Firebase Rules.</div>";
-    _es += "<div style='display:flex;gap:12px;flex-wrap:wrap;justify-content:center'>";
-    _es += '<button class="btn btn-primary" style="padding:12px 28px" onclick="navTo(&quot;access-ctrl&quot;)">&#x2795; Add Branch</button>';
-    _es += '<button class="btn" style="padding:12px 28px" onclick="location.reload()">&#x21BB; Refresh</button>';
-    _es += "</div></div>";
-    return _es;
-  }
-  var totalToday = 0, totalMTD = 0;
-  branches.forEach(function(b) {
-    totalToday += branchSalesToday(b.id);
-    totalMTD   += branchSalesMTD(b.id);
-  });
-  var loadedCount = Object.keys(NX_LOADED_SALES).length;
-
-  // If no branches loaded yet, show live loading card
-  if (!branches.length) {
-    return '<div class="page-header"><h1>Executive Dashboard</h1><p>Loading from Firebase…</p></div>' +
-      '<div style="text-align:center;padding:60px 20px">' +
-      '<div style="font-size:48px;margin-bottom:16px">⏳</div>' +
-      '<h3 style="color:var(--text-primary);margin-bottom:8px">Fetching branch data…</h3>' +
-      '<p style="color:var(--text-secondary);margin-bottom:20px">Connecting to admin/branches in Firebase</p>' +
-      '<button class="btn btn-primary" onclick="navTo(\'exec-dash\')">↺ Refresh</button></div>';
-  }
-
-  return '<div class="page-header"><h1>Executive Dashboard</h1><p>Live data from Firebase — ' + fmtDate(new Date()) + '</p></div>' +
-    '<div class="kpi-grid section">' +
-    kpiCard('💰','Today\'s Revenue', formatSAR(totalToday), branches.length + ' branch(es)', 'var(--ceo)', 'Live from Firebase', '') +
-    kpiCard('📅','MTD Revenue', formatSAR(totalMTD), 'Month to date', 'var(--brand-dir)', new Date().toLocaleDateString('en-GB',{month:'short',year:'numeric'}), '') +
-    kpiCard('🏢','Branches', branches.length + ' registered', 'From admin/branches', 'var(--info)', 'Firebase live', '') +
-    kpiCard('📊','Sales Loaded', loadedCount + ' / ' + branches.length, 'Branches with sales data', 'var(--branch-mgr)', loadedCount < branches.length ? 'Loading\u2026' : 'All loaded', '') +
-    '</div>' +
-    // Brand Leaderboard
-    '<div class="section">' +
-    '<div class="card">' +
-    '<div class="chart-header"><div class="chart-title">Brand Performance Leaderboard</div>' +
-    '<div style="display:flex;gap:8px">' +
-    '<select class="form-select" style="width:auto" onchange="sortLeaderboard(this.value)" id="lb-sort">' +
-    '<option value="today">Sort: Today Sales</option><option value="mtd">Sort: MTD Sales</option>' +
-    '<option value="fc">Sort: Food Cost</option>' +
-    '</select>' +
-    '<button class="btn btn-sm" onclick="exportLeaderboard()">⬇ Export</button>' +
-    '</div></div>' +
-    '<div class="table-wrap" id="lb-table-wrap">' + buildLeaderboardTable() + '</div>' +
-    '</div></div>' +
-    // Split: chart + rankings
-    '<div class="grid-60-40 section">' +
-    '<div class="chart-card">' +
-    '<div class="chart-header"><div class="chart-title">Revenue Last 30 Days</div>' +
-    '<div class="date-pills">' +
-    '<button class="date-pill active" onclick="changeSalesChart(\'all\',this)">All Brands</button>' +
-    '<button class="date-pill" onclick="changeSalesChart(\'piatto\',this)">Piatto</button>' +
-    // brand pills generated dynamically from Firebase registry
-    (Object.values(NX_BRANCHES).reduce(function(acc,b){ var bn=b.brand||b.name; if(acc.indexOf(bn)<0)acc.push(bn); return acc;},[])).map(function(bn){ return '<button class="date-pill" onclick="changeSalesChart(\'' + xe(bn) + '\',this)">' + xe(bn) + '</button>'; }).join('') +
-    '</div></div>' +
-    '<div style="height:280px"><canvas id="chart-revenue30"></canvas></div>' +
-    '</div>' +
-    '<div class="card">' +
-    '<div class="chart-header"><div class="chart-title">Branch Rankings</div></div>' +
-    '<div style="margin-bottom:16px"><div style="font-size:11px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">🥇 Top 3 Today</div>' +
-    buildTopBranches(true) + '</div>' +
-    '<div class="divider"></div>' +
-    '<div><div style="font-size:11px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">⚠️ Bottom 3 Today</div>' +
-    buildTopBranches(false) + '</div>' +
-    '</div></div>' +
-    // Alert Cards Row
-    '<div class="grid-3 section">' +
-    '<div class="card"><div class="chart-title" style="margin-bottom:14px">👥 Staff Alerts</div>' + buildStaffAlerts() + '</div>' +
-    '<div class="card"><div class="chart-title" style="margin-bottom:14px">💳 Health Cards</div>' + buildHealthAlerts() + '</div>' +
-    '<div class="card"><div class="chart-title" style="margin-bottom:14px">📦 Low Stock</div>' + buildStockAlerts() + '</div>' +
-    '</div>';
-}
 
 function kpiCard(icon, label, value, sub, color, meta, trend) {
   return '<div class="kpi-card" style="--accent-color:' + color + '">' +
@@ -5185,30 +5073,6 @@ function changeSalesChart(brand, btn) {
   initRevChart(brand);
 }
 
-// ── PAGE: BRAND PERFORMANCE ──
-function pBrandPerf() {
-  if (!NX.bp) NX.bp = { period:'today' };
-  var s = NX.session || {};
-  var canSetTarget = (s.role==='super_admin');
-  var periods = [['today','Today'],['week','This Week'],['month','This Month'],['quarter','Quarter']];
-  var pills = periods.map(function(p){
-    return '<button class="date-pill'+(NX.bp.period===p[0]?' active':'')+'" onclick="NX.bp.period=\''+p[0]+'\';navTo(\'brand-perf\')">'+p[1]+'</button>';
-  }).join('');
-  var h = '<div class="page-header"><h1>Brand Performance</h1><p>Real-time brand comparison from Firebase</p></div>';
-  h += '<div class="header-actions"><div class="date-pills">'+pills+'</div>';
-  h += '<div style="display:flex;gap:8px">';
-  if (canSetTarget) h += '<button class="btn" onclick="openBrandTargetModal()">🎯 Set Targets</button>';
-  h += '<button class="btn" onclick="exportBrandPerf()">⬇ Export CSV</button>';
-  h += '</div></div>';
-  h += '<div class="table-wrap section"><table class="data-table"><thead><tr><th>Brand</th><th>Branches</th><th>Revenue</th><th>Daily Avg</th><th>Target</th><th>vs Target</th><th>YoY %</th><th>Status</th></tr></thead><tbody>';
-  h += buildBrandPerfTable();
-  h += '</tbody></table></div>';
-  h += '<div class="grid-2 section">';
-  h += '<div class="chart-card"><div class="chart-header"><div class="chart-title">Brand Revenue Share</div></div><div style="height:260px"><canvas id="chart-brand-pie"></canvas></div></div>';
-  h += '<div class="chart-card"><div class="chart-header"><div class="chart-title">Food Cost % by Branch</div></div><div style="height:260px"><canvas id="chart-fc-bar"></canvas></div></div>';
-  h += '</div>';
-  return h;
-}
 
 function openBrandTargetModal() {
   var branches = getAccessibleBranches();
@@ -5348,155 +5212,6 @@ function exportBrandPerf() {
   showToast('CSV exported','success');
 }
 
-// ── PAGE: REVENUE ANALYTICS ──
-function pRevAnalytics() {
-  // Initialise filter state on NX object
-  if (!NX.rev) NX.rev = { period:'month', group:'brand', yoy:false, brand:'all', region:'all', branch:'all' };
-
-  // Ensure live sales data is loaded — if not, kick off load and show placeholder
-  var branches = getAccessibleBranches();
-  var allLoaded = branches.every(function(b){ return NX_BRANCH_SALES[b.id] !== undefined; });
-  if (!allLoaded) {
-    loadAllBranchesSales(function(){ navTo('rev-analytics'); });
-    return '<div style="padding:48px;text-align:center;color:var(--text-tertiary)"><div style="font-size:32px;margin-bottom:12px">\u23F3</div><div>Loading live sales data from Firebase\u2026</div></div>';
-  }
-
-  var s = NX.session || {};
-  var role = s.role || 'super_admin';
-
-  // Build live brand→region→branch tree from accessible branches
-  var liveTree = {};
-  branches.forEach(function(b){
-    var brandName = b.brand || 'Unknown';
-    var brandId = brandName.toLowerCase().replace(/\s+/g,'_');
-    var regionName = b.region || (b.location || 'Unknown');
-    var regionId = regionName.toLowerCase().replace(/\s+/g,'_');
-    if (!liveTree[brandId]) liveTree[brandId] = { name:brandName, regions:{} };
-    if (!liveTree[brandId].regions[regionId]) liveTree[brandId].regions[regionId] = { name:regionName, branches:[] };
-    liveTree[brandId].regions[regionId].branches.push(b);
-  });
-
-  // Build entity selector options based on live data
-  var brandOpts = '<option value="all">All Brands</option>';
-  Object.keys(liveTree).sort().forEach(function(bk) {
-    brandOpts += '<option value="' + bk + '"' + (NX.rev.brand===bk?' selected':'') + '>' + xe(liveTree[bk].name) + '</option>';
-  });
-
-  var regionOpts = '<option value="all">All Regions</option>';
-  Object.keys(liveTree).sort().forEach(function(bk) {
-    Object.keys(liveTree[bk].regions).sort().forEach(function(rk) {
-      regionOpts += '<option value="' + bk + '|' + rk + '"' + (NX.rev.region===bk+'|'+rk?' selected':'') + '>' + xe(liveTree[bk].name) + ' \u2014 ' + xe(liveTree[bk].regions[rk].name) + '</option>';
-    });
-  });
-
-  var branchOpts = '<option value="all">All Branches</option>';
-  Object.keys(liveTree).sort().forEach(function(bk) {
-    Object.keys(liveTree[bk].regions).sort().forEach(function(rk) {
-      liveTree[bk].regions[rk].branches.forEach(function(br) {
-        branchOpts += '<option value="' + bk + '|' + rk + '|' + br.id + '"' + (NX.rev.branch===bk+'|'+rk+'|'+br.id?' selected':'') + '>' + xe(br.name) + '</option>';
-      });
-    });
-  });
-
-  var p = NX.rev.period;
-  var g = NX.rev.group;
-
-  var h = '<div class="page-header"><h1>Revenue Analytics</h1><p>Multi-dimensional revenue analysis — filterable by period and entity</p></div>';
-
-  // ── Controls row ──
-  h += '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">';
-  h += '<div class="date-pills" id="rev-period-pills">';
-  var periods = [['today','Today'],['week','This Week'],['month','This Month'],['quarter','Quarter'],['year','Year'],['30d','Last 30 Days'],['90d','Last 90 Days']];
-  periods.forEach(function(pair) {
-    h += '<button class="date-pill' + (p===pair[0]?' active':'') + '" onclick="revSetPeriod(\'' + pair[0] + '\')">' + pair[1] + '</button>';
-  });
-  h += '</div>';
-  h += '<div style="display:flex;gap:8px;align-items:center">';
-  h += '<label style="font-size:11px;color:var(--text-secondary);white-space:nowrap">Compare YoY</label>';
-  h += '<input type="checkbox" id="rev-yoy-toggle" ' + (NX.rev.yoy?'checked':'') + ' onchange="revToggleYoY(this.checked)" style="width:16px;height:16px;cursor:pointer">';
-  h += '<button class="btn" onclick="revExportCSV()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export CSV</button>';
-  h += '</div></div>';
-
-  // ── Entity grouping row ──
-  h += '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:20px;padding:14px 16px;background:var(--surface-1);border:1px solid var(--border);border-radius:10px">';
-  h += '<span style="font-size:11px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.1em">View By</span>';
-  var groups = [['brand','Brands'],['region','Regions'],['branch','Branches']];
-  groups.forEach(function(pair) {
-    h += '<button class="bfbt' + (g===pair[0]?' on':'') + '" onclick="revSetGroup(\'' + pair[0] + '\')" style="padding:5px 14px">' + pair[1] + '</button>';
-  });
-  h += '<div style="width:1px;height:20px;background:var(--border);margin:0 4px"></div>';
-  if (g === 'brand' || g === 'region' || g === 'branch') {
-    h += '<span style="font-size:11px;color:var(--text-secondary)">Filter Brand:</span>';
-    h += '<select class="bfi" style="width:auto" onchange="revSetBrand(this.value)">' + brandOpts + '</select>';
-  }
-  if (g === 'region' || g === 'branch') {
-    h += '<span style="font-size:11px;color:var(--text-secondary)">Region:</span>';
-    h += '<select class="bfi" style="width:auto" onchange="revSetRegion(this.value)">' + regionOpts + '</select>';
-  }
-  if (g === 'branch') {
-    h += '<span style="font-size:11px;color:var(--text-secondary)">Branch:</span>';
-    h += '<select class="bfi" style="width:auto" onchange="revSetBranch(this.value)">' + branchOpts + '</select>';
-  }
-  h += '</div>';
-
-  // ── KPI summary row ──
-  var kpis = revCalcKPIs();
-  h += '<div class="bgrid-4" style="margin-bottom:20px">';
-  h += '<div class="bsc"><div class="bsc-lbl">Period Total</div><div class="bsc-val bcgold" style="font-size:22px">' + formatSAR(kpis.total) + '</div><div class="bsc-sub">' + revPeriodLabel() + '</div></div>';
-  h += '<div class="bsc"><div class="bsc-lbl">vs Previous Period</div><div class="bsc-val" style="font-size:22px;color:' + (kpis.vsPrev >= 0 ? 'var(--success)' : 'var(--danger)') + '">' + (kpis.vsPrev >= 0 ? '▲' : '▼') + ' ' + Math.abs(kpis.vsPrev).toFixed(1) + '%</div><div class="bsc-sub">Prev: ' + formatSAR(kpis.prevTotal) + '</div></div>';
-  h += '<div class="bsc"><div class="bsc-lbl">Daily Average</div><div class="bsc-val bcgold" style="font-size:22px">' + formatSAR(kpis.dailyAvg) + '</div><div class="bsc-sub">Per operating day</div></div>';
-  h += '<div class="bsc"><div class="bsc-lbl">Top Performer</div><div class="bsc-val" style="font-size:16px;color:var(--text-primary);margin-top:4px">' + xe(kpis.topName) + '</div><div class="bsc-sub">' + formatSAR(kpis.topVal) + '</div></div>';
-  h += '</div>';
-
-  // ── Chart: Line (trend) ──
-  h += '<div class="chart-card section" style="margin-bottom:20px">';
-  h += '<div class="chart-header">';
-  h += '<div><div class="chart-title">Revenue Trend</div><div style="font-size:11px;color:var(--text-tertiary);margin-top:2px">' + revGroupLabel() + ' · ' + revPeriodLabel() + (NX.rev.yoy ? ' + Previous Year' : '') + '</div></div>';
-  h += '<div style="display:flex;gap:8px;align-items:center">';
-  h += '<div id="rev-legend" style="display:flex;gap:12px;flex-wrap:wrap"></div>';
-  h += '</div></div>';
-  h += '<div style="height:320px;position:relative"><canvas id="chart-rev-trend"></canvas></div>';
-  h += '<div id="rev-crosshair-label" style="position:absolute;top:12px;right:12px;font-family:JetBrains Mono,monospace;font-size:11px;color:var(--text-secondary);display:none"></div>';
-  h += '</div>';
-
-  // ── Charts row: Pie + Bar ──
-  h += '<div class="grid-60-40 section" style="margin-bottom:20px">';
-
-  // Bar chart (comparison)
-  h += '<div class="chart-card">';
-  h += '<div class="chart-header"><div><div class="chart-title">Entity Comparison</div><div style="font-size:11px;color:var(--text-tertiary);margin-top:2px">Sorted by revenue · ' + revPeriodLabel() + '</div></div>';
-  h += '<div id="rev-bar-sort" style="display:flex;gap:4px">';
-  h += '<button class="date-pill active" onclick="revBarSort(\'revenue\',this)">Revenue</button>';
-  h += '<button class="date-pill" onclick="revBarSort(\'growth\',this)">Growth</button>';
-  h += '</div></div>';
-  h += '<div style="height:260px"><canvas id="chart-rev-bar"></canvas></div>';
-  h += '</div>';
-
-  // Pie / doughnut (share)
-  h += '<div class="chart-card">';
-  h += '<div class="chart-header"><div><div class="chart-title">Revenue Share</div><div style="font-size:11px;color:var(--text-tertiary);margin-top:2px">% of total · ' + revPeriodLabel() + '</div></div>';
-  h += '<div style="display:flex;gap:4px">';
-  h += '<button class="date-pill active" id="pie-btn-doughnut" onclick="revPieType(\'doughnut\',this)">Donut</button>';
-  h += '<button class="date-pill" id="pie-btn-pie" onclick="revPieType(\'pie\',this)">Pie</button>';
-  h += '</div></div>';
-  h += '<div style="height:260px"><canvas id="chart-rev-pie"></canvas></div>';
-  h += '<div id="rev-pie-legend" style="margin-top:10px;display:flex;flex-direction:column;gap:4px"></div>';
-  h += '</div></div>';
-
-  // ── Summary table ──
-  h += '<div class="btw section"><div class="bttb" style="justify-content:space-between"><span style="font-weight:700;font-size:13px">Detailed Breakdown</span>';
-  h += '<button class="btn btn-sm" onclick="revExportCSV()">⬇ CSV</button></div>';
-  h += '<div class="btw-s"><table class="btbl" id="rev-table"><thead><tr>';
-  h += '<th>Entity</th><th style="text-align:right" onclick="revSortTable(\'period\')" class="sort-active">Period Revenue <span class="sort-arrow">↓</span></th>';
-  h += '<th style="text-align:right" onclick="revSortTable(\'prev\')">Prev Period <span class="sort-arrow">↕</span></th>';
-  h += '<th style="text-align:right" onclick="revSortTable(\'change\')">Change <span class="sort-arrow">↕</span></th>';
-  h += '<th style="text-align:right" onclick="revSortTable(\'daily\')">Daily Avg <span class="sort-arrow">↕</span></th>';
-  h += '<th style="text-align:center">Share %</th>';
-  h += '<th style="text-align:center">Sparkline</th>';
-  h += '</tr></thead><tbody>' + revBuildTableRows() + '</tbody></table></div></div>';
-
-  return h;
-}
 
 // ── Revenue Analytics State & Data Engine ──────────────────────────────────
 
@@ -5858,432 +5573,6 @@ function setRevGroup(v) { revSetGroup(v === 'By Brand' ? 'brand' : v === 'By Reg
 function toggleYoY(on) { revToggleYoY(on); }
 
 
-
-// ── PAGE: HEADCOUNT ──
-function pHeadcount() {
-  var branches = getAccessibleBranches();
-  var s = NX.session || {};
-  var h = '<div class="page-header"><h1>Headcount Overview</h1><p>Live staff data · ' + branches.length + ' branch(es)</p></div>';
-
-  if (s.role === 'branch_mgr') {
-    var staffList = BS.staff;
-    var act  = staffList.filter(function(m){ return (m.status||'Active')==='Active'; }).length;
-    var lv   = staffList.filter(function(m){ return m.status==='On Leave'; }).length;
-    var res  = staffList.filter(function(m){ return m.status==='Resigned'; }).length;
-    var depts = {}; staffList.forEach(function(m){ var d=m.dept||'Other'; depts[d]=(depts[d]||0)+1; });
-    h += '<div class="kpi-grid section">';
-    h += kpiCard('&#x1F465;','Total Staff', staffList.length, s.branchName||'Your branch', 'var(--ceo)', '', '');
-    h += kpiCard('&#x2705;','Active', act, 'Currently working', 'var(--success)', '', '');
-    h += kpiCard('&#x1F3D6;&#xFE0F;','On Leave', lv, 'Approved leave', 'var(--warning)', '', '');
-    h += kpiCard('&#x1F6AA;','Resigned', res, 'Separated', 'var(--danger)', '', '');
-    h += '</div>';
-    h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:16px">';
-    Object.keys(depts).forEach(function(d) {
-      var col = d==='Manager'?'#b45309':d==='Kitchen'?'#0057ff':'#00875a';
-      h += '<div style="background:var(--surface-2);border:1px solid '+col+'30;border-radius:10px;padding:14px;text-align:center">';
-      h += '<div class="mono" style="font-size:24px;font-weight:300;color:'+col+'">'+depts[d]+'</div>';
-      h += '<div style="font-size:11px;color:var(--text-secondary);margin-top:4px">'+xe(d)+'</div></div>';
-    });
-    h += '</div>';
-    h += '<div class="table-wrap section"><table class="data-table"><thead><tr><th>Name</th><th>Department</th><th>Role</th><th>Status</th><th>Phone</th></tr></thead><tbody>';
-    staffList.slice().sort(function(a,b){ return (a.dept||'').localeCompare(b.dept||'')||a.name.localeCompare(b.name); }).forEach(function(m) {
-      var stc = (m.status||'Active')==='Active'?'#00875a':m.status==='On Leave'?'#b45309':'#c0392b';
-      h += '<tr><td><strong>'+xe(m.name)+'</strong></td><td>'+xe(m.dept||'—')+'</td><td>'+xe(m.role||'—')+'</td>';
-      h += '<td><span style="color:'+stc+';font-weight:600">'+xe(m.status||'Active')+'</span></td><td>'+xe(m.phone||'—')+'</td></tr>';
-    });
-    h += '</tbody></table></div>';
-    return h;
-  }
-
-  // ── Pending transfer requests ─────────────────────────────────────────────
-  
-
-  // Admin: load all branches
-  if (!NX._hcCache) NX._hcCache = {};
-  var cached = branches.filter(function(b){ return NX._hcCache[b.id]; });
-  if (cached.length === branches.length && branches.length > 0) {
-    var totAll=0,totAct=0,totLv=0,totRes=0;
-    branches.forEach(function(b){
-      var list=NX._hcCache[b.id]||[];
-      totAll+=list.length;
-      totAct+=list.filter(function(m){return (m.status||'Active')==='Active';}).length;
-      totLv +=list.filter(function(m){return m.status==='On Leave';}).length;
-      totRes+=list.filter(function(m){return m.status==='Resigned';}).length;
-    });
-    h += '<div class="kpi-grid section">';
-    h += kpiCard('&#x1F465;','Total Headcount', totAll, branches.length+' branches', 'var(--ceo)', 'Firebase', '');
-    h += kpiCard('&#x2705;','Active', totAct, 'Working staff', 'var(--success)', '', '');
-    h += kpiCard('&#x1F3D6;&#xFE0F;','On Leave', totLv, 'Approved leave', 'var(--warning)', '', '');
-    h += kpiCard('&#x1F6AA;','Resigned', totRes, 'Separated', 'var(--danger)', '', '');
-    h += '</div>';
-    h += '<div class="table-wrap section"><table class="data-table"><thead><tr><th>Branch</th><th>Brand</th><th style="text-align:center">Total</th><th style="text-align:center">Active</th><th style="text-align:center">On Leave</th><th style="text-align:center">Resigned</th></tr></thead><tbody>';
-    branches.forEach(function(b){
-      var list=NX._hcCache[b.id]||[];
-      var act=list.filter(function(m){return (m.status||'Active')==='Active';}).length;
-      var lv =list.filter(function(m){return m.status==='On Leave';}).length;
-      var rs =list.filter(function(m){return m.status==='Resigned';}).length;
-      h+='<tr><td><strong>'+(b.icon||'&#x1F37D;&#xFE0F;')+' '+xe(b.name)+'</strong></td>';
-      h+='<td style="font-size:11px;color:var(--text-secondary)">'+xe(b.brand||'—')+'</td>';
-      h+='<td class="mono" style="text-align:center;color:var(--ceo);font-weight:700">'+list.length+'</td>';
-      h+='<td class="mono" style="text-align:center;color:#00875a;font-weight:600">'+act+'</td>';
-      h+='<td class="mono" style="text-align:center;color:#b45309;font-weight:600">'+lv+'</td>';
-      h+='<td class="mono" style="text-align:center;color:#c0392b;font-weight:600">'+rs+'</td></tr>';
-    });
-    h+='</tbody></table></div>';
-    h+='<div style="text-align:right;margin-top:8px"><button class="btn btn-sm" onclick="NX._hcCache={};navTo(\'headcount\')">&#x21BA; Refresh</button></div>';
-  } else {
-    h += '<div class="empty-state"><div style="font-size:36px;margin-bottom:12px">&#x23F3;</div><h3>Loading staff data…</h3><p style="color:var(--text-secondary)">Reading branches/*/staff from Firebase</p></div>';
-    h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-top:16px" id="hc-cards">';
-    branches.forEach(function(b){
-      h += '<div id="hc-b-'+xe(b.id)+'" style="background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:14px">';
-      h += '<div style="font-weight:700;margin-bottom:4px">'+(b.icon||'&#x1F37D;&#xFE0F;')+' '+xe(b.name)+'</div>';
-      h += '<div style="font-size:11px;color:var(--text-tertiary)">Loading…</div></div>';
-    });
-    h += '</div>';
-    if (db) {
-      var loaded = 0;
-      branches.forEach(function(b) {
-        db.ref('branches/'+b.id+'/staff').once('value', function(snap) {
-          var raw = snap.val()||{};
-          var list = Array.isArray(raw)?raw.filter(Boolean):Object.values(raw).filter(Boolean);
-          if (!NX._hcCache) NX._hcCache={};
-          NX._hcCache[b.id] = list;
-          loaded++;
-          var card = document.getElementById('hc-b-'+b.id);
-          if (card) {
-            var act=list.filter(function(m){return (m.status||'Active')==='Active';}).length;
-            var lv =list.filter(function(m){return m.status==='On Leave';}).length;
-            card.innerHTML='<div style="font-weight:700;margin-bottom:6px">'+(b.icon||'&#x1F37D;&#xFE0F;')+' '+xe(b.name)+'</div>'+
-              '<div style="font-size:11px;display:flex;gap:8px">'+
-              '<span style="color:#00875a">&#x2705; '+act+'</span>'+
-              '<span style="color:#b45309">&#x1F3D6;&#xFE0F; '+lv+'</span>'+
-              '<span style="color:var(--text-tertiary)">Total: '+list.length+'</span></div>';
-          }
-          if (loaded===branches.length) setTimeout(function(){ if(NX.page==='headcount') navTo('headcount'); },300);
-        });
-      });
-    }
-    // ── Petty Cash Review ─────────────────────────────────────────────────
-    h += '<div class="card section" style="margin-top:14px">';
-    h += '<div style="font-size:11px;font-weight:700;color:#b45309;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">💰 Petty Cash — Awaiting Your Review</div>';
-    h += '<div id="am-pc-list"><div style="text-align:center;padding:14px;color:var(--text-tertiary);font-size:12px">Loading…</div></div>';
-    h += '</div>';
-    if (db) {
-      setTimeout(function() {
-        var container = document.getElementById('am-pc-list');
-        if (!container) return;
-        db.ref('admin/petty_cash_reviews').once('value', function(snap) {
-          var raw = snap.val() || {};
-          var myBranchIds = s.branchIds || [];
-          var cycles = Object.values(raw).filter(function(c) {
-            if (!c || c.status !== 'pending_am') return false;
-            return myBranchIds.length === 0 || myBranchIds.indexOf(c.branchId) >= 0;
-          });
-          if (!cycles.length) {
-            container.innerHTML = '<div style="text-align:center;padding:14px;color:var(--text-tertiary);font-size:12px;font-style:italic">No petty cash cycles awaiting review</div>';
-            return;
-          }
-          var htm = cycles.map(function(cy) {
-            var invCount=0;(cy.entries||[]).forEach(function(e){invCount+=(e.invoices||[]).length;});
-            return '<div style="background:var(--surface-2);border:1px solid rgba(180,83,9,.2);border-radius:10px;padding:14px;margin-bottom:10px">' +
-              '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">' +
-                '<div style="font-size:20px">💰</div>' +
-                '<div style="flex:1">' +
-                  '<div style="font-weight:700;font-size:13px">' + xe(cy.branchName||cy.branchId) + ' — Cycle #' + cy.cycleNo + '</div>' +
-                  '<div style="font-size:12px;color:var(--text-secondary)">Total: <strong>' + (cy.total||0).toLocaleString('en',{minimumFractionDigits:2}) + ' SAR </strong> · ' + (cy.entries||[]).length + ' entries · ' + (invCount?'📎 '+invCount+' invoice(s)':'no invoices') + '</div>' +
-                  '<div style="font-size:11px;color:var(--text-tertiary)">Closed by: ' + xe(cy.closedBy||'—') + ' · ' + (cy.closedAt?new Date(cy.closedAt).toLocaleDateString():'') + '</div>' +
-                '</div>' +
-              '</div>' +
-              '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
-                '<button class="btn btn-sm" onclick="pcAMExportReview(\'' + cy.id + '\')">📄 View PDF</button>' +
-                '<button class="btn btn-sm" style="background:rgba(220,38,38,.1);border-color:rgba(220,38,38,.3);color:#c0392b" onclick="pcAMReject(\'' + cy.id + '\')">✕ Reject</button>' +
-                '<button class="btn btn-primary btn-sm" onclick="pcAMApprove(\'' + cy.id + '\')">✓ Approve</button>' +
-              '</div>' +
-            '</div>';
-          }).join('');
-          container.innerHTML = htm;
-        });
-      }, 300);
-    }
-  }
-  return h;
-}
-
-// ── PAGE: FOOD COST ──
-function pFoodCost() {
-  var branches = getAccessibleBranches();
-  var s = NX.session || {};
-  var now = new Date();
-  var tm = now.getFullYear()+'-'+(now.getMonth()<9?'0':'')+(now.getMonth()+1);
-
-  if (s.role === 'branch_mgr') {
-    var fcTarget = parseFloat((BS._branchConfig||{}).fcTarget)||30;
-
-    function calcFC(monthPrefix) {
-      var issueCost = bLogs.reduce(function(s,l){
-        if(l.type!=='issue') return s;
-        if(!(l.date||'').startsWith(monthPrefix)) return s;
-        if(l.cost) return s+l.cost;
-        var it=bfindItem(l.code); return s+(l.qty*(it?parseFloat(it.price||0):0));
-      },0);
-      var wasteCost = BS.waste.reduce(function(s,w){
-        return (w.date||'').startsWith(monthPrefix)?s+(+w.value||0):s;
-      },0);
-      return {issue:issueCost,waste:wasteCost,total:issueCost+wasteCost};
-    }
-
-    var fc = calcFC(tm);
-    var mtd = branchSalesMTD(s.branchId||'');
-    var pctNum = mtd>0?(fc.total/mtd*100):0;
-    var fcPct = mtd>0?pctNum.toFixed(1):'—';
-    var fcOk = pctNum>0&&pctNum<=fcTarget;
-    var fcHigh = pctNum>fcTarget&&pctNum<=fcTarget*1.1;
-    var fcColor = pctNum===0?'var(--text-tertiary)':fcOk?'#00875a':fcHigh?'#b45309':'#c0392b';
-    var issuePct = mtd>0?(fc.issue/mtd*100):0;
-    var wastePct = mtd>0?(fc.waste/mtd*100):0;
-    var barW = Math.min(100,pctNum).toFixed(1);
-    var targetPos = Math.min(99,fcTarget).toFixed(1);
-    var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-
-    // ── PAGE HEADER ROW ──
-    var h = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">';
-    h += '<div style="display:flex;align-items:center;gap:10px">';
-    h += '<span style="font-size:20px">🍽️</span>';
-    h += '<span style="font-size:20px;font-weight:700;color:var(--text-primary);font-family:var(--font);letter-spacing:-0.5px">Food Cost</span>';
-    // Month badge — raised nm pill
-    h += '<span style="background:var(--nm-base,#E7E5E4);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:600;color:var(--text-secondary);box-shadow:3px 3px 8px rgba(0,0,0,0.14),-3px -3px 8px rgba(255,255,255,0.84);font-family:var(--mono)">'+tm+'</span>';
-    h += '</div>';
-    // Target button — raised nm pill
-    h += '<button onclick="openFCTargetModal()" style="display:inline-flex;align-items:center;gap:6px;background:var(--nm-base,#E7E5E4);border:none;border-radius:20px;padding:7px 18px;font-size:12px;font-weight:700;color:var(--text-secondary);cursor:pointer;box-shadow:3px 3px 8px rgba(0,0,0,0.14),-3px -3px 8px rgba(255,255,255,0.84);font-family:var(--font);transition:all .15s">⚙️ Target: '+fcTarget+'%</button>';
-    h += '</div>';
-
-    // ── MAIN GRID ──
-    h += '<div style="display:grid;grid-template-columns:1fr 260px;gap:18px;align-items:start">';
-    h += '<div>'; // left col
-
-    // ── LEFT TOP: big % + status ──
-    h += '<div style="display:flex;align-items:center;gap:24px;margin-bottom:20px">';
-    // Circle indicator
-    h += '<div style="display:flex;flex-direction:column;align-items:center;gap:6px">';
-    h += '<div style="width:54px;height:54px;border-radius:50%;background:var(--nm-base,#E7E5E4);box-shadow:'+
-         '4px 4px 12px rgba(0,0,0,0.16),-4px -4px 12px rgba(255,255,255,0.86);'+
-         'display:flex;align-items:center;justify-content:center">';
-    h += '<div style="width:24px;height:24px;border-radius:50%;background:'+fcColor+';box-shadow:0 0 8px '+fcColor+'66"></div>';
-    h += '</div>';
-    h += '<div style="font-size:22px;font-weight:700;font-family:var(--mono);color:'+fcColor+'">'+fcPct+(fcPct!=='—'?'%':'')+'</div>';
-    h += '<div style="font-size:9px;font-weight:700;color:var(--text-tertiary);letter-spacing:.1em;text-transform:uppercase;font-family:var(--mono)">FOOD COST</div>';
-    // Decorative accent blob
-    h += '<div style="width:14px;height:24px;border-radius:99px;background:#b45309;opacity:0.45;box-shadow:0 0 6px rgba(254,153,0,0.4)"></div>';
-    h += '</div>';
-    // Status badge — nm inset pill
-    h += '<div style="background:var(--nm-base,#E7E5E4);border-radius:24px;padding:10px 20px;box-shadow:inset 3px 3px 8px rgba(0,0,0,0.11),inset -3px -3px 8px rgba(255,255,255,0.72);display:inline-flex;align-items:center;gap:8px">';
-    h += '<span style="width:16px;height:16px;border-radius:4px;background:'+fcColor+'22;display:inline-flex;align-items:center;justify-content:center;font-size:11px;color:'+fcColor+';font-weight:700">'+(fcOk?'✓':fcHigh?'!':'✕')+'</span>';
-    h += '<span style="font-size:13px;font-weight:700;color:'+fcColor+';font-family:var(--font)">'+(pctNum===0?'No Data':fcOk?'On Track':fcHigh?'Caution':'Over Target')+'</span>';
-    h += '</div>';
-    h += '</div>'; // end top row
-
-    // CARD 1 — Food Invoices: raised nm card
-    h += '<div style="background:var(--nm-base,#E7E5E4);border:none;border-radius:20px;padding:26px 28px;margin-bottom:14px;position:relative;box-shadow:6px 6px 16px rgba(0,0,0,0.17),-6px -6px 16px rgba(255,255,255,0.87)">';
-    h += '<div style="font-size:10px;font-weight:700;color:var(--text-tertiary);letter-spacing:.14em;text-transform:uppercase;margin-bottom:12px;font-family:var(--mono)">FOOD INVOICES THIS MONTH</div>';
-    h += '<div style="font-size:30px;font-weight:700;font-family:var(--mono);color:var(--text-primary);margin-bottom:6px;letter-spacing:-1px">'+formatSAR(fc.issue)+'</div>';
-    h += '<div style="font-size:12px;color:var(--text-tertiary);font-family:var(--mono)">'+(mtd>0?issuePct.toFixed(1)+'% of sales':'No sales data')+'</div>';
-    // Play triangle decoration
-    h += '<div style="position:absolute;top:50%;right:28px;transform:translateY(-50%);width:0;height:0;border-style:solid;border-width:11px 0 11px 18px;border-color:transparent transparent transparent var(--text-tertiary);opacity:0.2"></div>';
-    h += '</div>';
-
-    // CARD 2 — Wastage: raised nm card
-    h += '<div style="background:var(--nm-base,#E7E5E4);border:none;border-radius:20px;padding:26px 28px;margin-bottom:14px;box-shadow:6px 6px 16px rgba(0,0,0,0.17),-6px -6px 16px rgba(255,255,255,0.87)">';
-    h += '<div style="font-size:10px;font-weight:700;color:var(--text-tertiary);letter-spacing:.14em;text-transform:uppercase;margin-bottom:12px;font-family:var(--mono)">WASTAGE THIS MONTH</div>';
-    h += '<div style="font-size:30px;font-weight:700;font-family:var(--mono);color:#c0392b;margin-bottom:6px;letter-spacing:-1px">'+formatSAR(fc.waste)+'</div>';
-    h += '<div style="font-size:12px;color:var(--text-tertiary);font-family:var(--mono)">'+(mtd>0?wastePct.toFixed(1)+'% of sales':'—')+'</div>';
-    h += '</div>';
-
-    // CARD 3 — Total vs Sales: raised nm card with nm inset progress bar
-    h += '<div style="background:var(--nm-base,#E7E5E4);border:none;border-radius:20px;padding:26px 28px;margin-bottom:14px;box-shadow:6px 6px 16px rgba(0,0,0,0.17),-6px -6px 16px rgba(255,255,255,0.87)">';
-    h += '<div style="font-size:10px;font-weight:700;color:var(--text-tertiary);letter-spacing:.14em;text-transform:uppercase;margin-bottom:12px;font-family:var(--mono)">TOTAL FOOD COST VS SALES</div>';
-    h += '<div style="margin-bottom:18px">';
-    h += '<span style="font-size:26px;font-weight:700;font-family:var(--mono);color:'+fcColor+';letter-spacing:-1px">'+formatSAR(fc.total)+'</span>';
-    h += '<span style="font-size:13px;font-weight:500;color:var(--text-tertiary);font-family:var(--mono);margin-left:10px">/ '+formatSAR(mtd)+' sales</span>';
-    h += '</div>';
-    // Inset progress bar channel
-    h += '<div style="position:relative;height:10px;background:var(--nm-base,#E7E5E4);border-radius:99px;overflow:visible;margin-bottom:8px;'+
-         'box-shadow:inset 3px 3px 7px rgba(0,0,0,0.12),inset -3px -3px 7px rgba(255,255,255,0.72)">';
-    h += '<div style="height:100%;width:'+barW+'%;background:'+fcColor+';border-radius:99px;transition:width .5s;box-shadow:0 0 6px '+fcColor+'77"></div>';
-    // Target pin
-    h += '<div style="position:absolute;top:-4px;left:'+targetPos+'%;transform:translateX(-50%);width:2px;height:18px;background:#b45309;border-radius:2px;opacity:.85"></div>';
-    h += '</div>';
-    h += '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-tertiary);font-family:var(--mono)">';
-    h += '<span>0%</span><span style="color:#b45309;font-weight:700">Target '+fcTarget+'%</span><span>100%</span></div>';
-    h += '</div>';
-
-    // Wastage log table — inside nm card
-    h += '<div style="background:var(--nm-base,#E7E5E4);border:none;border-radius:20px;overflow:hidden;box-shadow:6px 6px 16px rgba(0,0,0,0.17),-6px -6px 16px rgba(255,255,255,0.87)">';
-    h += '<div style="padding:13px 18px;border-bottom:1px solid rgba(0,0,0,0.06);box-shadow:0 1px 0 rgba(255,255,255,0.8);display:flex;align-items:center;justify-content:space-between">';
-    h += '<span style="font-size:12px;font-weight:700;font-family:var(--font);color:var(--text-primary)">Wastage Log</span>';
-    h += '<button class="btn btn-sm btn-primary" onclick="navTo(\'wastage\')">+ Log Wastage</button></div>';
-    h += '<div class="table-wrap"><table class="data-table"><thead><tr><th>Date</th><th>Item</th><th>Qty</th><th>Reason</th><th>By</th><th style="text-align:right">Loss</th></tr></thead><tbody>';
-    var wSorted = BS.waste.slice().sort(function(a,b){return(b.date||'').localeCompare(a.date||'');});
-    wSorted.forEach(function(w){
-      h+='<tr><td class="mono" style="font-size:11px">'+xe(w.date||'—')+'</td>';
-      h+='<td style="font-weight:600">'+xe(w.item||'—')+'</td>';
-      h+='<td class="mono">'+xe(String(w.qty||'—'))+'</td>';
-      h+='<td style="font-size:11px">'+xe(w.reason||'—')+'</td>';
-      h+='<td style="font-size:11px;color:var(--text-secondary)">'+xe(w.by||'—')+'</td>';
-      h+='<td class="mono" style="text-align:right;color:#c0392b;font-weight:600">'+formatSAR(w.value||0)+'</td></tr>';
-    });
-    if(!wSorted.length) h+='<tr><td colspan="6" style="text-align:center;color:var(--text-tertiary);padding:22px;font-family:var(--mono);font-size:11px">No wastage entries yet</td></tr>';
-    h+='</tbody></table></div></div>';
-    h += '</div>'; // end left col
-
-    // ── RIGHT SIDEBAR: 3-Month Trend ──
-    h += '<div>';
-    h += '<div style="background:var(--nm-base,#E7E5E4);border:none;border-radius:20px;padding:22px;box-shadow:6px 6px 16px rgba(0,0,0,0.17),-6px -6px 16px rgba(255,255,255,0.87)">';
-    h += '<div style="font-size:9px;font-weight:700;color:var(--text-tertiary);letter-spacing:.14em;text-transform:uppercase;margin-bottom:18px;font-family:var(--mono)">3-MONTH TREND</div>';
-
-    for (var mi=-2; mi<=0; mi++) {
-      var d2 = new Date(now.getFullYear(), now.getMonth()+mi, 1);
-      var mkey = d2.getFullYear()+'-'+(d2.getMonth()<9?'0':'')+(d2.getMonth()+1);
-      var mLbl = MONTHS[d2.getMonth()];
-      var mFC = calcFC(mkey);
-      var mSales = branchSalesMTD(s.branchId||'', mkey);
-      var mPct = mSales>0?(mFC.total/mSales*100):0;
-      var isCurr = (mi===0);
-      var mCol = mPct===0?'var(--text-tertiary)':mPct<=fcTarget?'#00875a':mPct<=fcTarget*1.1?'#b45309':'#c0392b';
-      var barWm = mPct>0?Math.min(100,mPct/Math.max(fcTarget*1.5,mPct)*100).toFixed(0):0;
-      var tgtPos = Math.min(99,fcTarget/Math.max(fcTarget*1.5,mPct||1)*100).toFixed(0);
-
-      h += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">';
-      h += '<div style="width:34px;font-size:11px;font-weight:'+(isCurr?'700':'400')+';color:'+(isCurr?'var(--text-primary)':'var(--text-tertiary)')+';font-family:var(--mono)">'+mLbl+'</div>';
-      // Inset track
-      h += '<div style="flex:1;height:8px;background:var(--nm-base,#E7E5E4);border-radius:99px;position:relative;'+
-           'box-shadow:inset 2px 2px 5px rgba(0,0,0,0.11),inset -2px -2px 5px rgba(255,255,255,0.70)">';
-      if(mPct>0) h += '<div style="height:100%;width:'+barWm+'%;background:'+mCol+';border-radius:99px;box-shadow:0 0 4px '+mCol+'55"></div>';
-      // Target pin
-      h += '<div style="position:absolute;top:-2px;left:'+tgtPos+'%;transform:translateX(-50%);width:2px;height:12px;background:#b45309;border-radius:1px;opacity:.8"></div>';
-      h += '</div>';
-      h += '<div style="width:40px;font-size:11px;font-family:var(--mono);font-weight:700;color:'+mCol+';text-align:right">'+(mPct>0?mPct.toFixed(1)+'%':'—')+'</div>';
-      h += '</div>';
-    }
-
-    // Target legend
-    h += '<div style="display:flex;align-items:center;gap:8px;padding-top:12px;border-top:1px solid rgba(0,0,0,0.06);box-shadow:0 -1px 0 rgba(255,255,255,0.8);font-size:10px;color:#b45309;font-weight:700;font-family:var(--mono)">';
-    h += '<div style="width:14px;height:2px;background:#b45309;border-radius:1px;flex-shrink:0"></div>';
-    h += 'Target '+fcTarget+'%</div>';
-
-    // Inline target editor
-    h += '<div style="margin-top:16px;border-top:1px solid rgba(0,0,0,0.06);box-shadow:0 -1px 0 rgba(255,255,255,0.8);padding-top:14px">';
-    h += '<div style="font-size:9px;font-weight:700;color:var(--text-tertiary);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;font-family:var(--mono)">Set Target</div>';
-    h += '<div style="display:flex;gap:8px;align-items:center">';
-    h += '<input type="number" id="fc-target-input" value="'+fcTarget+'" min="1" max="100" '+
-         'style="flex:1;background:var(--nm-base,#E7E5E4);border:none;border-radius:10px;padding:8px 10px;'+
-         'color:var(--text-primary);font-size:14px;font-weight:700;font-family:var(--mono);text-align:center;outline:none;'+
-         'box-shadow:inset 3px 3px 7px rgba(0,0,0,0.12),inset -3px -3px 7px rgba(255,255,255,0.72)">%';
-    h += '<button class="btn btn-primary btn-sm" onclick="saveFCTarget()">Save</button>';
-    h += '</div></div>';
-    h += '</div>'; // end card
-    h += '</div>'; // end right col
-    h += '</div>'; // end grid
-    return h;
-  }
-
-  // ── Admin multi-branch ──
-  var h = '<div class="page-header"><h1>🍽️ Food Cost</h1><p style="font-family:var(--mono);font-size:11px;opacity:.6">'+tm+'</p></div>';
-  if (!NX._fcCache) NX._fcCache = {};
-  var cached = branches.filter(function(b){ return NX._fcCache[b.id]; });
-  if (cached.length === branches.length && branches.length > 0) {
-    var grandW=0,grandS=0,rows=[];
-    branches.forEach(function(b){
-      var fc=NX._fcCache[b.id]||{waste:[],mtdSales:0};
-      var w=0; fc.waste.forEach(function(e){if((e.date||'').indexOf(tm)===0)w+=(+e.value||0);});
-      var sales=fc.mtdSales||branchSalesMTD(b.id);
-      var pct=sales>0?(w/sales*100):0;
-      grandW+=w; grandS+=sales;
-      rows.push({b:b,w:w,sales:sales,pct:pct});
-    });
-    var grandPct=grandS>0?(grandW/grandS*100).toFixed(1):'—';
-    var gcol=grandS>0&&grandW/grandS>0.35?'var(--danger)':grandS>0&&grandW/grandS>0.25?'var(--warning)':'var(--success)';
-    h += '<div class="kpi-grid section">';
-    h += kpiCard('&#x1F5D1;&#xFE0F;','Total MTD Wastage', formatSAR(grandW), 'All branches', 'var(--danger)', tm, '');
-    h += kpiCard('&#x1F4B0;','Total MTD Sales', formatSAR(grandS), 'All branches', 'var(--ceo)', '', '');
-    h += kpiCard('&#x1F4CA;','Avg Food Cost %', grandPct!=='—'?grandPct+'%':'—', 'Combined', gcol, 'Target: ≤30%', '');
-    h += kpiCard('&#x1F3E2;','Branches Loaded', cached.length+'/'+branches.length, 'Firebase', 'var(--info)', '', '');
-    h += '</div>';
-    rows.sort(function(a,b){return b.pct-a.pct;});
-    h += '<div class="table-wrap section"><table class="data-table"><thead><tr><th>Branch</th><th>Brand</th><th style="text-align:right">MTD Wastage</th><th style="text-align:right">MTD Sales</th><th style="text-align:center">Food Cost %</th><th style="text-align:center">vs Target</th></tr></thead><tbody>';
-    rows.forEach(function(row){
-      var pctStr=row.sales>0?row.pct.toFixed(1)+'%':'—';
-      var col=row.pct>35?'#c0392b':row.pct>25?'#b45309':'#00875a';
-      var bw=Math.min(100,row.pct).toFixed(0);
-      var diff=row.pct-30;
-      var diffStr=row.sales>0?(diff>0?'<span style="color:#c0392b">+'+diff.toFixed(1)+'%</span>':'<span style="color:#b45309">'+diff.toFixed(1)+'%</span>'):'—';
-      h+='<tr><td><strong>'+(row.b.icon||'&#x1F37D;&#xFE0F;')+' '+xe(row.b.name)+'</strong></td>';
-      h+='<td style="font-size:11px;color:var(--text-secondary)">'+xe(row.b.brand||'—')+'</td>';
-      h+='<td class="mono" style="text-align:right;color:var(--danger)">'+formatSAR(row.w)+'</td>';
-      h+='<td class="mono" style="text-align:right;color:var(--ceo)">'+formatSAR(row.sales)+'</td>';
-      h+='<td style="text-align:center"><div style="display:flex;align-items:center;gap:6px;justify-content:center">';
-      h+='<div style="width:50px;height:5px;background:var(--nm-base,#E7E5E4);border-radius:3px;box-shadow:inset 1px 1px 3px rgba(0,0,0,0.10),inset -1px -1px 2px rgba(255,255,255,0.65)"><div style="height:100%;width:'+bw+'%;background:'+col+';border-radius:3px"></div></div>';
-      h+='<span class="mono" style="color:'+col+';font-weight:700">'+pctStr+'</span></div></td>';
-      h+='<td style="text-align:center">'+diffStr+'</td></tr>';
-    });
-    h+='</tbody></table></div>';
-    h+='<div style="text-align:right;margin-top:8px"><button class="btn btn-sm" onclick="NX._fcCache={};navTo(\'food-cost\')">&#x21BA; Refresh</button></div>';
-  } else {
-    h += '<div class="empty-state"><div style="font-size:36px;margin-bottom:12px">&#x23F3;</div><h3>Loading food cost data\u2026</h3></div>';
-  }
-  return h;
-}
-
-
-// ── PAGE: ALERTS CENTER ──
-function pAlerts() {
-  // Shows all live notifications from NXMon engine — no hardcoded data
-  var all = (NX.notifications || []).slice(0, 50);
-  var danger  = all.filter(function(n){ return n.type==='danger'; });
-  var warning = all.filter(function(n){ return n.type==='warning'; });
-  var info    = all.filter(function(n){ return n.type==='info'; });
-
-  var h = '<div class="page-header"><h1>Alerts Center</h1><p>Live alerts from Firebase across ' + getAccessibleBranches().length + ' branch(es)</p></div>';
-  h += '<div class="kpi-grid section">';
-  h += kpiCard('🚨','Critical', danger.length, 'Requires immediate action', 'var(--danger)', danger.length ? 'Action needed' : 'All clear', danger.length ? 'neg' : '');
-  h += kpiCard('⚠️','Warnings', warning.length, 'Needs attention soon', 'var(--warning)', '', '');
-  h += kpiCard('ℹ️','Info', info.length, 'Informational alerts', 'var(--info)', '', '');
-  h += kpiCard('✅','Total Alerts', all.length, 'From all monitors', 'var(--success)', 'NXMon live', '');
-  h += '</div>';
-
-  if (!all.length) {
-    h += '<div class="empty-state section"><div style="font-size:48px;margin-bottom:16px">✅</div>';
-    h += '<h3>No alerts</h3><p style="color:var(--text-secondary)">NXMon is monitoring Firebase in real-time. All clear.</p></div>';
-    return h;
-  }
-
-  // Group by type
-  [['danger','🚨 Critical',danger],['warning','⚠️ Warnings',warning],['info','ℹ️ Info',info]].forEach(function(g) {
-    if (!g[2].length) return;
-    h += '<div class="section"><h3 style="font-size:13px;font-weight:700;margin-bottom:14px;color:var(--text-secondary)">' + g[1] + '</h3>';
-    h += '<div style="display:flex;flex-direction:column;gap:8px">';
-    g[2].forEach(function(n) {
-      var typeColors = { danger:'rgba(248,113,113,.12)', warning:'rgba(245,158,11,.12)', info:'rgba(96,165,250,.12)' };
-      var textColors = { danger:'#c0392b', warning:'#b45309', info:'#0057ff' };
-      var ago = '';
-      if (n.ts) {
-        var d = Date.now() - n.ts;
-        ago = d < 60000 ? 'just now' : d < 3600000 ? Math.floor(d/60000)+'m ago' : Math.floor(d/3600000)+'h ago';
-      } else { ago = n.time || ''; }
-      h += '<div class="alert-item" style="background:' + (typeColors[n.type]||'var(--surface-2)') + ';border:1px solid ' + (textColors[n.type]||'var(--border)') + '30;border-radius:10px;padding:12px 14px;cursor:pointer" onclick="notifClick(' + n.id + ')">';
-      h += '<div class="alert-dot" style="background:' + (textColors[n.type]||'#94a3b8') + '"></div>';
-      h += '<div class="alert-content">';
-      h += '<div class="alert-title">' + (n.icon||'') + ' ' + xe(n.title) + '</div>';
-      h += '<div class="alert-meta">' + xe(n.msg) + '</div>';
-      h += '<div class="alert-meta" style="margin-top:4px;color:var(--text-tertiary)">' + xe(n.branch||'') + (n.branch && ago ? ' · ' : '') + ago + '</div>';
-      h += '</div></div>';
-    });
-    h += '</div></div>';
-  });
-
-  h += '<div style="text-align:center;padding:20px"><button class="btn" onclick="NX.notifications=[];_updateBadge();renderNotifications();navTo(\'alerts-center\')">Clear All Alerts</button></div>';
-  return h;
-}
-
 function filterAlerts(level, btn) {
   var items = document.querySelectorAll('#alerts-list .alert-item');
   items.forEach(function(el) {
@@ -6291,68 +5580,6 @@ function filterAlerts(level, btn) {
   });
 }
 
-// ── PAGE: BRAND MANAGEMENT ──
-function pBrandMgmt() {
-  var branches = Object.values(NX_BRANCHES);
-  var tab = (NX._bmTab || 'brands');
-  var h = '<div class="page-header"><h1>Brand Management</h1><p>Firebase · admin/branches · ' + branches.length + ' branch(es)</p></div>';
-  h += '<div style="display:flex;gap:0;margin-bottom:16px;background:var(--surface-1);border:1px solid var(--border);border-radius:11px;padding:3px">';
-  h += '<button onclick="NX._bmTab=\'brands\';navTo(\'brand-mgmt\')" style="flex:1;padding:9px;border-radius:8px;border:none;cursor:pointer;font-size:12px;font-weight:700;font-family:var(--font);background:'+(tab==='brands'?'var(--accent)':'transparent')+';color:'+(tab==='brands'?'#000':'var(--text-secondary)')+'">🏢 Brands</button>';
-  h += '<button onclick="NX._bmTab=\'branches\';navTo(\'brand-mgmt\')" style="flex:1;padding:9px;border-radius:8px;border:none;cursor:pointer;font-size:12px;font-weight:700;font-family:var(--font);background:'+(tab==='branches'?'var(--accent)':'transparent')+';color:'+(tab==='branches'?'#000':'var(--text-secondary)')+'">&#x1F3EA; All Branches ('+branches.length+')</button>';
-  h += '</div>';
-  h += '<div class="header-actions" style="margin-bottom:16px"><div></div><div style="display:flex;gap:8px"><button class="btn" onclick="openAddBrandModal()">+ Add Brand</button><button class="btn btn-primary" onclick="openAddBranchModal()">+ Add Branch</button></div></div>';
-  if (!branches.length) {
-    h += '<div class="empty-state"><div class="es-icon">&#x1F3E2;</div><h3>No branches yet</h3><p>Add your first branch to get started</p></div>';
-    return h;
-  }
-  if (tab === 'brands') {
-    var brandMap = {};
-    branches.forEach(function(b) {
-      var bkey = b.brand || b.name || b.id;
-      if (!brandMap[bkey]) brandMap[bkey] = { name:bkey, icon:b.icon||'&#x1F37D;&#xFE0F;', color:b.color||'#f0a500', branches:[] };
-      brandMap[bkey].branches.push(b);
-    });
-    h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px">';
-    Object.values(brandMap).forEach(function(bm) {
-      var today=0, mtd=0;
-      bm.branches.forEach(function(b){ today+=branchSalesToday(b.id); mtd+=branchSalesMTD(b.id); });
-      h += '<div class="card" style="border-top:3px solid '+bm.color+'">';
-      h += '<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">';
-      h += '<div style="width:44px;height:44px;border-radius:12px;background:'+bm.color+'20;display:flex;align-items:center;justify-content:center;font-size:22px">'+bm.icon+'</div>';
-      h += '<div style="flex:1"><div style="font-size:16px;font-weight:700">'+xe(bm.name)+'</div>';
-      h += '<div style="font-size:11px;color:var(--text-tertiary)">'+bm.branches.length+' branch'+(bm.branches.length!==1?'es':'')+'</div></div>';
-      h += '<button class="btn btn-sm" onclick="openEditBrandModal(\'' + xe(bm.name) + '\',\'' + xe(bm.color) + '\',\'' + xe(bm.icon) + '\')">&#x2699; Edit</button>';
-      h += '</div>';
-      h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">';
-      h += '<div style="background:var(--surface-2);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.08em">Today</div>';
-      h += '<div class="mono" style="font-size:14px;font-weight:700;color:var(--ceo)">'+formatSAR(today)+'</div></div>';
-      h += '<div style="background:var(--surface-2);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.08em">MTD</div>';
-      h += '<div class="mono" style="font-size:14px;font-weight:700;color:var(--brand-dir)">'+formatSAR(mtd)+'</div></div></div>';
-      h += '<div style="border-top:1px solid var(--border);padding-top:12px">';
-      bm.branches.forEach(function(b) {
-        h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;font-size:12px;border-bottom:1px solid var(--border)">';
-        h += '<span style="color:var(--text-primary);font-weight:600">'+xe(b.name)+'</span>';
-        h += '<div style="display:flex;gap:4px"><button class="btn btn-sm" onclick="switchBranch(\''+xe(b.id)+'\')">View</button>';
-        h += '<button class="btn btn-sm" onclick="openEditBranchModal(\''+xe(b.id)+'\')">Edit</button></div></div>';
-      });
-      h += '</div></div>';
-    });
-    h += '</div>';
-  } else {
-    h += '<div class="table-wrap"><table class="data-table"><thead><tr><th>Branch</th><th>Brand</th><th>Location</th><th>Manager</th><th style="text-align:right">Today Sales</th><th></th></tr></thead><tbody>';
-    branches.slice().sort(function(a,b){ return (a.brand||a.name||'').localeCompare(b.brand||b.name||''); }).forEach(function(b) {
-      h += '<tr><td><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px">'+(b.icon||'&#x1F37D;&#xFE0F;')+'</span><strong>'+xe(b.name)+'</strong></div></td>';
-      h += '<td style="font-size:11px;color:var(--text-secondary)">'+xe(b.brand||'—')+'</td>';
-      h += '<td style="font-size:11px;color:var(--text-secondary)">'+xe(b.location||'—')+'</td>';
-      h += '<td style="font-size:11px;color:var(--text-secondary)">'+xe(b.manager||'—')+'</td>';
-      h += '<td class="mono" style="text-align:right;color:var(--ceo)">'+formatSAR(branchSalesToday(b.id))+'</td>';
-      h += '<td><div style="display:flex;gap:4px;justify-content:flex-end"><button class="btn btn-sm" onclick="switchBranch(\''+xe(b.id)+'\')">View</button>';
-      h += '<button class="btn btn-sm" onclick="openEditBranchModal(\''+xe(b.id)+'\')">Edit</button></div></td></tr>';
-    });
-    h += '</tbody></table></div>';
-  }
-  return h;
-}
 
 function openAddBrandModal() {
   openModal(
@@ -6954,29 +6181,6 @@ function openEditUserModal(userId) {
   );
 }
 
-
-
-
-
-// ── PAGE: AUDIT LOG ──
-function pSharedIngredients() {
-  var sess=NX.session||{};
-  var h='<div class="page-header"><h1>🧂 Shared Ingredients</h1><p>Global ingredient catalog for Recipe Builder — shared/inv_items</p></div>';
-  h+='<div class="header-actions"><div></div><div style="display:flex;gap:8px">';
-  h+='<button class="btn" onclick="openImportPricesModal()">📥 Import Prices from Branch</button>';
-  h+='<button class="btn btn-primary" onclick="openSharedIngModal(null)">+ Add Ingredient</button>';
-  h+='</div></div>';
-  // Search
-  h+='<div class="bcard" style="margin-bottom:14px"><input class="form-input" id="si-search" placeholder="Search by code or name..." oninput="renderSharedIngTable(this.value)" style="max-width:340px"></div>';
-  h+='<div id="si-table-wrap">';
-  h+=renderSharedIngTable_inner('');
-  h+='</div>';
-  setTimeout(function(){
-    var inp=document.getElementById('si-search');
-    if(inp) inp.oninput=function(){renderSharedIngTable(this.value);};
-  },0);
-  return h;
-}
 function renderSharedIngTable(q) {
   var wrap=document.getElementById('si-table-wrap');
   if(wrap) wrap.innerHTML=renderSharedIngTable_inner(q||'');
@@ -7138,41 +6342,6 @@ function delSharedIng(code) {
   });
 }
 
-function pAuditLog() {
-  var h = '<div class="page-header"><h1>Activity Log</h1><p>System events from NXMon · ' + getAccessibleBranches().length + ' branch(es) monitored</p></div>';
-  h += '<div class="header-actions"><div></div><div style="display:flex;gap:8px">';
-  h += '<button class="btn" onclick="auditExportCSV()">&#x2B07; Export CSV</button>';
-  if ((NX.session||{}).role === 'super_admin') h += '<button class="btn" style="color:var(--danger);border-color:rgba(248,113,113,.3)" onclick="auditClearOld()">&#x1F5D1; Clear Old (30d+)</button>';
-  h += '</div></div>';
-
-  // Use real notifications as the activity feed
-  var events = (NX.notifications||[]).slice(0,30);
-  if (!events.length) {
-    h += '<div class="empty-state section"><div style="font-size:40px;margin-bottom:12px">📋</div><h3>No activity yet</h3><p style="color:var(--text-secondary)">Activity appears here as NXMon detects events from Firebase</p></div>';
-    return h;
-  }
-
-  h += '<div class="table-wrap section"><table class="data-table"><thead><tr>';
-  h += '<th>Time</th><th>Event</th><th>Branch</th><th>Type</th>';
-  h += '</tr></thead><tbody>';
-  events.forEach(function(n) {
-    var ago = '';
-    if (n.ts) {
-      var d = Date.now()-n.ts;
-      ago = d<60000?'just now':d<3600000?Math.floor(d/60000)+'m ago':Math.floor(d/3600000)+'h ago';
-    }
-    var typeColors = { danger:'#c0392b', warning:'#b45309', info:'#0057ff' };
-    h += '<tr>';
-    h += '<td class="mono" style="color:var(--text-tertiary);font-size:11px">' + ago + '</td>';
-    h += '<td><strong style="color:var(--text-primary)">' + (n.icon||'') + ' ' + xe(n.title) + '</strong><div style="font-size:11px;color:var(--text-secondary)">' + xe(n.msg||'') + '</div></td>';
-    h += '<td style="font-size:12px">' + xe(n.branch||'—') + '</td>';
-    h += '<td><span style="color:' + (typeColors[n.type]||'var(--text-tertiary)') + ';font-weight:600;font-size:11px">' + xe(n.type||'info') + '</span></td>';
-    h += '</tr>';
-  });
-  h += '</tbody></table></div>';
-  return h;
-}
-
 // ── PAGE: BRAND DASHBOARD ──
 function auditExportCSV() {
   var events = (NX.notifications||[]).slice(0,200);
@@ -7196,235 +6365,6 @@ function auditClearOld() {
 }
 
 
-function pBrandDash() {
-  var s = NX.session || {};
-  var branches = getAccessibleBranches();
-  var totalToday = 0, totalMTD = 0;
-  branches.forEach(function(b) { totalToday += branchSalesToday(b.id); totalMTD += branchSalesMTD(b.id); });
-  var userName = s.userName || s.entityName || 'Manager';
-  var roleLabel = s.role === 'branch_mgr' ? 'Branch Manager' : 'Manager';
-
-  var h = '<div class="page-header"><h1>' + xe(userName) + '</h1>';
-  h += '<p>' + roleLabel + ' · ' + branches.length + ' branch(es) assigned · ' + fmtDate(new Date()) + '</p></div>';
-
-  if (!branches.length) {
-    h += '<div class="empty-state"><div class="es-icon">🏪</div>';
-    h += '<h3>No branches assigned</h3>';
-    h += '<p style="color:var(--text-secondary)">Ask the Super Admin to assign branches to your account in Access Control.</p></div>';
-    return h;
-  }
-
-  // KPI summary across all assigned branches
-  h += '<div class="kpi-grid section">';
-  h += kpiCard('💰','Today — All Branches', formatSAR(totalToday), branches.length + ' branch(es)', 'var(--ceo)', 'Live from Firebase', '');
-  h += kpiCard('📅','MTD — All Branches', formatSAR(totalMTD), new Date().toLocaleDateString('en-GB',{month:'long',year:'numeric'}), 'var(--brand-dir)', '', '');
-  h += kpiCard('🏢','Branches', branches.length, 'Assigned to you', 'var(--info)', '', '');
-  h += kpiCard('📊','Daily Avg', formatSAR(totalMTD / Math.max(1, new Date().getDate())), 'This month', 'var(--branch-mgr)', '', '');
-  h += '</div>';
-
-  // Per-branch breakdown cards
-  h += '<div class="section"><h3 style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px">Branch Breakdown</h3>';
-  h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px">';
-  branches.forEach(function(b) {
-    var bt = branchSalesToday(b.id), bm = branchSalesMTD(b.id);
-    var dayAvg = bm / Math.max(1, new Date().getDate());
-    h += '<div class="card" style="border-left:3px solid ' + (b.color||'#f0a500') + '">';
-    h += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">';
-    h += '<div style="width:38px;height:38px;border-radius:9px;background:' + (b.color||'#f0a500') + '20;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">' + (b.icon||'🍽️') + '</div>';
-    h += '<div><div style="font-size:14px;font-weight:700;color:var(--text-primary)">' + xe(b.name) + '</div>';
-    h += '<div style="font-size:10px;color:var(--text-secondary)">' + xe(b.brand||'') + (b.location?' · '+xe(b.location):'') + '</div></div>';
-    h += '<button class="btn btn-sm" style="margin-left:auto" onclick="switchBranch(\'' + xe(b.id) + '\')">Open →</button></div>';
-    h += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">';
-    [['Today',formatSAR(bt),'var(--ceo)'],['MTD',formatSAR(bm),'var(--brand-dir)'],['Daily Avg',formatSAR(dayAvg),'var(--info)']].forEach(function(m){
-      h += '<div style="background:var(--surface-3);border-radius:8px;padding:9px">';
-      h += '<div style="font-size:9px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.06em">' + m[0] + '</div>';
-      h += '<div style="font-size:13px;font-weight:700;color:' + m[2] + ';font-family:var(--mono);margin-top:2px">' + m[1] + '</div></div>';
-    });
-    h += '</div>';
-    h += '<div style="margin-top:10px;font-size:11px;color:var(--text-tertiary)">Manager: ' + xe(b.manager||'—') + '</div>';
-    h += '</div>';
-  });
-  h += '</div></div>';
-  return h;
-}
-
-// ── PAGE: BRAND BRANCHES ──
-function pBrandBranches() {
-  var s = NX.session || {};
-  var canEdit = (s.role==='super_admin');
-  var branches = getAccessibleBranches().filter(function(b) {
-    return !s.brandName || (b.brand||b.name) === s.brandName;
-  });
-  var h = '<div class="page-header"><h1>My Branches</h1><p>' + branches.length + ' branch(es)</p></div>';
-  h += '<div class="table-wrap section"><table class="data-table"><thead><tr>';
-  h += '<th>Branch</th><th>Location</th><th>Manager</th><th>FC Target</th><th>Monthly Target</th><th>Today</th><th>MTD</th><th>Actions</th>';
-  h += '</tr></thead><tbody>';
-  branches.forEach(function(b) {
-    var mtd = branchSalesMTD(b.id); var tgt = b.monthlyTarget||0;
-    var vsT = tgt>0?((mtd/tgt)*100).toFixed(0)+'%':'—';
-    var tCol = tgt>0&&mtd>=tgt?'#00875a':tgt>0?'#c0392b':'var(--text-tertiary)';
-    h += '<tr>';
-    h += '<td><div style="display:flex;align-items:center;gap:8px"><span style="font-size:18px">' + (b.icon||'\u{1F374}') + '</span><strong>' + xe(b.name) + '</strong></div></td>';
-    h += '<td>' + xe(b.location||'—') + '</td>';
-    h += '<td>' + xe(b.manager||'—') + '</td>';
-    h += '<td class="mono">' + (b.fcTarget?b.fcTarget+'%':'—') + '</td>';
-    h += '<td class="mono" style="color:'+tCol+'">' + (tgt?formatSAR(tgt)+' ('+vsT+')':'—') + '</td>';
-    h += '<td class="mono">' + formatSAR(branchSalesToday(b.id)) + '</td>';
-    h += '<td class="mono">' + formatSAR(mtd) + '</td>';
-    h += '<td><div style="display:flex;gap:4px">';
-    h += '<button class="btn btn-sm" onclick="switchBranch(\'' + xe(b.id) + '\')">View</button>';
-    if (canEdit) h += '<button class="btn btn-sm" onclick="openDirectorBranchEdit(\'' + xe(b.id) + '\')">&#x2699; Edit</button>';
-    h += '</div></td></tr>';
-  });
-  if (!branches.length) h += '<tr><td colspan="8" style="text-align:center;color:var(--text-tertiary);padding:24px">No branches assigned</td></tr>';
-  h += '</tbody></table></div>';
-  return h;
-}
-
-function openDirectorBranchEdit(branchId) {
-  if (!db) { showToast('Not connected','error'); return; }
-  db.ref('admin/branches/' + branchId).once('value', function(snap) {
-    var b = snap.val() || {};
-    openModal(
-      '<div class="modal-head"><h2>&#x2699; Edit Branch Config</h2><button class="modal-close" onclick="closeModalForce()">&#x2715;</button></div>' +
-      '<div class="form-row"><div class="form-group"><label class="form-label">Branch Name</label>' +
-        '<input class="form-input" id="dbe-name" value="' + xe(b.name||'') + '"></div>' +
-        '<div class="form-group"><label class="form-label">Location</label>' +
-        '<input class="form-input" id="dbe-loc" value="' + xe(b.location||'') + '"></div></div>' +
-      '<div class="form-row"><div class="form-group"><label class="form-label">Manager</label>' +
-        '<input class="form-input" id="dbe-mgr" value="' + xe(b.manager||'') + '"></div>' +
-        '<div class="form-group"><label class="form-label">FC Target (%)</label>' +
-        '<input class="form-input" type="number" id="dbe-fc" value="' + (b.fcTarget||30) + '" min="0" max="100"></div></div>' +
-      '<div class="form-row"><div class="form-group"><label class="form-label">Seating Capacity</label>' +
-        '<input class="form-input" type="number" id="dbe-seats" value="' + (b.seats||0) + '"></div>' +
-        '<div class="form-group"><label class="form-label">Monthly Sales Target (‫SAR ‬)</label>' +
-        '<input class="form-input" type="number" id="dbe-tgt" value="' + (b.monthlyTarget||0) + '" placeholder="0"></div></div>' +
-      '<div style="display:flex;gap:8px;margin-top:8px">' +
-        '<button class="btn" style="flex:1" onclick="closeModalForce()">Cancel</button>' +
-        '<button class="btn btn-primary" style="flex:2" onclick="saveDirectorBranchEdit(\'' + xe(branchId) + '\')">&#x1F4BE; Save Changes</button>' +
-      '</div>'
-    );
-  });
-}
-
-function saveDirectorBranchEdit(branchId) {
-  var name = document.getElementById('dbe-name').value.trim();
-  if (!name) { showToast('Name required','error'); return; }
-  var updates = {
-    name: name,
-    location: document.getElementById('dbe-loc').value.trim(),
-    manager: document.getElementById('dbe-mgr').value.trim(),
-    fcTarget: parseFloat(document.getElementById('dbe-fc').value)||30,
-    seats: parseInt(document.getElementById('dbe-seats').value)||0,
-    monthlyTarget: parseFloat(document.getElementById('dbe-tgt').value)||0
-  };
-  db.ref('admin/branches/' + branchId).update(updates, function(err) {
-    if (err) { showToast('Save failed: ' + err.message,'error'); return; }
-    closeModalForce(); showToast('Branch updated','success');
-    navTo('brand-branches');
-  });
-}
-
-// ── PAGE: REGION DASHBOARD ──
-function pRegionDash() {
-  var s = NX.session || {};
-  var branches = getAccessibleBranches();
-  var totalToday = 0, totalMTD = 0;
-  branches.forEach(function(b) { totalToday += branchSalesToday(b.id); totalMTD += branchSalesMTD(b.id); });
-  var userName = s.userName || s.entityName || 'Manager';
-
-  var h = '<div class="page-header"><h1>' + xe(userName) + '</h1>';
-  h += '<p>' + branches.length + ' branch(es) · ' + fmtDate(new Date()) + '</p></div>';
-
-  if (!branches.length) {
-    h += '<div class="empty-state"><div class="es-icon">🗺️</div>';
-    h += '<h3>No branches assigned</h3>';
-    h += '<p style="color:var(--text-secondary)">Ask the Super Admin to assign branches to your account in Access Control.</p></div>';
-    return h;
-  }
-
-  h += '<div class="kpi-grid section">';
-  h += kpiCard('💰','Today', formatSAR(totalToday), branches.length + ' branch(es)', 'var(--regional)', '', '');
-  h += kpiCard('📅','MTD', formatSAR(totalMTD), 'This month', 'var(--ceo)', '', '');
-  h += kpiCard('🏢','Branches', branches.length, 'Under your supervision', 'var(--info)', '', '');
-  h += kpiCard('📊','Daily Avg', formatSAR(totalMTD / Math.max(1, new Date().getDate())), 'Per day this month', 'var(--branch-mgr)', '', '');
-  h += '</div>';
-
-  // Sales comparison table
-  h += '<div class="card section">';
-  h += '<div style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px">Sales Comparison</div>';
-  h += '<table class="data-table"><thead><tr><th>Branch</th><th>Brand</th><th>Today</th><th>MTD</th><th>Daily Avg</th><th>Actions</th></tr></thead><tbody>';
-  // Sort by today descending
-  var sorted = branches.slice().sort(function(a,b){ return branchSalesToday(b.id)-branchSalesToday(a.id); });
-  sorted.forEach(function(b, rank) {
-    var bt = branchSalesToday(b.id), bm = branchSalesMTD(b.id);
-    var dayAvg = bm / Math.max(1, new Date().getDate());
-    var medal = rank===0?'🥇':rank===1?'🥈':rank===2?'🥉':'';
-    h += '<tr>';
-    h += '<td><div style="display:flex;align-items:center;gap:8px">' + medal + ' <span>' + (b.icon||'🍽️') + '</span><strong>' + xe(b.name) + '</strong></div></td>';
-    h += '<td style="color:var(--text-secondary)">' + xe(b.brand||'—') + '</td>';
-    h += '<td class="mono" style="color:var(--ceo)">' + formatSAR(bt) + '</td>';
-    h += '<td class="mono" style="color:var(--brand-dir)">' + formatSAR(bm) + '</td>';
-    h += '<td class="mono">' + formatSAR(dayAvg) + '</td>';
-    h += '<td><button class="btn btn-sm" onclick="switchBranch(\'' + xe(b.id) + '\')">Open</button></td>';
-    h += '</tr>';
-  });
-  h += '</tbody></table></div>';
-
-  // Per-branch cards
-  h += '<div class="section"><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">';
-  sorted.forEach(function(b) {
-    var bt = branchSalesToday(b.id), bm = branchSalesMTD(b.id);
-    h += '<div class="card" style="border-left:3px solid ' + (b.color||'#f0a500') + '">';
-    h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">';
-    h += '<span style="font-size:18px">' + (b.icon||'🍽️') + '</span>';
-    h += '<div><div style="font-size:13px;font-weight:700">' + xe(b.name) + '</div>';
-    h += '<div style="font-size:10px;color:var(--text-secondary)">' + xe(b.location||'') + '</div></div>';
-    h += '<button class="btn btn-sm" style="margin-left:auto" onclick="switchBranch(\'' + xe(b.id) + '\')">→</button></div>';
-    h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
-    h += '<div style="background:var(--surface-3);border-radius:8px;padding:8px"><div style="font-size:9px;color:var(--text-tertiary)">TODAY</div><div style="font-size:13px;font-weight:700;color:var(--ceo);font-family:var(--mono)">' + formatSAR(bt) + '</div></div>';
-    h += '<div style="background:var(--surface-3);border-radius:8px;padding:8px"><div style="font-size:9px;color:var(--text-tertiary)">MTD</div><div style="font-size:13px;font-weight:700;color:var(--brand-dir);font-family:var(--mono)">' + formatSAR(bm) + '</div></div>';
-    h += '</div></div>';
-  });
-  h += '</div></div>';
-  return h;
-}
-
-// ── PAGE: REGION BRANCHES ──
-function pRegionBranches() {
-  var s = NX.session || {};
-  var canEdit = (s.role==='super_admin');
-  var branches = getAccessibleBranches().filter(function(b) {
-    if (s.brandName && (b.brand||b.name) !== s.brandName) return false;
-    if (s.regionName && b.location !== s.regionName) return false;
-    return true;
-  });
-  var h = '<div class="page-header"><h1>Region Branches</h1><p>' + branches.length + ' branch(es) under supervision</p></div>';
-  h += '<div class="table-wrap section"><table class="data-table"><thead><tr>';
-  h += '<th>Branch</th><th>Manager</th><th>FC Target</th><th>Today</th><th>MTD</th><th>vs Target</th><th>Actions</th>';
-  h += '</tr></thead><tbody>';
-  var sorted = branches.slice().sort(function(a,b){ return branchSalesToday(b.id)-branchSalesToday(a.id); });
-  sorted.forEach(function(b, rank) {
-    var medal = rank===0?'\uD83E\uDD47':rank===1?'\uD83E\uDD48':rank===2?'\uD83E\uDD49':'';
-    var mtd = branchSalesMTD(b.id); var tgt = b.monthlyTarget||0;
-    var vsT = tgt>0?((mtd/tgt)*100).toFixed(0)+'%':'—';
-    var tCol = tgt>0&&mtd>=tgt?'#00875a':tgt>0?'#c0392b':'var(--text-tertiary)';
-    h += '<tr>';
-    h += '<td><div style="display:flex;align-items:center;gap:6px">' + medal + ' <span>' + (b.icon||'\uD83C\uDF74') + '</span><strong>' + xe(b.name) + '</strong></div></td>';
-    h += '<td>' + xe(b.manager||'—') + '</td>';
-    h += '<td class="mono">' + (b.fcTarget?b.fcTarget+'%':'—') + '</td>';
-    h += '<td class="mono" style="color:var(--ceo)">' + formatSAR(branchSalesToday(b.id)) + '</td>';
-    h += '<td class="mono">' + formatSAR(mtd) + '</td>';
-    h += '<td class="mono" style="color:'+tCol+';font-weight:600">' + (tgt?vsT+' of '+formatSAR(tgt):'<span style="color:var(--text-tertiary)">No target</span>') + '</td>';
-    h += '<td><div style="display:flex;gap:4px">';
-    h += '<button class="btn btn-sm" onclick="switchBranch(\'' + xe(b.id) + '\')">View</button>';
-    if (canEdit) h += '<button class="btn btn-sm" onclick="openDirectorBranchEdit(\'' + xe(b.id) + '\')">&#x2699; Edit</button>';
-    h += '</div></td></tr>';
-  });
-  if (!branches.length) h += '<tr><td colspan="7" style="text-align:center;color:var(--text-tertiary);padding:24px">No branches assigned</td></tr>';
-  h += '</tbody></table></div>';
-  return h;
-}
 
 // ── PAGE: BRANCH DASHBOARD ──
 // ══════════════════════════════════════════════════════
@@ -9139,153 +8079,6 @@ function pInvOrders() {
   return h + (tab === 'market' ? pOrdersMarketNX() : pOrdersHistoryNX());
 }
 
-function pOrdersMarketNX() {
-  var suppliers = getSuppliers().slice().sort();
-  var locations = getLocations().slice().sort();
-  var selSup = BS.mktSup || '';
-  var selLoc = BS.mktLoc || '';
-  var q = (BS.mktQ || '').toLowerCase();
-  var basketCount = Object.keys(_basket).length;
-  var basketTotal = Object.values(_basket).reduce(function(s,e){ return s + (e.qty * (parseFloat(e.item.price)||0)); }, 0);
-
-  var h = '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px">';
-  h += '<select id="mkt-sup" onchange="BS.mktSup=this.value;navTo(\'inv-orders\')" style="background:var(--surface-3);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text-primary);font-size:12px;outline:none;font-family:var(--font)">';
-  h += '<option value="">All Suppliers</option>';
-  suppliers.forEach(function(s) { h += '<option value="' + xe(s) + '"' + (selSup===s?' selected':'') + '>' + xe(s) + '</option>'; });
-  h += '</select>';
-  h += '<select id="mkt-loc" onchange="BS.mktLoc=this.value;navTo(\'inv-orders\')" style="background:var(--surface-3);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text-primary);font-size:12px;outline:none;font-family:var(--font)">';
-  h += '<option value="">All Locations</option>';
-  locations.forEach(function(l) { h += '<option value="' + xe(l) + '"' + (selLoc===l?' selected':'') + '>' + xe(l) + '</option>'; });
-  h += '</select>';
-  h += '<input id="mkt-srch" placeholder="🔍 Search items…" value="' + xe(BS.mktQ||'') + '" oninput="BS.mktQ=this.value;navTo(\'inv-orders\')" style="flex:1;min-width:140px;background:var(--surface-3);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text-primary);font-size:12px;outline:none;font-family:var(--font)">';
-  h += '</div>';
-
-  if (basketCount > 0) {
-    h += '<div style="background:rgba(240,165,0,.10);border:1px solid rgba(240,165,0,.28);border-radius:11px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px">';
-    h += '<span style="font-size:20px">🧺</span>';
-    h += '<div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--accent)">' + basketCount + ' item' + (basketCount!==1?'s':'') + ' · ' + formatSAR(basketTotal) + '</div>';
-    h += '<div style="font-size:10px;color:var(--text-secondary)">One PO per supplier will be created</div></div>';
-    h += '<button class="btn btn-primary" onclick="openBasketModalNX()" style="background:var(--accent);color:#000;font-weight:700">🧺 Checkout</button></div>';
-  }
-
-  var filtered = bItems.filter(function(it) {
-    if (selSup && it.supplier !== selSup) return false;
-    if (selLoc && it.location !== selLoc) return false;
-    if (q && String(it.code||'').toLowerCase().indexOf(q) < 0 && (it.name||'').toLowerCase().indexOf(q) < 0) return false;
-    return true;
-  }).sort(function(a,b){ return (a.name||'').localeCompare(b.name||''); });
-
-  if (!bItems.length) {
-    h += '<div style="text-align:center;padding:60px 20px;color:var(--text-tertiary)">';
-    h += '<div style="font-size:36px;margin-bottom:10px">&#x1F4E6;</div>';
-    h += '<div style="font-size:14px;font-weight:600;margin-bottom:6px;color:var(--text-primary)">No inventory items available</div>';
-    h += '<div style="font-size:12px;line-height:1.6;max-width:420px;margin:0 auto 16px">The shared inventory catalog (<code style="background:var(--surface-2);padding:2px 6px;border-radius:4px;font-family:var(--mono)">shared/inv_items</code>) is empty. Import items via CSV or add them one by one.</div>';
-    h += '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">';
-    h += '<button onclick="navTo(\'inv-orders\')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);color:var(--text-primary);font-size:12px;font-weight:600;cursor:pointer">&#x21BB; Reload</button>';
-    h += '<button onclick="navTo(\'inv-items\');setTimeout(openInvImportModal,300)" style="padding:8px 18px;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:#000;font-size:12px;font-weight:700;cursor:pointer">\u2B06 Import CSV</button>';
-    h += '<button onclick="navTo(\'inv-items\')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);color:var(--text-primary);font-size:12px;font-weight:600;cursor:pointer">+ Add Items</button>';
-    h += '</div></div>';
-    return h;
-  }
-  if (!filtered.length) {
-    h += '<div style="text-align:center;padding:60px;color:var(--text-tertiary)"><div style="font-size:36px;margin-bottom:10px">&#x1F6D2;</div><div>No items match your filters. Try clearing the search or supplier filter.</div></div>';
-    return h;
-  }
-
-  // Group by supplier
-  var bySup = {};
-  filtered.forEach(function(it) {
-    var sup = it.supplier || 'Unassigned';
-    if (!bySup[sup]) bySup[sup] = [];
-    bySup[sup].push(it);
-  });
-
-  Object.keys(bySup).sort().forEach(function(sup) {
-    h += '<div style="margin-bottom:20px">';
-    h += '<div style="font-size:10px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:2px;font-family:var(--mono);padding:0 2px;margin-bottom:8px">🏢 ' + xe(sup) + '</div>';
-    h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">';
-    bySup[sup].forEach(function(it) {
-      var inBasket = _basket[it.code];
-      var isLow = it.min > 0 && it.qty <= it.min;
-      h += '<div style="background:var(--surface-2);border:1.5px solid ' + (inBasket ? 'var(--accent)' : 'var(--border)') + ';border-radius:11px;padding:12px;position:relative;transition:border-color .15s">';
-      if (isLow) h += '<div style="position:absolute;top:8px;right:8px;font-size:8px;background:rgba(248,113,113,.15);color:var(--danger);border-radius:4px;padding:2px 5px;font-weight:700">LOW</div>';
-      h += '<div style="font-size:10px;color:var(--accent);font-weight:700;font-family:var(--mono);margin-bottom:3px">' + xe(it.code||'') + '</div>';
-      h += '<div style="font-size:12px;font-weight:600;color:var(--text-primary);margin-bottom:4px;line-height:1.3">' + xe(it.name) + '</div>';
-      h += '<div style="font-size:9px;color:var(--text-tertiary);margin-bottom:8px">Stock: ' + it.qty + ' ' + (it.unit||'') + (it.min?' · Min:'+it.min:'') + '</div>';
-      if (inBasket) {
-        h += '<div style="display:flex;align-items:center;gap:6px">';
-        h += '<button onclick="bktDec(\'' + xe(it.code) + '\')" style="width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:var(--surface-3);color:var(--text-primary);cursor:pointer;font-size:14px;font-weight:700">−</button>';
-        h += '<div style="flex:1;text-align:center;font-size:14px;font-weight:700;color:var(--accent);font-family:var(--mono)">' + inBasket.qty + '</div>';
-        h += '<button onclick="bktInc(\'' + xe(it.code) + '\')" style="width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:var(--surface-3);color:var(--text-primary);cursor:pointer;font-size:14px;font-weight:700">+</button>';
-        h += '<button onclick="bktRemove(\'' + xe(it.code) + '\')" style="width:26px;height:26px;border-radius:6px;border:1px solid rgba(248,113,113,.3);background:rgba(248,113,113,.1);color:var(--danger);cursor:pointer;font-size:11px">✕</button>';
-        h += '</div>';
-      } else {
-        h += '<button onclick="bktAdd(\'' + xe(it.code) + '\')" style="width:100%;padding:7px;border-radius:8px;border:none;background:var(--accent);color:#000;cursor:pointer;font-size:11px;font-weight:700;font-family:var(--font)">+ Add to Basket</button>';
-      }
-      h += '</div>';
-    });
-    h += '</div></div>';
-  });
-  return h;
-}
-
-function pOrdersHistoryNX() {
-  var q = (BS.ordQ||'').toLowerCase();
-  var sf = BS.ordSF || '';
-  var filtered = bOrders.filter(function(o) {
-    if (sf && o.status !== sf) return false;
-    if (q) {
-      var m = (o.id||'').toLowerCase().indexOf(q) >= 0 || (o.supplier||'').toLowerCase().indexOf(q) >= 0;
-      if (!m) return false;
-    }
-    return true;
-  });
-  var stC = {pending:'var(--warning)',partial:'var(--info)',done:'var(--success)',cancelled:'var(--danger)'};
-  var h = '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px">';
-  h += '<input placeholder="🔍 Search orders…" value="' + xe(BS.ordQ||'') + '" oninput="BS.ordQ=this.value;navTo(\'inv-orders\')" style="flex:1;background:var(--surface-3);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text-primary);font-size:12px;outline:none;font-family:var(--font)">';
-  h += '<select onchange="BS.ordSF=this.value;navTo(\'inv-orders\')" style="background:var(--surface-3);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text-primary);font-size:12px;outline:none;font-family:var(--font)">';
-  h += '<option value="">All Status</option><option value="pending"' + (sf==='pending'?' selected':'') + '>Pending</option><option value="done"' + (sf==='done'?' selected':'') + '>Done</option><option value="cancelled"' + (sf==='cancelled'?' selected':'') + '>Cancelled</option></select>';
-  h += '</div>';
-  if (!filtered.length) { return h + '<div style="text-align:center;padding:60px;color:var(--text-tertiary)">No orders found</div>'; }
-  filtered.forEach(function(o) {
-    var recvd = (o.items||[]).filter(function(x){ return (x.received||0) >= x.qty; }).length;
-    var pct = o.items&&o.items.length ? Math.round(recvd/o.items.length*100) : 0;
-    h += '<div style="background:var(--surface-2);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden">';
-    h += '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'none\'?\'block\':\'none\'">';
-    h += '<div style="flex:1"><div style="font-size:11px;font-weight:700;color:var(--text-primary)">📋 ' + xe(o.id||'') + ' · ' + xe(o.supplier||'No supplier') + '</div>';
-    h += '<div style="font-size:10px;color:var(--text-secondary);margin-top:2px">📅 ' + xe(o.date||'') + (o.note?' · '+xe(o.note):'') + '</div></div>';
-    h += '<div style="font-size:11px;font-weight:700;color:' + (stC[o.status]||'var(--text-secondary)') + '">' + xe(o.status||'pending') + '</div>';
-    if (o.status === 'pending' || o.status === 'partial') {
-      h += '<button class="btn btn-sm" style="background:rgba(248,113,113,.12);color:#c0392b;border-color:rgba(248,113,113,.35);flex-shrink:0;font-size:11px" onclick="event.stopPropagation();deleteOrder(\'' + xe(o.id) + '\')">🗑️ Delete</button>';
-    }
-    h += '<span style="color:var(--text-tertiary)">▾</span></div>';
-    h += '<div style="display:none;padding:0 14px 12px">';
-    h += '<div style="display:flex;justify-content:flex-end;margin-bottom:8px">';
-    h += '<button class="btn btn-sm" onclick="printPurchaseOrder(\'' + xe(o.id) + '\')" style="font-size:11px;gap:4px">🖨️ Print Order</button>';
-    h += '</div>';
-    (o.items||[]).forEach(function(it) {
-      var rv = it.received||0, done = rv >= it.qty, notRecv = it.notReceived;
-      h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;gap:8px;flex-wrap:wrap">';
-      h += '<span style="flex:1;min-width:0">' + xe(it.name) + ' <span style="font-family:var(--mono);color:var(--text-tertiary);font-size:10px">'+xe(it.code)+'</span></span>';
-      h += '<span style="font-family:var(--mono);color:' + (done?'var(--success)':notRecv?'var(--warning)':'var(--text-primary)') + '">' + (it.received||0) + '/' + it.qty + ' ' + (it.unit||'') + (notRecv?' ⚠️':'') + '</span>';
-      if (!done && !notRecv && o.status !== 'done' && o.status !== 'cancelled') {
-        h += '<div style="display:flex;gap:4px;flex-shrink:0">';
-        h += '<button class="btn btn-sm" style="background:rgba(52,211,153,.15);color:#b45309;border-color:rgba(52,211,153,.3)" onclick="bktReceiveItem(\'' + xe(o.id) + '\',\'' + xe(it.code) + '\')">✅ Receive</button>';
-        h += '<button class="btn btn-sm" style="background:rgba(248,113,113,.1);color:#c0392b;border-color:rgba(248,113,113,.3)" onclick="bktMarkNotReceived(\'' + xe(o.id) + '\',\'' + xe(it.code) + '\')">✗ Not Received</button>';
-        h += '</div>';
-      } else if (done) {
-        h += '<span style="font-size:10px;font-weight:700;color:#00875a;flex-shrink:0">✅ Done</span>';
-      } else if (notRecv) {
-        h += '<span style="font-size:10px;font-weight:700;color:#b45309;flex-shrink:0">⚠️ Not Received</span>';
-      }
-      h += '</div>';
-    });
-    h += '</div></div>';
-  });
-  return h;
-}
-
-// Basket helpers (nexus version)
 function bktAdd(code) {
   var it = bItems.find(function(x){ return x.code===code; });
   if (!it) return;
@@ -13052,13 +11845,6 @@ function clNxLogin(role){ clNxRole=role; navTo('checklists'); }
 
 function initPageCharts(pageId) {
   var chartFns = {
-    'exec-dash': function() { initRevChart('all'); },
-    'brand-perf': function() { initBrandPieChart(); initFCBarChart(); },
-    'rev-analytics': function() { initRevTrendChart(); initRevPieChart(); initRevBarChart(); },
-    'headcount': function() { initHcBrandChart(); initHcDeptChart(); },
-    'food-cost': function() { initFCTrendChart(); drawFCGauge(); },
-    'brand-dash': function() { initBranchRevChart(); initBrandTrendChart(); },
-    'region-dash': function() { initRegionCompChart(); },
     'branch-dash': function() { initBranchSalesChart(); },
     'hrf-hr-dash':  function() { hrfInitDeptChart(); hrfInitAttTrendChart(); },
     'hrf-fin-dash': function() { hrfInitRevCostChart(); hrfInitCostPieChart(); },
@@ -13936,15 +12722,7 @@ var NXMon = (function() {
 })();
 
 var SEARCH_INDEX = [
-  { label:'Executive Dashboard', page:'exec-dash', keywords:'dashboard revenue sales overview' },
-  { label:'Brand Performance', page:'brand-perf', keywords:'brand performance leaderboard comparison' },
-  { label:'Revenue Analytics', page:'rev-analytics', keywords:'revenue analytics charts trends' },
-  { label:'Headcount Overview', page:'headcount', keywords:'staff headcount attendance hr people' },
-  { label:'Food Cost Analysis', page:'food-cost', keywords:'food cost analysis wastage percentage' },
-  { label:'Alerts Center', page:'alerts-center', keywords:'alerts notifications critical warnings' },
-  { label:'Brand Management', page:'brand-mgmt', keywords:'brands manage edit add piatto hybrid cafe' },
 { label:'Access Control', page:'access-ctrl', keywords:'access users pins roles permissions security' },
-  { label:'Audit Log', page:'audit-log', keywords:'audit log history trail activity' },
   { label:'Shared Ingredients', page:'shared-ingredients', keywords:'shared ingredients catalog recipe cost inv items global' },
   { label:'Inventory Items', page:'inv-items', keywords:'inventory items stock list' },
   { label:'Receive / Issue Stock', page:'inv-moves', keywords:'receive issue stock transfer moves' },
@@ -14040,17 +12818,9 @@ function buildMobileNav() {
   if (!s) return;
 
   var mobileItems = {
-    ceo: [
-      { id:'exec-dash', icon:'📊', label:'Dashboard' },
-      { id:'brand-perf', icon:'🏆', label:'Brands' },
-      { id:'rev-analytics', icon:'📈', label:'Revenue' },
-      { id:'alerts-center', icon:'⚠️', label:'Alerts' }
-    ],
-    super_admin: [
-      { id:'exec-dash', icon:'📊', label:'Dashboard' },
-      { id:'brand-mgmt', icon:'🏢', label:'Brands' },
-      { id:'alerts-center', icon:'⚠️', label:'Alerts' },
-      { id:'access-ctrl', icon:'🔐', label:'Access' }
+        super_admin: [
+      { id:'access-ctrl', icon:'🔐', label:'Access Control' },
+      { id:'branch-dash', icon:'📊', label:'Branch Dashboard' }
     ],
     branch_mgr: [
       { id:'branch-dash',   icon:'📊', label:'Dashboard' },
@@ -14325,7 +13095,6 @@ launchApp = function() {
       if (NX.page) { setTimeout(function(){ renderPage(NX.page); }, 100); }
     } else {
       loadAllBranchesSales(function() {
-        refreshDemoMetrics();
         if (NX.page) { renderPage(NX.page); }
       });
     }
@@ -17546,24 +16315,6 @@ function bmUpdateBadges() {
   if(nb3){nb3.style.display=ua.length?'flex':'none';nb3.textContent=ua.length;}
 }
 
-// ── Transfer badge updater ──
-function amUpdateTransferBadge() {
-  if (!db) return;
-  var s = NX.session || {};
-  return; // regional role removed
-  db.ref('admin/transfer_requests').once('value', function(snap) {
-    var raw = snap.val() || {};
-    var myBranchIds = s.branchIds || [];
-    var pending = Object.values(raw).filter(function(r) {
-      if (!r || r.status !== 'pending') return false;
-      return myBranchIds.length === 0 ||
-        myBranchIds.indexOf(r.fromBranch) >= 0 ||
-        myBranchIds.indexOf(r.toBranch) >= 0;
-    });
-    var nb = document.getElementById('nb-am-transfers-pending');
-    if (nb) { nb.style.display = pending.length ? 'flex' : 'none'; nb.textContent = pending.length; }
-  });
-}
 
 // Load announcements + acks for branch manager
 function bmLoadAnnouncements(cb) {
