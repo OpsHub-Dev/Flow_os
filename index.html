@@ -3335,6 +3335,92 @@ var NX = {
 // Checklist module globals (must be declared at top level)
 var clNxState = {};
 var clNxRole  = null;
+var clNxSec   = 'mod';
+var clNxCl    = {mod:0, foh:0, boh:0};
+var clNxWeekDates = [];
+var CL_NX_ADMIN_PIN = '1422';
+
+// ── CL_DATA_NX — Full checklist data for NX integrated portal ──────────────
+var CL_DATA_NX = {
+ mod:[
+  {id:'mod_gelato',name:'Salad & Gelato',sub:"MOD Frontline — Salad & Gelato — 11:30 AM & 5:30 PM",checkType:'temp',groups:[
+   {name:'GELATO DISPLAY',items:[{id:'gelato',label:'Gelato Freezer Display -15/-16°C',yellow:true,hasTemp:true},{id:'vanilla',label:'Vanilla, Chocolate, Strawberry, Oreo, Cotton Candy',yellow:false,hasTemp:false},{id:'pistachio',label:'Pistachio, Hazelnuts, Mango, Ferrero, Macha, Tiramisu',yellow:false,hasTemp:false},{id:'fruitti',label:'Fruitti Bosco, Lemon',yellow:false,hasTemp:false}]},
+   {name:'CHILLER',items:[{id:'chiller2d',label:'2 Door Chiller 0-5°C',yellow:true,hasTemp:true},{id:'onion',label:'Onion, Tomato, Italian Dressing',yellow:false,hasTemp:false}]}]},
+  {id:'mod_pastry',name:'Pastry & Receiving',sub:"MOD Frontline — Pastry & Receiving — 11:30 AM & 5:30 PM",checkType:'temp',groups:[
+   {name:'EQUIPMENT',items:[{id:'oven',label:'Convection Oven 180°C',yellow:true,hasTemp:true},{id:'wic',label:'Walk-in Chiller 0-5°C',yellow:true,hasTemp:true},{id:'wif',label:'Walk-in Freezer -18 to -22°C',yellow:true,hasTemp:true}]},
+   {name:'ITEMS',items:[{id:'gelato2',label:'Gelato Ice Cream',yellow:false,hasTemp:false},{id:'desserts',label:'Tiramisu, Fondente, Creme Brulee, Sampler',yellow:false,hasTemp:false},{id:'cheese_r',label:'Fresh Mozza, Ricotta, Mascarpone, Goat Cheese',yellow:false,hasTemp:false},{id:'protein',label:'Chicken, Salmon, Hammour, Topside, Chuck Roll (Thawing)',yellow:false,hasTemp:false},{id:'beef',label:'Beef Bacon, Strip Loin, Tenderloin',yellow:false,hasTemp:false},{id:'prep_r',label:'Bruschette, Lasagna, Meatballs',yellow:false,hasTemp:false}]}]},
+  {id:'mod_fryer',name:'Fryer & Pizza',sub:"MOD Frontline — Fryer & Pizza — 11:30 AM & 5:30 PM",checkType:'temp',groups:[
+   {name:'EQUIPMENT',items:[{id:'fryer160',label:'Fryer Machine 160°C',yellow:true,hasTemp:true},{id:'fryer180',label:'Fryer Machine 180°C',yellow:true,hasTemp:true},{id:'pizzaoven',label:'Pizza Oven 600-650°F',yellow:true,hasTemp:true}]},
+   {name:'BACKUP & MISE EN PLACE',items:[{id:'backup1',label:'Tartar Sauce, Italian Dressing, Boiled Potato (Back up)',yellow:false,hasTemp:false},{id:'backup2',label:'Pesto Sauce, Parmesan Ground, Portion Butter Block',yellow:false,hasTemp:false},{id:'pizzaitem',label:'Pizza Dough, Pizza Sauce, Shredded Mozzarella',yellow:false,hasTemp:false},{id:'topping1',label:'Meatballs, Cooked Bell Pepper, Grilled Eggplant',yellow:false,hasTemp:false},{id:'topping2',label:'Grilled Zucchini, Artichoke, Caramelized Onion, Rocca',yellow:false,hasTemp:false},{id:'cheese2',label:'G. Parmesan, Shredded Fontina, Goat Cheese, Balsamic',yellow:false,hasTemp:false},{id:'meats',label:'Beef Ham, Pepperoni, Fresh Mozzarella',yellow:false,hasTemp:false}]}]},
+  {id:'mod_salad',name:'Salad & Prep',sub:"MOD Frontline — Salad & Prep — 11:30 AM & 5:30 PM",checkType:'temp',groups:[
+   {name:'CHILLER',items:[{id:'saladch',label:'Salad 2 Door Chiller 0-5°C',yellow:true,hasTemp:true}]},
+   {name:'ITEMS',items:[{id:'bs1',label:'Artichoke Dip, Sliced Bruschette, Garlic Mayo, Chives Goat Cheese',yellow:false,hasTemp:false},{id:'bs2',label:'Crouton, S/W Bread, Eggplant, Mushroom Cooked, Citrus',yellow:false,hasTemp:false},{id:'bs3',label:'Bell Pepper Cooked, Shredded Mozza, Tartar Sauce',yellow:false,hasTemp:false},{id:'salad_f',label:'Rocca, Lettuce, Pomodoro Mixture, Pesto, Garlic Mayo',yellow:false,hasTemp:false},{id:'herbs',label:'Oregano, Olive Oil',yellow:false,hasTemp:false},{id:'vegs',label:'Sliced Cucumber, Sliced Onion, Tomato (Prepared)',yellow:false,hasTemp:false},{id:'greens',label:'Fresh Rocca, Lettuce Iceberg (Prepared)',yellow:false,hasTemp:false},{id:'seafood_b',label:'Calamari, Mozzarella, Zucchini & Artichoke, Fish Fillet (Back up)',yellow:false,hasTemp:false}]}]},
+  {id:'mod_grill',name:'Grill Section',sub:"MOD Frontline — Grill Section — 11:30 AM & 5:30 PM",checkType:'temp',groups:[
+   {name:'EQUIPMENT',items:[{id:'bainmarie',label:'Bain Marie 63°C',yellow:true,hasTemp:true},{id:'maingrill',label:'Main Grill 200-220°C',yellow:true,hasTemp:true},{id:'convoven',label:'Convection Oven 250°C',yellow:true,hasTemp:true},{id:'meatch',label:'Meat 2 Door Chiller 0-5°C',yellow:true,hasTemp:true},{id:'soupch',label:'Soup 2 Door Chiller 0-5°C',yellow:true,hasTemp:true}]},
+   {name:'MISE EN PLACE',items:[{id:'seasoning',label:'Melted Butter, Steak Seasoning',yellow:false,hasTemp:false},{id:'soup1',label:'Hybrid Daily Soup',yellow:false,hasTemp:false},{id:'soup2',label:'Onion Soup',yellow:false,hasTemp:false},{id:'sauces',label:'Mash Potato, Lemon Sauce, Alfredo Sauce',yellow:false,hasTemp:false},{id:'sauces2',label:'Romano, Peppercorn, Marinara, Mushroom Sauce',yellow:false,hasTemp:false}]}]},
+  {id:'mod_pasta',name:'Pasta Section',sub:"MOD Frontline — Pasta Section — 11:30 AM & 5:30 PM",checkType:'temp',groups:[
+   {name:'EQUIPMENT',items:[{id:'blancher',label:'Pasta Blancher 80-100°C',yellow:true,hasTemp:true},{id:'cooked_ch',label:'Cooked Pasta Dispatcher Cooler 0-5°C',yellow:true,hasTemp:true},{id:'backup_ch',label:'Back-up Dispatcher Cooler 0-5°C',yellow:true,hasTemp:true}]},
+   {name:'MISE EN PLACE',items:[{id:'sauces_p',label:'Creme Sauce, Pomodoro, 4 Cheese Sauce, Bolognese',yellow:false,hasTemp:false},{id:'spices',label:'Mixed Spices, Chili, Panko Breading, Parmesan Cheese',yellow:false,hasTemp:false},{id:'vegs_p',label:'Broccoli, Grill Chicken, Onion, Garlic Paste, Goat Cheese',yellow:false,hasTemp:false},{id:'herbs_p',label:'Fresh Mozz, Parsley, Basil, Cherry Tom, Asparagus, Pesto',yellow:false,hasTemp:false},{id:'misc_p',label:'Capers, Garlic Sliced, Artichoke, Shrimp Cooked, Spinach',yellow:false,hasTemp:false},{id:'mush',label:'Fresh Mush, Wild Mush, Green Peas, Pomodoro, Bacon',yellow:false,hasTemp:false},{id:'seafood_p',label:'F. Mussel, Cooked Shrimp 20/30, Calamari',yellow:false,hasTemp:false}]}]},
+  {id:'mod_bar_open',name:'Bar Opening',sub:'MOD Bar Checklist — Opening',checkType:'cb',isWeekly:true,groups:[
+   {name:'WALKTHROUGH',items:[{id:'equip',label:'All equipment are properly working'},{id:'items_a',label:'All items available'},{id:'bar_pp',label:'Barista aware of P&P levels'},{id:'chiller_w',label:'Working Chiller'},{id:'beverages',label:'Holsten / Aquafina / Aquapanna / St.Pelligrino'},{id:'bases',label:'At least 1 base of each is ready for morning shift'},{id:'pour_c',label:'Pouring containers are clean and organized'},{id:'whipped',label:'Whipped cream and chocolate syrup in stock'}]},
+   {name:'BAR COUNTER',items:[{id:'garnish',label:'Garnish tray is stocked (enough for 2 hours)'},{id:'bar_tools',label:'Bar tools readily available'},{id:'glassware',label:'Glassware all stocked'},{id:'paper_i',label:'All paper items available'},{id:'sugar',label:'Sugarbowls / Rimming sponge ready'}]},
+   {name:'BACKUP CHILLER',items:[{id:'kids_j',label:'Al Safi Kids Juice (Apple & Orange) Available'},{id:'bk_g',label:'Backup garnish covered and labelled'},{id:'prep_i',label:'All prep items organized'},{id:'fresh_f',label:'Fresh fruit stocked according to P&P'},{id:'milk',label:'Milk & Steaming pitcher readily available'}]},
+   {name:'BACKUP CABINETS',items:[{id:'bar_t2',label:'Bar tools available'},{id:'electronic',label:'Electronic bar equipment charged & available'},{id:'espresso',label:'Espresso beans available'},{id:'paper_bk',label:'Paper items available'}]}]},
+  {id:'mod_bar_close',name:'Bar Closing',sub:'MOD Bar Checklist — Closing',checkType:'cb',isWeekly:true,groups:[
+   {name:'WORKING CHILLER',items:[{id:'c_holsten',label:'Holsten / Aquafina / Aquapanna / St.Pelligrino'},{id:'c_bases',label:'At least 1 base ready for morning shift'},{id:'c_pour',label:'Pouring containers clean and organized'},{id:'c_whipped',label:'Whipped cream and chocolate syrup in stock'},{id:'c_pnp',label:'OH & P&P correctly followed'}]},
+   {name:'BAR COUNTER',items:[{id:'c_garnish',label:'Garnish fruit trays clean and empty'},{id:'c_tools',label:'Bar tools clean and organized'},{id:'c_glass',label:'Glassware clean & stocked — no fingerprints'},{id:'c_straws',label:'Straws & Paper items stocked'}]},
+   {name:'BACKUP CHILLER',items:[{id:'c_kids',label:'Kids Al Safi [Apple & Orange]'},{id:'c_bk',label:'Remaining backups in 6th containers [covered & labelled]'},{id:'c_syrup',label:'Simple Syrup & bases ready for next day'},{id:'c_fruit',label:'Fresh fruit stocked — in accordance with P&P'},{id:'c_milk',label:'Milk & Steaming pitchers available'}]},
+   {name:'BACKUP CABINETS',items:[{id:'c_bkt',label:'Bar tools available and working'},{id:'c_bki',label:'Backup items available; espresso beans/straws/etc..'}]}]}
+ ],
+ foh:[
+  {id:'foh_waiter',name:"Waiter's Checklist",sub:"WAITER'S CHECKLIST — 11:00AM & 5:45PM",checkType:'cb',groups:[
+   {name:'SERVER STATION',items:[{id:'w_menu',label:'English/Arabic/Dessert menu — untorn, no scratches'},{id:'w_togo',label:'To-go menu — available & ready for service'},{id:'w_bill',label:'Bill jackets — cleaned, wiped & organized'},{id:'w_cond',label:'Condiments set holders — cleaned'},{id:'w_condref',label:'Condiments — refilled as per standard & organized'},{id:'w_tooth',label:'Toothpick holders — cleaned & refilled (6 pcs.)'},{id:'w_chili',label:'Chili oil bottles — cleaned, wiped & refilled (6 bottles)'},{id:'w_ketch',label:'Ketchup bottles — cleaned, refilled (20 bottles)'},{id:'w_tabasco',label:'Tabasco (red/green) — cleaned & refilled (24 bottles)'},{id:'w_pepper',label:'Fresh pepper mill — cleaned & refilled'},{id:'w_napkins',label:'Folded napkins/beverage napkins — organized & ready'},{id:'w_spray',label:'Spray bottles (glass cleaner/sanitizer) — full & ready'},{id:'w_silver',label:'Silverware & tableware back-up — cleaned, wiped, complete'}]},
+   {name:'TABLES, CHAIRS, PLANTS',items:[{id:'w_tableset',label:'Table set-up — complete & as per standard'},{id:'w_tables',label:'Tables & bases — cleaned & stable; base — polished'},{id:'w_booth',label:'Booth tables — couches cleaned & wiped'},{id:'w_plants',label:'Plants & décor — cleaned & presentable'}]},
+   {name:'WASH / COMFORT ROOM',items:[{id:'w_soap',label:'Soap dispenser, air freshener — cleaned & refilled'},{id:'w_toilet',label:'Toilet paper, paper roll dispenser — cleaned, full'},{id:'w_trash',label:'Trash can, toilet brush & holder — cleaned'},{id:'w_faucet',label:'Faucets — cleaned, wiped & high water pressure'},{id:'w_mirror',label:'Mirror — cleaned, wiped & spotless'},{id:'w_sink',label:'Sinks, lavatory, urinal — cleaned & sanitized'},{id:'w_rcl',label:'Restroom checklist — available & hanged'}]},
+   {name:'POINT-OF-SALE',items:[{id:'w_pos',label:'POS terminal — cleaned & working'},{id:'w_printer',label:'Receipt printer & span machine — cleaned & working'},{id:'w_money',label:'Money detector — cleaned & working'},{id:'w_rolls',label:'Thermal & span rolls back-up — readily available'},{id:'w_phone',label:'Telephone handset — cleaned & working'}]},
+   {name:'OTHERS',items:[{id:'w_floor',label:'Floor — swept & mopped; umbrellas — cleaned'},{id:'w_trcans',label:'Trash cans — washed, cleaned & polished'},{id:'w_window',label:'Kitchen window glass & door — cleaned & wiped'},{id:'w_trays',label:'Trays & tray jacks — cleaned, wiped & ready'},{id:'w_ltg',label:'Lightings — working & in good condition'}]},
+   {name:'CLEANING MATERIALS',items:[{id:'w_mopsink',label:'Mop sink — washed, cleaned & organized'},{id:'w_brooms',label:'Brooms & dust pans — washed, cleaned & kept ready (2 sets)'},{id:'w_mop',label:'Mop, mop bucket & wringer — washed, cleaned & kept ready'}]},
+   {name:'PARKING AREA',items:[{id:'w_sidewalk',label:'Sidewalk — swept, cleaned & well-maintained'},{id:'w_entrance',label:'Main entrance — floor swept & mopped; plants — cleaned'},{id:'w_outdoor',label:'Tables & chairs — cleaned, arranged & in good condition'}]}]},
+  {id:'foh_barisa',name:'Barista Opening/Closing',sub:'Barista Opening-Closing Checklist — AM & PM Shifts',checkType:'cb',groups:[
+   {name:'TO GO SUPPLIES',items:[{id:'ba_pepscup',label:'Pepsi Co. Polar Cups / Lids'},{id:'ba_togocarr',label:'To Go Beverage Carriers'},{id:'ba_plcups',label:'Transparent Plastic Cups / Lids'},{id:'ba_espcups',label:'Espresso/Cappuccino Cups & Lids'},{id:'ba_straw',label:'Flexible Straw / Sip Straw / Boba Straws'},{id:'ba_napkins',label:'Beverage Napkins'},{id:'ba_gloves',label:'Gloves (2 Box per Shift) & Hairnets'},{id:'ba_sugar',label:"Sugar White / Sweet n' Low (10)"}]},
+   {name:'BACK-UP STATION',items:[{id:'ba_pepsibib',label:'Pepsi Bib Available & Tube hose'},{id:'ba_dietbib',label:'Diet Pepsi Bib Available'},{id:'ba_7upbib',label:'7 UP Bib Available'},{id:'ba_mirdbib',label:'Miranda Bib Available'},{id:'ba_mtnbib',label:'Mountain Dew Bib Available'}]},
+   {name:'MACHINES & EQUIPMENT',items:[{id:'ba_chillerm',label:'Chiller working 0°C - 5°C'},{id:'ba_icemach',label:'Counter Ice machine clean & working'},{id:'ba_espressom',label:'Espresso Machine Working'},{id:'ba_soda',label:'Soda Dispenser Working'},{id:'ba_sodawtr',label:'Soda Water at 65 PSI'},{id:'ba_co2',label:'CO2 Pressure at 400 PSI'},{id:'ba_squeezer',label:'Lemon & Orange Squeezer Working'},{id:'ba_blender',label:'Blender Clean & Working'},{id:'ba_kettle',label:'Electric Kettle Clean & Working'},{id:'ba_glassdw',label:'Glass Dishwasher Clean & Working Properly'},{id:'ba_trash',label:'Trashbin Clean w/ Black Garbage Bag Insert'}]}]}
+ ],
+ boh:[
+  {id:'boh_pizza',name:'Pizza Station',sub:'PIZZA CHECKLIST — 11:00 AM & 5:00 PM',checkType:'cb',groups:[
+   {name:'PIZZA OVEN & EQUIPMENT',items:[{id:'pz_oven',label:'Pizza oven 600-650°F ready & working'},{id:'pz_doughmach',label:'Dough mixing Machine clean & working'},{id:'pz_chill',label:'Pizza chiller 0-5°C'},{id:'pz_disp',label:'Pizza chiller Dispatcher 0-5°C'},{id:'pz_tools',label:'Digital Scale, Infrared gun, Chiller Thermometer'},{id:'pz_wood',label:'Pizza wood — enough stock with back-up'}]},
+   {name:'PIZZA ITEMS',items:[{id:'pz_feta',label:'Feta Cheese'},{id:'pz_bufmozz',label:'Fresh Buffalo Mozzarella'},{id:'pz_goat',label:'Goat Cheese'},{id:'pz_mixmozz',label:'Mix Mozzarella (Stella & Grana)'},{id:'pz_olives',label:'Black Olives'},{id:'pz_cherry',label:'Fresh Cherry Tomatoes'},{id:'pz_rcherry',label:'Roasted Cherry Tomatoes'},{id:'pz_bellpep',label:'Roasted Red Bell Pepper (Julienne)'},{id:'pz_chicken',label:'Cooked Chicken / Peri-peri Chicken'},{id:'pz_mush',label:'Wild Mushroom'},{id:'pz_artich',label:'Artichoke (wedges)'},{id:'pz_sujook',label:'Sujook (Sliced)'},{id:'pz_pepp',label:'Pepperoni'}]},
+   {name:'SAUCES',items:[{id:'pz_balsamic',label:'Balsamic Glazing / Vinaigrette'},{id:'pz_herbsoil',label:'Green Herb Oil'},{id:'pz_chili',label:'Chili Mabouj / Dynamite Sauce'},{id:'pz_yogurt',label:'Yogurt Mint Sauce'},{id:'pz_bbq',label:'BBQ / Pizza Sauce / Alfredo / Pesto'}]},
+   {name:'UTENSILS & OTHERS',items:[{id:'pz_utensils',label:'Pizza shovel, spatula, slicer, cutting board & knife'},{id:'pz_labels',label:'Production labels posted on every item'},{id:'pz_printer',label:'Printer working & enough ribbon and paper back-up'}]}]},
+  {id:'boh_grill',name:'Grill Station',sub:'GRILL CHECKLIST — 11:00 AM & 5:00 PM',checkType:'cb',groups:[
+   {name:'EQUIPMENT & TEMP',items:[{id:'gr_convov',label:'Convection oven clean & ON at 450°F'},{id:'gr_grillch',label:'Grill flat chiller 0-5°C clean & working'},{id:'gr_deepfry',label:'Deep Fryer ON and working'},{id:'gr_standch',label:'Standing Chiller ON at 0-5°C'},{id:'gr_bainm',label:'Hot Bain Marie with water 71°C'}]},
+   {name:'SAUCES AND SOUP',items:[{id:'gr_sauces1',label:'Tomato sauce, Alfredo, Lemon cream, Demi Glaze Gravy'},{id:'gr_sauces2',label:'Mushroom Sauce, Peppercorn, Lemon Turmeric'},{id:'gr_sauces3',label:'Seafood Basting, Peri-peri, Picatta sauce'},{id:'gr_soups',label:'Onion soup, Tomato soup, Lentil soup'}]},
+   {name:'COOLER SETUP',items:[{id:'gr_meats',label:'Ribeye, Tenderloin, Burger patties, Lamb shoulder/chops/shanks'},{id:'gr_seafood',label:'Hammour, Salmon, Chicken Breast, Tiger shrimps'},{id:'gr_mise',label:'Steak Seasoning, Caramelized onion, Caffe de Paris, Butter, Capers'}]},
+   {name:'OTHERS',items:[{id:'gr_platewm',label:'Plate warmer ON'},{id:'gr_printer',label:'Printer working & enough paper roll backup'},{id:'gr_labels',label:'Labels on every item — No expired Items'},{id:'gr_fire',label:'Fire extinguisher expiry date checked'},{id:'gr_water',label:'Water coming in the sink'},{id:'gr_takeout',label:'Take out containers ready for the day'}]}]},
+  {id:'boh_pasta',name:'Pasta Station',sub:'PASTA CHECKLIST — 11:00 AM & 5:00 PM',checkType:'cb',groups:[
+   {name:'EQUIPMENT & TEMP',items:[{id:'pa_flatch',label:'Flat chiller 0-5°C clean & working'},{id:'pa_bainm',label:'Pasta Bain Marie 0-5°C clean & working'},{id:'pa_platewm',label:'Plate warmer ON'},{id:'pa_range',label:'Pasta cooking range clean & working'},{id:'pa_boiler',label:'Pasta Boiler clean, ON & water till level (100°C)'},{id:'pa_micro',label:'Microwave oven clean & working'}]},
+   {name:'BOILING PASTAS',items:[{id:'pa_risotto',label:'Risotto Rice'},{id:'pa_penne',label:'Penne'},{id:'pa_fett',label:'Fettuccini'},{id:'pa_spag',label:'Spaghetti'},{id:'pa_rig',label:'Rigatoni'},{id:'pa_cap',label:'Capellini'},{id:'pa_fus',label:'Fusilli'},{id:'pa_tor',label:'Torcetti'}]},
+   {name:'BACK UP',items:[{id:'pa_lasagna',label:'Lasagna'},{id:'pa_bolognese',label:'Bolognese'},{id:'pa_gnocchi',label:'Gnocchi'},{id:'pa_ravioli',label:'Ravioli Goat Cheese'},{id:'pa_meatballs',label:'Meat Balls'},{id:'pa_chicken',label:'Cooked Chicken strips'},{id:'pa_shrimp',label:'Frozen Shrimp'},{id:'pa_broccoli',label:'Broccoli / Baked chicken strips'},{id:'pa_pesto',label:'Cut sundried / Green peas / Pesto sauce'}]},
+   {name:'OTHERS',items:[{id:'pa_printer',label:'Printer working & enough ribbon and paper back-up'},{id:'pa_soup_k',label:'Soup Kettle ON and working'},{id:'pa_labels',label:'Labels on every item — No expired Items'},{id:'pa_fire',label:'Fire extinguisher expiry date checked'},{id:'pa_water',label:'Water coming in the sink'}]}]},
+  {id:'boh_bakery',name:'Bakery & Pastry',sub:'BAKERY AND PASTRY CHECKLIST — 11:00 AM & 5:00 PM',checkType:'cb',groups:[
+   {name:'EQUIPMENT & TEMP',items:[{id:'bk_convov',label:'Convection oven clean & ON at 180°C'},{id:'bk_frz',label:'Standing Freezer -18°C to -22°C'},{id:'bk_mixer',label:'Heavy Duty Mixer — Clean and Working'},{id:'bk_grinder',label:'Heavy Duty Grinder — Clean and Working'},{id:'bk_micro',label:'Microwave Oven — Clean and Working'}]},
+   {name:'PIATTO CAFÉ DISPLAY',items:[{id:'bk_plain',label:'Plain Croissant'},{id:'bk_choco',label:'Chocolate Croissant'},{id:'bk_almchoc',label:'Chocolate Almond Croissant'},{id:'bk_alm',label:'Almond Croissant'},{id:'bk_zaatar',label:'Zaatar Croissant'}]},
+   {name:'PIATTO DESSERTS',items:[{id:'bk_tira',label:'Lotus Tiramisu'},{id:'bk_fond',label:'Pistachio Choco Fondant'},{id:'bk_sampler',label:'Piatto Dessert Sampler'},{id:'bk_creme',label:'Crème Brûlée'}]},
+   {name:'OTHERS',items:[{id:'bk_printer',label:'Printer working & enough ribbon and paper back-up'},{id:'bk_water',label:'Water coming in the sink'},{id:'bk_fire',label:'Fire extinguisher expiry date checked'},{id:'bk_labels',label:'Production labels posted on every item prepared'}]}]},
+  {id:'boh_fryer',name:'Fryer-Salad Station',sub:'FRYER-SALAD CHECKLIST — 11:00 AM & 5:00 PM',checkType:'cb',groups:[
+   {name:'EQUIPMENT & TEMP',items:[{id:'fr_convov',label:'Convection oven clean & ON at 450°F'},{id:'fr_frz',label:'Standing Freezer -18°C to -22°C'},{id:'fr_standch',label:'Standing Chiller 0°C to 5°C'},{id:'fr_fryer',label:'Fryer Oil Check using TPM 0%-23%'},{id:'fr_salam',label:'Salamander ON, knob at Medium'}]},
+   {name:'BREADS',items:[{id:'fr_croutons',label:'Croutons'},{id:'fr_sandbread',label:'Sandwich Bread'},{id:'fr_crostini',label:'Crostini Stick'},{id:'fr_focaccia',label:'Focaccia Bread'},{id:'fr_ciabatta',label:'Ciabatta Bread'},{id:'fr_baguette',label:'Baguette Bread'},{id:'fr_burgerbun',label:'Burger Buns'}]},
+   {name:'DRESSING AND SAUCES',items:[{id:'fr_mayo',label:'Mayonnaise'},{id:'fr_garlicm',label:'Garlic Mayo'},{id:'fr_tartare',label:'Tartare Sauce'},{id:'fr_italian',label:'Italian Dressing'},{id:'fr_dynamite',label:'Dynamite Sauce'},{id:'fr_pesto',label:'Pesto Sauce'},{id:'fr_citrus',label:'Citrus Dressing'},{id:'fr_balsamic',label:'Balsamic Vinaigrette'},{id:'fr_oliveoil',label:'Olive Oil / Truffle Oil / Olive Tapenade'}]},
+   {name:'BACKUP',items:[{id:'fr_fries',label:'French Fries'},{id:'fr_bbpotato',label:'Boiled Baby Potato'},{id:'fr_chicken',label:'Chicken Strips / Marinara Chicken'},{id:'fr_breaded',label:'Breaded items (zucchini, artichoke, shrimp, beef & chicken Milanese, mozzarella, fish finger)'},{id:'fr_artidip',label:'Artichoke dip'},{id:'fr_bruschet',label:'Wild Mushroom & Eggplant bruschetta / Goat cheese chives Bruschetta'}]},
+   {name:'OTHERS',items:[{id:'fr_printer',label:'Printer working & enough ribbon and paper back-up'},{id:'fr_labels',label:'Labels on every item — No expired Items'},{id:'fr_fire',label:'Fire extinguisher expiry date checked'},{id:'fr_trash',label:'Step on Trash can clean with inserted bag'}]}]},
+  {id:'boh_dishwash',name:'Dishwasher Station',sub:'DISHWASHER STATION CHECKLIST',checkType:'cb',groups:[
+   {name:'DISHWASHER AREA',items:[{id:'dw_water',label:'Hot & Cold water faucet working'},{id:'dw_chem',label:'All chemical mixture working'},{id:'dw_mach',label:'Dishwasher Machine 60°C ON and working'},{id:'dw_grease',label:'All Grease trap clean'},{id:'dw_plates',label:'Plates shelves clean and organized'},{id:'dw_ss',label:'S/S shelves clean and organized'},{id:'dw_trash',label:'All trash bin clean and with plastic'},{id:'dw_mops',label:'All mops, brooms and wiper arranged'},{id:'dw_labels',label:'All labels removed from every container'},{id:'dw_fire',label:'Fire extinguisher expiry date checked'}]}]},
+  {id:'boh_prep',name:'Prep Station',sub:'PREPARATION CHECKLIST — 11:00 AM & 5:00 PM',checkType:'cb',groups:[
+   {name:'EQUIPMENT & TEMP',items:[{id:'pr_aclight',label:'All A/C & Light ON & Working'},{id:'pr_standch',label:'Standing Chiller +0°C to +5°C — Clean and working'}]},
+   {name:'COMPLEMENTARY SALAD PREP',items:[{id:'pr_tomato',label:'Produce, Tomato, Cucumber'},{id:'pr_iceberg',label:'Iceberg, Rocca'},{id:'pr_onion',label:'Onion, Romaine lettuce & Spinach'}]},
+   {name:'OTHERS',items:[{id:'pr_water',label:'Water coming in the sink'},{id:'pr_trash',label:'Step on Trash can clean with inserted bag'},{id:'pr_area',label:'Preparation area always clean'}]}]}
+ ]
+};
 
 // ── Firebase Initialization ──────────────────────────────────────────────────
 function initFirebase() {
@@ -8353,6 +8439,111 @@ var bOrdItems=[];
 function bGenOrdId(){var d=new Date();return 'ORD-'+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'-'+String(bOrders.length+1).padStart(3,'0');}
 // ── Basket state ──────────────────────────────────────────────────────────────
 var _basket = {};  // code → {item, qty}
+
+// ── Market & Order History renderers (NX integrated portal) ─────────────────
+function pOrdersMarketNX() {
+  if (!bItems || !bItems.length) {
+    return '<div style="text-align:center;padding:40px;color:var(--text-secondary)"><div style="font-size:32px;margin-bottom:12px">📦</div><div style="font-size:13px;font-weight:600">No inventory items found</div><div style="font-size:11px;margin-top:6px">Add items in the Inventory section first</div></div>';
+  }
+  var q = (BS._mktQ || '').toLowerCase();
+  var filtered = bItems.filter(function(i) {
+    if (!q) return true;
+    return (String(i.code).toLowerCase().indexOf(q) >= 0) || (i.name.toLowerCase().indexOf(q) >= 0) || ((i.supplier||'').toLowerCase().indexOf(q) >= 0);
+  });
+  var basketCount = Object.keys(_basket).length;
+  var basketTotal = Object.values(_basket).reduce(function(s,e){ return s + (e.qty * (parseFloat(e.item.price)||0)); }, 0);
+  var h = '';
+  // Search bar
+  h += '<div style="display:flex;gap:10px;margin-bottom:14px;align-items:center">';
+  h += '<input class="form-input" id="mkt-q" placeholder="Search items…" value="' + xe(BS._mktQ||'') + '" oninput="BS._mktQ=this.value;navTo(\'inv-orders\')" style="flex:1">';
+  if (basketCount) {
+    h += '<button class="btn btn-primary" onclick="openBasketModalNX()" style="white-space:nowrap">🛒 Basket (' + basketCount + ') — ' + formatSAR(basketTotal) + '</button>';
+  }
+  h += '</div>';
+  if (!filtered.length) {
+    h += '<div style="text-align:center;padding:30px;color:var(--text-secondary)">No items match "' + xe(BS._mktQ||'') + '"</div>';
+    return h;
+  }
+  // Group by location/supplier
+  var byLoc = {};
+  filtered.forEach(function(i) {
+    var loc = i.location || 'General';
+    if (!byLoc[loc]) byLoc[loc] = [];
+    byLoc[loc].push(i);
+  });
+  Object.keys(byLoc).sort().forEach(function(loc) {
+    h += '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--text-tertiary);margin:16px 0 8px">' + xe(loc) + '</div>';
+    h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px">';
+    byLoc[loc].forEach(function(i) {
+      var inBasket = _basket[i.code] ? _basket[i.code].qty : 0;
+      var isLow = i.min > 0 && i.qty <= i.min;
+      h += '<div style="background:var(--surface-2);border:1px solid var(--border' + (isLow?'-strong':'') + ');border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px">';
+      h += '<div style="display:flex;justify-content:space-between;align-items:flex-start">';
+      h += '<div><div style="font-size:12px;font-weight:700;color:var(--text-primary)">' + xe(i.name) + '</div>';
+      h += '<div style="font-size:10px;color:var(--text-tertiary);font-family:var(--mono)">' + xe(i.code) + (i.supplier?' · '+xe(i.supplier):'') + '</div></div>';
+      h += '<div style="text-align:right"><div style="font-size:11px;font-weight:700;color:var(--accent)">' + formatSAR(parseFloat(i.price)||0) + '</div>';
+      h += '<div style="font-size:9px;color:var(--text-tertiary)">' + xe(i.unit||'EA') + '</div></div></div>';
+      h += '<div style="display:flex;align-items:center;justify-content:space-between">';
+      h += '<div style="font-size:10px;color:' + (isLow?'var(--danger)':'var(--text-tertiary)') + '">Stock: ' + (parseFloat(i.qty)||0).toFixed(1) + (i.min?' / min '+i.min:'') + '</div>';
+      if (inBasket > 0) {
+        h += '<div style="display:flex;align-items:center;gap:4px">';
+        h += '<button onclick="bktDec(\'' + xe(i.code) + '\')" style="width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:var(--surface-3);color:var(--text-primary);cursor:pointer;font-size:14px">−</button>';
+        h += '<span style="font-weight:700;min-width:24px;text-align:center;font-family:var(--mono);font-size:13px">' + inBasket + '</span>';
+        h += '<button onclick="bktInc(\'' + xe(i.code) + '\')" style="width:26px;height:26px;border-radius:6px;border:none;background:var(--primary);color:#fff;cursor:pointer;font-size:14px">+</button>';
+        h += '</div>';
+      } else {
+        h += '<button onclick="bktAdd(\'' + xe(i.code) + '\')" style="padding:5px 14px;border-radius:6px;border:none;background:var(--primary);color:#fff;font-size:11px;font-weight:700;cursor:pointer">+ Add</button>';
+      }
+      h += '</div></div>';
+    });
+    h += '</div>';
+  });
+  return h;
+}
+
+function pOrdersHistoryNX() {
+  if (!bOrders || !bOrders.length) {
+    return '<div style="text-align:center;padding:40px;color:var(--text-secondary)"><div style="font-size:32px;margin-bottom:12px">📋</div><div style="font-size:13px;font-weight:600">No purchase orders yet</div><div style="font-size:11px;margin-top:6px">Create orders from the Market tab</div></div>';
+  }
+  var h = '<div style="display:flex;flex-direction:column;gap:10px">';
+  bOrders.forEach(function(o) {
+    var statusColor = o.status==='done'?'var(--success)':o.status==='partial'?'var(--warning)':o.status==='cancelled'?'var(--danger)':'var(--text-tertiary)';
+    var statusLabel = o.status==='done'?'Received':o.status==='partial'?'Partial':o.status==='cancelled'?'Cancelled':'Pending';
+    var total = (o.items||[]).reduce(function(s,it){ return s + (it.qty*(parseFloat(it.price)||0)); }, 0);
+    h += '<div style="background:var(--surface-2);border:1px solid var(--border);border-radius:11px;overflow:hidden">';
+    h += '<div style="padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border)">';
+    h += '<div><div style="font-size:12px;font-weight:700">PO #' + xe(o.id) + ' — ' + xe(o.supplier||'General') + '</div>';
+    h += '<div style="font-size:10px;color:var(--text-tertiary)">' + xe(o.date||'') + ' · ' + (o.items||[]).length + ' items</div></div>';
+    h += '<div style="display:flex;align-items:center;gap:10px">';
+    h += '<span style="font-size:11px;font-weight:700;color:' + statusColor + '">' + statusLabel + '</span>';
+    h += '<span style="font-size:11px;font-weight:700;color:var(--accent);font-family:var(--mono)">' + formatSAR(total) + '</span>';
+    h += '<button onclick="deleteOrder(\'' + xe(o.id) + '\')" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:16px;padding:0 4px" title="Delete order">🗑</button>';
+    h += '</div></div>';
+    if (o.status !== 'done') {
+      h += '<div style="padding:8px 16px;display:flex;flex-direction:column;gap:4px">';
+      (o.items||[]).forEach(function(it) {
+        var recvd = it.received || 0;
+        var done = recvd >= it.qty;
+        var notRcv = it.notReceived;
+        h += '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)">';
+        h += '<div style="flex:1"><div style="font-size:11px;font-weight:600">' + xe(it.name) + '</div>';
+        h += '<div style="font-size:9px;color:var(--text-tertiary);font-family:var(--mono)">' + xe(it.code) + ' · ' + it.qty + ' ' + xe(it.unit||'EA') + (recvd?' · rcvd '+recvd:'') + '</div></div>';
+        h += '<div style="display:flex;gap:6px">';
+        if (!done && !notRcv) {
+          h += '<button onclick="bktReceiveItem(\'' + xe(o.id) + '\',\'' + xe(it.code) + '\')" style="padding:4px 10px;border-radius:6px;border:none;background:var(--success);color:#fff;font-size:10px;font-weight:700;cursor:pointer">✓ Rcvd</button>';
+          h += '<button onclick="bktMarkNotReceived(\'' + xe(o.id) + '\',\'' + xe(it.code) + '\')" style="padding:4px 10px;border-radius:6px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:10px;font-weight:700;cursor:pointer">✕</button>';
+        } else {
+          h += '<span style="font-size:10px;font-weight:700;color:' + (done?'var(--success)':'var(--danger)') + '">' + (done?'✓ Received':'✕ N/A') + '</span>';
+        }
+        h += '</div></div>';
+      });
+      h += '</div>';
+    }
+    h += '</div>';
+  });
+  h += '</div>';
+  return h;
+}
 
 function pInvOrders() {
   attachBranchListeners();
