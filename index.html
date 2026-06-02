@@ -8451,15 +8451,17 @@ function pOrdersMarketNX() {
   var selLoc = BS._mktLoc  || '';
   var selSup = BS._mktSup  || '';
 
-  // Collect unique locations & suppliers from ALL items
-  var allLocs = [], allSups = [];
+  // Use the master supplier/location lists (Firebase-synced, with defaults fallback)
+  // Also include any values found on items that aren't in the master list
+  var allSups = getSuppliers().slice();
+  var allLocs = getLocations().slice();
   bItems.forEach(function(i) {
-    var loc = i.location || 'Unassigned';
-    var sup = i.supplier || '';
-    if (allLocs.indexOf(loc) < 0) allLocs.push(loc);
+    var sup = (i.supplier || '').trim();
+    var loc = (i.location || '').trim();
     if (sup && allSups.indexOf(sup) < 0) allSups.push(sup);
+    if (loc && allLocs.indexOf(loc) < 0) allLocs.push(loc);
   });
-  allLocs.sort(); allSups.sort();
+  allSups.sort(); allLocs.sort();
 
   // Apply all filters
   var filtered = bItems.filter(function(i) {
