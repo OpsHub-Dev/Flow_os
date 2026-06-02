@@ -8447,30 +8447,29 @@ function pOrdersMarketNX() {
   }
 
   // ── Filter state ──────────────────────────────────────────────
-  var q       = (BS._mktQ   || '').toLowerCase();
-  var selLoc  = BS._mktLoc  || '';
-  var selSup  = BS._mktSup  || '';
+  var q      = (BS._mktQ   || '').toLowerCase();
+  var selLoc = BS._mktLoc  || '';
+  var selSup = BS._mktSup  || '';
 
-  // Collect unique locations & suppliers from ALL items (for the pill lists)
+  // Collect unique locations & suppliers from ALL items
   var allLocs = [], allSups = [];
   bItems.forEach(function(i) {
-    var loc = i.location || 'General';
+    var loc = i.location || 'Unassigned';
     var sup = i.supplier || '';
     if (allLocs.indexOf(loc) < 0) allLocs.push(loc);
     if (sup && allSups.indexOf(sup) < 0) allSups.push(sup);
   });
   allLocs.sort(); allSups.sort();
 
-  // Apply all three filters
+  // Apply all filters
   var filtered = bItems.filter(function(i) {
-    if (selLoc && (i.location || 'General') !== selLoc) return false;
-    if (selSup && (i.supplier || '') !== selSup)         return false;
+    if (selLoc && (i.location || 'Unassigned') !== selLoc) return false;
+    if (selSup && (i.supplier || '') !== selSup) return false;
     if (q) {
-      var loc = (i.location||'General').toLowerCase();
-      var sup = (i.supplier||'').toLowerCase();
       if (String(i.code).toLowerCase().indexOf(q) < 0 &&
           i.name.toLowerCase().indexOf(q) < 0 &&
-          sup.indexOf(q) < 0 && loc.indexOf(q) < 0) return false;
+          (i.supplier||'').toLowerCase().indexOf(q) < 0 &&
+          (i.location||'').toLowerCase().indexOf(q) < 0) return false;
     }
     return true;
   });
@@ -8478,55 +8477,50 @@ function pOrdersMarketNX() {
   var basketCount = Object.keys(_basket).length;
   var basketTotal = Object.values(_basket).reduce(function(s,e){ return s + (e.qty * (parseFloat(e.item.price)||0)); }, 0);
 
-  // ── Pill style helpers ────────────────────────────────────────
-  var pillBase = 'display:inline-flex;align-items:center;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid;white-space:nowrap;transition:all .13s;';
-  function pill(label, active, onclick) {
-    var s = active
-      ? pillBase + 'background:var(--primary);border-color:var(--primary);color:#fff;'
-      : pillBase + 'background:transparent;border-color:var(--border-strong);color:var(--text-secondary);';
-    return '<button style="' + s + '" onclick="' + onclick + '">' + xe(label) + '</button>';
-  }
+  // ── Select dropdown style (matches screenshot) ────────────────
+  var selStyle = 'width:100%;padding:9px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);color:var(--text-primary);font-size:12px;font-weight:500;font-family:var(--font);cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'6\' viewBox=\'0 0 10 6\'%3E%3Cpath d=\'M0 0l5 6 5-6z\' fill=\'%23888\'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;';
 
   var h = '';
 
-  // ── Top bar: search + basket ──────────────────────────────────
-  h += '<div style="display:flex;gap:10px;margin-bottom:12px;align-items:center">';
-  h += '<input class="form-input" placeholder="Search items…" value="' + xe(BS._mktQ||'') + '" oninput="BS._mktQ=this.value;navTo(\'inv-orders\')" style="flex:1">';
-  if (basketCount) {
-    h += '<button class="btn btn-primary" onclick="openBasketModalNX()" style="white-space:nowrap;flex-shrink:0">🛒 Basket (' + basketCount + ') — ' + formatSAR(basketTotal) + '</button>';
-  }
+  // ── Filter row: Supplier | Location | Search ──────────────────
+  h += '<div style="display:flex;gap:10px;margin-bottom:14px;align-items:center;flex-wrap:wrap">';
+
+  // Supplier dropdown
+  h += '<div style="flex:1;min-width:150px;position:relative">';
+  h += '<select style="' + selStyle + '" onchange="BS._mktSup=this.value;navTo(\'inv-orders\')">';
+  h += '<option value="">All Suppliers</option>';
+  allSups.forEach(function(sup) {
+    h += '<option value="' + xe(sup) + '"' + (selSup===sup?' selected':'') + '>' + xe(sup) + '</option>';
+  });
+  h += '</select></div>';
+
+  // Location dropdown
+  h += '<div style="flex:1;min-width:150px;position:relative">';
+  h += '<select style="' + selStyle + '" onchange="BS._mktLoc=this.value;navTo(\'inv-orders\')">';
+  h += '<option value="">All Locations</option>';
+  allLocs.forEach(function(loc) {
+    h += '<option value="' + xe(loc) + '"' + (selLoc===loc?' selected':'') + '>' + xe(loc) + '</option>';
+  });
+  h += '</select></div>';
+
+  // Search input
+  h += '<div style="flex:2;min-width:180px">';
+  h += '<input class="form-input" placeholder="🔍 Search items…" value="' + xe(BS._mktQ||'') + '" oninput="BS._mktQ=this.value;navTo(\'inv-orders\')" style="width:100%;box-sizing:border-box">';
   h += '</div>';
 
-  // ── Location filter pills ─────────────────────────────────────
-  if (allLocs.length > 1) {
-    h += '<div style="margin-bottom:8px">';
-    h += '<div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--text-tertiary);margin-bottom:6px">📍 Location</div>';
-    h += '<div style="display:flex;flex-wrap:wrap;gap:6px">';
-    h += pill('All', !selLoc, "BS._mktLoc='';navTo('inv-orders')");
-    allLocs.forEach(function(loc) {
-      h += pill(loc, selLoc === loc, "BS._mktLoc=" + JSON.stringify(loc) + ";navTo('inv-orders')");
-    });
-    h += '</div></div>';
+  h += '</div>';
+
+  // Basket button (full width when active)
+  if (basketCount) {
+    h += '<button class="btn btn-primary" onclick="openBasketModalNX()" style="width:100%;margin-bottom:14px;font-size:13px;padding:11px">🛒 Basket (' + basketCount + ') — ' + formatSAR(basketTotal) + '</button>';
   }
 
-  // ── Supplier filter pills ─────────────────────────────────────
-  if (allSups.length > 1) {
-    h += '<div style="margin-bottom:14px">';
-    h += '<div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--text-tertiary);margin-bottom:6px">🏢 Supplier</div>';
-    h += '<div style="display:flex;flex-wrap:wrap;gap:6px">';
-    h += pill('All', !selSup, "BS._mktSup='';navTo('inv-orders')");
-    allSups.forEach(function(sup) {
-      h += pill(sup, selSup === sup, "BS._mktSup=" + JSON.stringify(sup) + ";navTo('inv-orders')");
-    });
-    h += '</div></div>';
-  }
-
-  // ── Results count + clear ─────────────────────────────────────
+  // Results count + clear
   var hasFilter = q || selLoc || selSup;
   if (hasFilter) {
     h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
     h += '<div style="font-size:11px;color:var(--text-tertiary)">' + filtered.length + ' of ' + bItems.length + ' items</div>';
-    h += '<button onclick="BS._mktQ=\'\';BS._mktLoc=\'\';BS._mktSup=\'\';navTo(\'inv-orders\')" style="font-size:10px;font-weight:700;background:none;border:none;color:var(--text-tertiary);cursor:pointer;padding:0">✕ Clear filters</button>';
+    h += '<button onclick="BS._mktQ=\'\';BS._mktLoc=\'\';BS._mktSup=\'\';navTo(\'inv-orders\')" style="font-size:11px;font-weight:700;background:none;border:none;color:var(--text-tertiary);cursor:pointer;padding:0;text-decoration:underline">Clear filters</button>';
     h += '</div>';
   }
 
@@ -8535,43 +8529,47 @@ function pOrdersMarketNX() {
     return h;
   }
 
-  // ── Item grid grouped by location ─────────────────────────────
-  // If a location filter is active, skip the group header (already obvious)
+  // ── Item grid, grouped by location (suppressed when loc filter active) ──
   var groupByLoc = !selLoc;
   var byLoc = {};
   filtered.forEach(function(i) {
-    var loc = groupByLoc ? (i.location || 'General') : '__all__';
+    var loc = groupByLoc ? (i.location || 'Unassigned') : '__all__';
     if (!byLoc[loc]) byLoc[loc] = [];
     byLoc[loc].push(i);
   });
 
   Object.keys(byLoc).sort().forEach(function(loc) {
     if (loc !== '__all__') {
-      h += '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--text-tertiary);margin:16px 0 8px">📍 ' + xe(loc) + '</div>';
+      h += '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--text-tertiary);margin:18px 0 8px;display:flex;align-items:center;gap:8px">';
+      h += '<span style="flex:1;height:1px;background:var(--border)"></span>';
+      h += '<span>📍 ' + xe(loc) + '</span>';
+      h += '<span style="flex:1;height:1px;background:var(--border)"></span>';
+      h += '</div>';
     }
-    h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px;margin-bottom:8px">';
+    h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px;margin-bottom:4px">';
     byLoc[loc].forEach(function(i) {
       var inBasket = _basket[i.code] ? _basket[i.code].qty : 0;
       var isLow    = i.min > 0 && i.qty <= i.min;
-      h += '<div style="background:var(--surface-2);border:1.5px solid var(--border' + (isLow?'-strong':'') + ');border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px">';
-      // Name + price row
+      h += '<div style="background:var(--surface-2);border:1.5px solid ' + (isLow?'var(--danger)':'var(--border)') + ';border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px">';
+      // Name + price
       h += '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">';
-      h += '<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:700;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + xe(i.name) + '</div>';
+      h += '<div style="flex:1;min-width:0">';
+      h += '<div style="font-size:12px;font-weight:700;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + xe(i.name) + '</div>';
       h += '<div style="font-size:10px;color:var(--text-tertiary);font-family:var(--mono);margin-top:2px">' + xe(i.code);
       if (i.supplier) h += ' · <span style="color:var(--text-secondary)">' + xe(i.supplier) + '</span>';
       h += '</div></div>';
-      h += '<div style="text-align:right;flex-shrink:0"><div style="font-size:11px;font-weight:700;color:var(--accent)">' + formatSAR(parseFloat(i.price)||0) + '</div>';
-      h += '<div style="font-size:9px;color:var(--text-tertiary)">' + xe(i.unit||'EA') + '</div></div></div>';
-      // Stock + controls row
+      h += '<div style="text-align:right;flex-shrink:0">';
+      h += '<div style="font-size:11px;font-weight:700;color:var(--accent)">' + formatSAR(parseFloat(i.price)||0) + '</div>';
+      h += '<div style="font-size:9px;color:var(--text-tertiary)">' + xe(i.unit||'EA') + '</div>';
+      h += '</div></div>';
+      // Stock + controls
       h += '<div style="display:flex;align-items:center;justify-content:space-between;gap:6px">';
-      h += '<div style="font-size:10px;color:' + (isLow?'var(--danger)':'var(--text-tertiary)') + ';font-family:var(--mono)">';
-      h += (isLow ? '⚠ ' : '') + 'Stock: ' + (parseFloat(i.qty)||0).toFixed(1) + (i.min ? ' / min ' + i.min : '');
-      h += '</div>';
+      h += '<div style="font-size:10px;color:' + (isLow?'var(--danger)':'var(--text-tertiary)') + ';font-family:var(--mono)">' + (isLow?'⚠ ':'') + 'Stock: ' + (parseFloat(i.qty)||0).toFixed(1) + (i.min?' / min '+i.min:'') + '</div>';
       if (inBasket > 0) {
         h += '<div style="display:flex;align-items:center;gap:4px">';
-        h += '<button onclick="bktDec(\'' + xe(i.code) + '\')" style="width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:var(--surface-3);color:var(--text-primary);cursor:pointer;font-size:14px;line-height:1">−</button>';
+        h += '<button onclick="bktDec(\'' + xe(i.code) + '\')" style="width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:var(--surface-3);color:var(--text-primary);cursor:pointer;font-size:15px;line-height:1">−</button>';
         h += '<span style="font-weight:700;min-width:24px;text-align:center;font-family:var(--mono);font-size:13px">' + inBasket + '</span>';
-        h += '<button onclick="bktInc(\'' + xe(i.code) + '\')" style="width:26px;height:26px;border-radius:6px;border:none;background:var(--primary);color:#fff;cursor:pointer;font-size:14px;line-height:1">+</button>';
+        h += '<button onclick="bktInc(\'' + xe(i.code) + '\')" style="width:26px;height:26px;border-radius:6px;border:none;background:var(--primary);color:#fff;cursor:pointer;font-size:15px;line-height:1">+</button>';
         h += '</div>';
       } else {
         h += '<button onclick="bktAdd(\'' + xe(i.code) + '\')" style="padding:5px 14px;border-radius:6px;border:none;background:var(--primary);color:#fff;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">+ Add</button>';
